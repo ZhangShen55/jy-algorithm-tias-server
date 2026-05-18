@@ -1,0 +1,77 @@
+# 使用 NVIDIA CUDA 11.3 镜像
+FROM nvidia/cuda:11.3.1-cudnn8-runtime-ubuntu20.04
+
+LABEL authors="SeaCraft"
+
+# 设置非交互式安装，避免地理区域选择提示
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=Asia/Shanghai
+
+# 更换国内源（阿里云），提升 apt 下载速度
+# RUN #sed -i 's/archive.ubuntu.com/mirrors.aliyun.com/g' /etc/apt/sources.list && \
+#    sed -i 's/security.ubuntu.com/mirrors.aliyun.com/g' /etc/apt/sources.list
+# 预配置时区，避免交互式提示
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+    # 安装 Python 3.8 和相关依赖
+RUN apt-get update && \
+    apt-get install -y \
+        python3.8 \
+        python3.8-distutils \
+        python3.8-dev \
+        python3-pip \
+        git \
+        jq \
+        curl \
+        nginx \
+        libgl1-mesa-glx \
+        libglib2.0-0 \
+        libsm6 \
+        libxrender1 \
+        libxext6 \
+        libfontconfig1 \
+        libice6 \
+        && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# 设置 python3.8 为默认 python
+RUN ln -sf /usr/bin/python3.8 /usr/bin/python3
+RUN ln -sf /usr/bin/python3.8 /usr/bin/python
+
+# 为 Python 3.8 安装 pip（使用专门的Python 3.8版本）
+RUN curl https://bootstrap.pypa.io/pip/3.8/get-pip.py | python3.8
+
+# 创建 pip 软链接
+RUN ln -sf /usr/local/bin/pip3.8 /usr/bin/pip
+
+# 升级 pip
+RUN python -m pip install --upgrade pip
+
+# 安装 PyTorch 1.12 + CUDA 11.3
+RUN pip install torch==1.12.1+cu113 torchvision==0.13.1+cu113 torchaudio==0.12.1 \
+    --extra-index-url https://download.pytorch.org/whl/cu113 \
+    -i https://mirrors.aliyun.com/pypi/simple/
+
+# 设置工作目录
+WORKDIR /app
+
+# 拷贝代码和依赖
+COPY ./app ./app
+COPY requirements_cuda113.txt .
+COPY config.json .
+COPY start.sh .
+# 拷贝nginx配置文件
+COPY nginx/nginx.conf /etc/nginx/nginx.conf
+
+# 安装 Python 依赖
+RUN pip install -i https://mirrors.aliyun.com/pypi/simple/ -r requirements_cuda113.txt
+
+# 设置环境变量
+ENV PYTHONUNBUFFERED=1
+
+# 给予启动脚本执行权限
+RUN chmod +x start.sh
+
+# 暴露端口
+EXPOSE 8881
+
+# 启动命令
+CMD ["/bin/bash", "-c", "./start.sh"]
