@@ -19,3 +19,7 @@ env/
 # IDE（按需）
 .vscode/
 .idea/
+
+# 测试文件和文档
+tests_data/
+test_*.py
