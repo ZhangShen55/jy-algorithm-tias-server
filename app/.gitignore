@@ -1,0 +1,15 @@
+# app 目录特有忽略（通用 Python 规则见根目录 .gitignore）
+
+*.egg-info/
+*.pt
+*.json
+*.log
+
+# 测试文件和文档
+*.pdf
+*.doc
+*.docx
+*.ppt
+*.pptx
+*.xls
+*.xlsx

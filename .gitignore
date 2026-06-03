@@ -1,0 +1,21 @@
+# Python 字节码 / 缓存
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 常见工具缓存
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# 虚拟环境
+.venv/
+venv/
+env/
+
+# macOS
+.DS_Store
+
+# IDE（按需）
+.vscode/
+.idea/
