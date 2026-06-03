@@ -1,12 +1,32 @@
 #!/bin/bash
 
 set -euo pipefail
-export CONFIG_PATH="/app/config.json"
+export CONFIG_PATH="/app/config.toml"
 [[ -f "$CONFIG_PATH" ]] || { echo "[ERROR] 配置文件不存在"; exit 1; }
 echo "[INFO] 配置文件存在，准备启动服务"
 
-INSTANCE_COUNT=$(jq -r '.INSTANCE_COUNT // 1' "$CONFIG_PATH")
-WORKERS_PER_INSTANCE=$(jq -r '.WORKERS_PER_INSTANCE // 1' "$CONFIG_PATH")
+toml_value() {
+    local key="$1"
+    local default="$2"
+    python - "$CONFIG_PATH" "$key" "$default" <<'PY'
+import sys
+
+path, key, default = sys.argv[1:4]
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
+
+with open(path, "rb") as f:
+    data = tomllib.load(f)
+
+value = data.get(key, default)
+print(value)
+PY
+}
+
+INSTANCE_COUNT=$(toml_value INSTANCE_COUNT 1)
+WORKERS_PER_INSTANCE=$(toml_value WORKERS_PER_INSTANCE 1)
 
 echo "[INFO] 实例数量: $INSTANCE_COUNT, 每实例工作进程: $WORKERS_PER_INSTANCE"
 

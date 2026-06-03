@@ -1,15 +1,15 @@
 # app/core/settings.py
-import os, json
+import os
 from ultralytics import YOLO
 import torch
 import time
 from pydantic_settings import BaseSettings
 from typing import Dict, Optional, Union
 from ..schemas.aem import MetaData_schemas, AEMSettings
+from .config_loader import load_config
 
-CONFIG_PATH = os.getenv("CONFIG_PATH",os.path.abspath(os.path.join(os.path.dirname(__file__), "../../config.json")))
-with open(CONFIG_PATH, "r") as f:
-    _cfg = json.load(f)
+CONFIG_PATH = os.getenv("CONFIG_PATH",os.path.abspath(os.path.join(os.path.dirname(__file__), "../config.toml")))
+_cfg = load_config(CONFIG_PATH)
 
 class Settings(BaseSettings):
     AEM: Optional[AEMSettings] = None
@@ -55,8 +55,28 @@ Total_HaveProcess_Tasks = {"val": 0}
 
 PERSON_MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', 'models', 'person_count_20251222_1920p.pt')
 FACE_MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', 'models', 'face_count_20251212.pt')
-STUDENT_MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', 'models', 'student_20250819).pt')
+STUDENT_MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', 'models', 'student_20250819.pt')
 TEACHER_MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', 'models', 'teacher-pose.pt')
+
+'''
+person_count.pt	
+    0: Head
+    1: Top_Head
+    2: Hat
+    3: Headphones
+    4: Shoulder
+    5: Other
+face_count.pt
+    0: face
+student.pt	
+    0: Using_phone
+    1: Hand_raising
+    2: Sleep
+    3: standing
+    4: Read_W
+teacher-pose.pt	
+    0: person
+'''
 
 yolo_person_model = YOLO(PERSON_MODEL_PATH).to(device)
 yolo_face_model = YOLO(FACE_MODEL_PATH).to(device)

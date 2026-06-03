@@ -21,7 +21,7 @@ RUN pip3 install --no-cache-dir -i https://mirrors.aliyun.com/pypi/simple/ \
 
 # 拷贝代码和依赖
 COPY ./app ./app
-COPY config.json .
+COPY config.toml .
 COPY start.sh .
 # 拷贝nginx配置文件
 COPY nginx/nginx.conf /etc/nginx/nginx.conf

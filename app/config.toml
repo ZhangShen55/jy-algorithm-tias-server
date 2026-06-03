@@ -1,0 +1,37 @@
+IMAGE_ROOT = "/mnt/ias-images"
+SERVER = "http://172.17.0.1:10004"
+INSTANCE_COUNT = 1
+WORKERS_PER_INSTANCE = 1
+GPU_ID = "cpu"
+
+[AEM]
+AppName = "APP_SeaCraft_edu_ias"
+InstanceId = "172.16.161.44:8881"
+IpAddr = "172.16.161.44"
+Port = 8881
+KeepaliveInterval = 40
+
+[AEM.MetaData]
+AlgVersion = "Person_Count V4.6"
+AlgVendor = "SeaCraft"
+TaskType = [4]
+AppType = "edu_ias"
+RunAlways = 2
+Resource = 1
+
+[Person_Thresd]
+Head = 0.25
+Top_Head = 0.1
+Hat = 0.1
+Headphones = 0.1
+Shoulder = 0.1
+
+[Face_Thresd]
+face = 0.1
+
+[Student_Thresd]
+Using_phone = 0.3
+Hand_raising = 0.75
+Sleep = 0.15
+standing = 0.2
+Read_W = 0.4

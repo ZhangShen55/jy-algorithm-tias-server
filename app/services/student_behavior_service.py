@@ -88,7 +88,7 @@ def process_person_detection(img: np.ndarray, offset: Tuple[int, int], img_size:
             RightBtmY=y2 + oy
         ))
         # logger.debug(f"[人数检测] 检测到 {cls_names[cls]}: conf={conf:.3f}, bbox=({x1 + ox},{y1 + oy},{x2 + ox},{y2 + oy})")
-    logger.info(f"[人数检测] 完成，符合config.json中的阈值的有效目标: {len(positions)}个")
+    logger.info(f"[人数检测] 完成，符合config.toml中的阈值的有效目标: {len(positions)}个")
     return positions
 
 
@@ -116,7 +116,7 @@ def process_face_detection(img: np.ndarray, offset: Tuple[int, int], img_size: T
             RightBtmX=x2 + ox,
             RightBtmY=y2 + oy
         ))
-    logger.info(f"[抬头检测] 完成，符合config.json中的阈值的有效目标: {len(positions)}个")
+    logger.info(f"[抬头检测] 完成，符合config.toml中的阈值的有效目标: {len(positions)}个")
     return positions
 
 
@@ -156,7 +156,7 @@ def process_student_behavior(img: np.ndarray, offset: Tuple[int, int],img_size: 
         ))
     # 统计各行为检测结果
     behavior_stats = {name: len(positions) for name, positions in behavior_results.items() if positions}
-    logger.info(f"[学生行为检测] 完成，符合config.json中的阈值的检测结果: {behavior_stats}")
+    logger.info(f"[学生行为检测] 完成，符合config.toml中的阈值的检测结果: {behavior_stats}")
     return behavior_results
 
 

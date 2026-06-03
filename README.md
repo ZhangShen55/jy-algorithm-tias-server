@@ -34,7 +34,7 @@ jy-algorithm-tias-server/
 ├── README.md                 # 本说明
 └── app/
     ├── main.py               # FastAPI 入口、IAS 客户端生命周期
-    ├── config.json           # 默认配置示例（部署时常挂载或复制）
+    ├── config.toml           # 默认配置示例（部署时常挂载或复制）
     ├── start.sh              # 启动脚本（单实例 / Nginx + 多实例）
     ├── requirements.txt      # PyTorch 2.6 / CUDA 11.8 主线依赖
     ├── requirements_cuda113.txt
@@ -69,9 +69,9 @@ jy-algorithm-tias-server/
 
 ## 配置说明
 
-### `config.json`（或 `CONFIG_PATH` 指向的文件）
+### `config.toml`（或 `CONFIG_PATH` 指向的文件）
 
-应用通过环境变量 **`CONFIG_PATH`** 指定配置文件，默认在 `settings.py` 中解析为仓库根下的 `config.json`；Docker 内 `start.sh` 固定为 **`/app/config.json`**。
+应用通过环境变量 **`CONFIG_PATH`** 指定配置文件，默认在 `settings.py` 中解析为 `app/config.toml`；Docker 内 `start.sh` 固定为 **`/app/config.toml`**。
 
 常用字段：
 
@@ -148,15 +148,15 @@ jy-algorithm-tias-server/
    pip install -r requirements.txt
    ```
 
-3. 将模型放入 `app/models/`，并按需修改 `app/core/settings.py` 中的路径或 `config.json`。  
+3. 将模型放入 `app/models/`，并按需修改 `app/core/settings.py` 中的路径或 `config.toml`。
 4. 从 **`app` 的父目录** 启动（保证 `app` 为包名）：
 
    ```bash
-   export CONFIG_PATH="/绝对路径/config.json"
+   export CONFIG_PATH="/绝对路径/app/config.toml"
    uvicorn app.main:app --host 0.0.0.0 --port 8881 --reload
    ```
 
-若 `config.json` 中配置了有效的 `SERVER` 与 `AEM`，进程启动约 3 秒后会向 IAS 执行注册并启动保活线程。
+若 `config.toml` 中配置了有效的 `SERVER` 与 `AEM`，进程启动约 3 秒后会向 IAS 执行注册并启动保活线程。
 
 ---
 
@@ -165,7 +165,7 @@ jy-algorithm-tias-server/
 - **主线**：`app/Dockerfile`（`pytorch/pytorch:2.6.0-cuda11.8-cudnn9-runtime`）。  
 - **备选**：`app/Dockerfile_cuda113`（CUDA 11.3 + Python 3.8 + 独立 `requirements_cuda113.txt`）。
 
-构建时需保证构建上下文包含：`app/`、`config.json`、`start.sh`、以及 Dockerfile 引用的 **`nginx/nginx.conf`** 等文件。
+构建时需保证构建上下文包含：`app/`、`config.toml`、`start.sh`、以及 Dockerfile 引用的 **`nginx/nginx.conf`** 等文件。
 
 容器内：
 
