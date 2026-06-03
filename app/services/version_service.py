@@ -1,11 +1,11 @@
 import os
 import time
 import logging
-from datetime import datetime, timezone
+from datetime import datetime
 from ..schemas.version import VersionResponse, VersionInfo
 from ..schemas.response import Response as GenericResponse
 from ..schemas.error_codes import AppErrCode
-from ..core.settings import settings, APP_VER, ADP_VER, ALG_VER, Total_HaveProcess_Tasks
+from ..core.settings import APP_VER, ADP_VER, ALG_VER, Total_HaveProcess_Tasks
 
 logger = logging.getLogger(__name__)
 
@@ -31,11 +31,10 @@ async def version_service() -> VersionResponse:
     """
     返回 APP/Adapter/Algorithm 的版本信息
     """
-    instance_id = settings.AEM.InstanceId if settings.AEM else os.getenv("instance_id", "")
+    instance_id = os.getenv("INSTANCE_ID", os.getenv("instance_id", ""))
     # 下面的环境变量名可根据你实际设置来调整
     # app_ver = os.getenv("APP_VERSION", "")
     # adp_ver = os.getenv("ADP_VERSION", "")
-    # alg_ver = settings.AEM.MetaData.AlgVersion if settings.AEM else os.getenv("AlgVersion", "")
     app_ver = APP_VER
     adp_ver = ADP_VER
     alg_ver = ALG_VER

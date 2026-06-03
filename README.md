@@ -1,6 +1,6 @@
 # jy-algorithm-tias-server
 
-基于 **Ultralytics YOLO** 的课堂智能分析算法服务（SeaCraft / 教育 IAS 场景）。对外提供 **FastAPI** HTTP 接口，支持 **IAS（智能分析平台）** 注册、保活、能力查询，以及 **人数统计、抬头（人脸）检测、学生行为、老师行为** 等多路推理。
+基于 **Ultralytics YOLO** 的课堂智能分析算法服务（SeaCraft / 教育 IAS 场景）。对外提供 **FastAPI** HTTP 接口，支持 **能力查询、人数统计、抬头（人脸）检测、学生行为、老师行为** 等多路推理。
 
 ---
 
@@ -43,7 +43,7 @@ jy-algorithm-tias-server/
     ├── core/
     │   └── settings.py       # 配置加载、设备选择、YOLO 模型全局加载
     ├── api/                  # 路由：任务、容量、版本、日志等级、师生行为
-    ├── services/             # 任务处理、IAS 注册/保活、师生行为推理
+    ├── services/             # 任务处理、容量/版本信息、师生行为推理
     ├── schemas/              # Pydantic 请求/响应模型
     └── models/               # 权重文件目录（需自行放置，见下文）
 ```
@@ -60,7 +60,7 @@ jy-algorithm-tias-server/
 |------|--------------------------------------|
 | 人数 | `app/models/person_count_20251222_1920p.pt` |
 | 人脸 | `app/models/face_count_20251212.pt` |
-| 学生行为 | `app/models/student_20250819).pt`（若与仓库实际文件名不一致，请同步修改 `STUDENT_MODEL_PATH`） |
+| 学生行为 | `app/models/student_20250819.pt`（若与仓库实际文件名不一致，请同步修改 `STUDENT_MODEL_PATH`） |
 | 老师姿态 | `app/models/teacher-pose.pt` |
 
 `app/models/READEME.md` 中说明该目录用于存放模型。
@@ -77,8 +77,6 @@ jy-algorithm-tias-server/
 
 | 字段 | 含义 |
 |------|------|
-| `AEM` | IAS 注册信息：`AppName`、`InstanceId`、`IpAddr`、`Port`、`MetaData`、`KeepaliveInterval` |
-| `SERVER` | IAS 服务基地址，用于 `/AEM/Register`、`Keepalive`、`UnRegister` |
 | `IMAGE_ROOT` | 同步任务或行为接口中**相对路径图片**的根目录 |
 | `GPU_ID` | GPU 编号；设为字符串 **`cpu`** 时使用 CPU |
 | `INSTANCE_COUNT` / `WORKERS_PER_INSTANCE` | 与 `start.sh` 配合：多实例时启动 Nginx + 多个 Uvicorn（后端端口从 8981 递增） |
@@ -94,7 +92,7 @@ jy-algorithm-tias-server/
 
 除特别说明外，服务默认监听 **`8881`**。
 
-### IAS / 运维相关（前缀 `/AE`）
+### 运维相关（前缀 `/AE`）
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
@@ -156,7 +154,7 @@ jy-algorithm-tias-server/
    uvicorn app.main:app --host 0.0.0.0 --port 8881 --reload
    ```
 
-若 `config.toml` 中配置了有效的 `SERVER` 与 `AEM`，进程启动约 3 秒后会向 IAS 执行注册并启动保活线程。
+服务启动后不再向 IAS 执行注册、注销或保活请求，推理接口可直接在本地或容器内使用。
 
 ---
 
@@ -173,15 +171,6 @@ jy-algorithm-tias-server/
 - `start.sh` 根据 `INSTANCE_COUNT` 选择单 Uvicorn 或 Nginx + 多 Uvicorn  
 
 请将图片目录与模型通过卷挂载到容器内对应路径（如 `IMAGE_ROOT`、`/app/app/models`）。
-
----
-
-## 与 IAS 的集成要点
-
-- **注册**：`POST {SERVER}/AEM/Register`，成功时 `ResponseStatusObject.StatusCode == 2000`。  
-- **保活**：后台线程按 `KeepaliveInterval`（秒）调用 `POST {SERVER}/AEM/Keepalive`。  
-- **注销**：应用关闭时 `POST {SERVER}/AEM/UnRegister`。  
-- 若未配置 `SERVER`，启动日志会提示无法注册，但推理接口仍可在本地使用。
 
 ---
 

@@ -4,19 +4,16 @@ from ultralytics import YOLO
 import torch
 import time
 from pydantic_settings import BaseSettings
-from typing import Dict, Optional, Union
-from ..schemas.aem import MetaData_schemas, AEMSettings
+from typing import Dict, Union
 from .config_loader import load_config
 
 CONFIG_PATH = os.getenv("CONFIG_PATH",os.path.abspath(os.path.join(os.path.dirname(__file__), "../config.toml")))
 _cfg = load_config(CONFIG_PATH)
 
 class Settings(BaseSettings):
-    AEM: Optional[AEMSettings] = None
     IMAGE_ROOT: str = "/mnt/ias-images"
     RESULT_IMAGE_ROOT: str = "/data/result_images"
     SAVE_RESULT_IMAGE: int = 0
-    SERVER: Optional[str] = "http://172.17.0.1:10004"
     Port: int = 8881
     GPU_ID: Union[int, str]
     Person_Thresd: Dict[str, float]
@@ -25,13 +22,7 @@ class Settings(BaseSettings):
     INSTANCE_COUNT: int = 1  # nginx实例个数
     WORKERS_PER_INSTANCE: int = 1 # 每实例workers数量，默认1
 
-    model_config = {"env_file": None}
-
-if "AEM" in _cfg:
-    aem_config = _cfg.pop("AEM")
-    if "MetaData" in aem_config:
-        aem_config["MetaData"] = MetaData_schemas(**aem_config["MetaData"])
-    _cfg["AEM"] = AEMSettings(**aem_config)
+    model_config = {"env_file": None, "extra": "ignore"}
 
 settings = Settings(**_cfg)
 
@@ -65,7 +56,7 @@ person_count.pt
     2: Hat
     3: Headphones
     4: Shoulder
-    5: Other
+    5: Other（移除）
 face_count.pt
     0: face
 student.pt	
