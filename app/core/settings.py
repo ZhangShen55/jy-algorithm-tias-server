@@ -44,30 +44,11 @@ ALG_VER = "person_count_20251222_1920p/face_count(20251212)/student(20250819)"
 #已经处理任务总数
 Total_HaveProcess_Tasks = {"val": 0} 
 
-PERSON_MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', 'models', 'person_count_20251222_1920p.pt')
-FACE_MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', 'models', 'face_count_20251212.pt')
-STUDENT_MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', 'models', 'student_20250819.pt')
-TEACHER_MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', 'models', 'teacher-pose.pt')
+PERSON_MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', 'models', 'person_count.pt')
+FACE_MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', 'models', 'face_count.pt')
+STUDENT_MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', 'models', 'student.pt')
+TEACHER_MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', 'models', 'teacher.pt')
 
-'''
-person_count.pt	
-    0: Head
-    1: Top_Head
-    2: Hat
-    3: Headphones
-    4: Shoulder
-    5: Other（移除）
-face_count.pt
-    0: face
-student.pt	
-    0: Using_phone
-    1: Hand_raising
-    2: Sleep
-    3: standing
-    4: Read_W
-teacher-pose.pt	
-    0: person
-'''
 
 yolo_person_model = YOLO(PERSON_MODEL_PATH).to(device)
 yolo_face_model = YOLO(FACE_MODEL_PATH).to(device)
