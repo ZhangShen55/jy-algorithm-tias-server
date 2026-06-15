@@ -18,3 +18,8 @@ student.pt
     4: Read_W
 teacher.pt	
     0: person
+teacher_behavior.pt
+    0: sit
+    1: stand
+    2: bbwriting
+    3: teach

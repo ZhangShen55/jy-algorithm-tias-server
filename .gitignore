@@ -24,3 +24,4 @@ env/
 tests_data/
 test_*.py
 *.jpg
+tests/

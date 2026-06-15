@@ -19,3 +19,33 @@ Hand_raising = 0.75
 Sleep = 0.15
 standing = 0.2
 Read_W = 0.4
+
+[Teacher_Thresd]
+SittingShoulderAngle = 105.0
+
+[Teacher_Behavior_Thresd]
+# 同一主体多类别框的高重叠合并阈值，主要用于兼容旧逻辑和结果聚合。
+MergeIoU = 0.8
+# 主体聚类 IoU 阈值；用于把同一老师的姿态框和授课行为框合成一个主体。
+SubjectClusterIoU = 0.45
+# teacher_behavior.pt 推理尺寸。
+ImageSize = 640
+
+sit = 0.4
+stand = 0.4
+bbwriting = 0.25
+teach = 0.25
+
+# 是否只保留一个主老师主体。
+KeepOnlyMainSubject = true
+# 主体选择策略。posture_confidence 表示优先按 sit/stand 姿态置信度选择老师主体。
+MainSubjectStrategy = "posture_confidence"
+
+# sit 与 stand 同时过阈值时的置信度差值比例阈值；差值比例 <= 该值时认为冲突不明显。
+PostureConflictRatio = 0.10
+
+# sit 与 stand 冲突不明显时的默认姿态；当前业务要求非坐即站，默认按 stand 输出。
+PostureConflictDefault = "stand"
+
+# 主体存在但 sit/stand 都未过阈值时，是否强制输出默认姿态并标记 PostureFallback。
+ForcePostureWhenMissing = true

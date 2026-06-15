@@ -2,7 +2,7 @@
 from fastapi import APIRouter, HTTPException
 from ..schemas.stu_tea_behavior import Stu_Tea_BehaviorRequest, Stu_Tea_BehaviorResponse
 from ..services.student_behavior_service import analyze_student_behavior
-from ..services.teacher_behavior_service import analyze_teacher_behavior
+from ..services.teacher_behavior_service import analyze_teacher_behavior, analyze_teacher_behavior_by_model
 import logging
 
 logger = logging.getLogger(__name__)
@@ -34,4 +34,19 @@ async def teacher_behavior_analysis(request: Stu_Tea_BehaviorRequest):
         return result
     except Exception as e:
         logger.error(f"Teacher behavior analysis failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"分析失败: {str(e)}")
+
+
+@router.post("/ImageDetect/teacher_behavior/v1.0.0", response_model=Stu_Tea_BehaviorResponse)
+async def teacher_behavior_model_analysis(request: Stu_Tea_BehaviorRequest):
+    """
+    新老师行为分析接口。
+    使用 teacher_behavior.pt，包含：讲台是否有人(100)、坐着(201)、站立(202)、板书(203)、讲授(204)。
+    """
+    try:
+        logger.info(f"Received teacher behavior model analysis request for {len(request.ImageList)} images")
+        result = await analyze_teacher_behavior_by_model(request)
+        return result
+    except Exception as e:
+        logger.error(f"Teacher behavior model analysis failed: {str(e)}")
         raise HTTPException(status_code=500, detail=f"分析失败: {str(e)}")
