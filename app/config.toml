@@ -20,9 +20,6 @@ Sleep = 0.15
 standing = 0.2
 Read_W = 0.4
 
-[Teacher_Thresd]
-SittingShoulderAngle = 105.0
-
 [Teacher_Behavior_Thresd]
 # 同一主体多类别框的高重叠合并阈值，主要用于兼容旧逻辑和结果聚合。
 MergeIoU = 0.8

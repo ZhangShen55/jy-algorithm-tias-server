@@ -11,8 +11,7 @@
 | **人数检测** | 在指定多边形 ROI 内检测头部相关目标并计数 | `person_count_*.pt`（类别：Head、Top_Head、Hat、Headphones、Shoulder） |
 | **抬头 / 人脸** | ROI 内人脸框检测，用于抬头率等统计 | `face_count_*.pt` |
 | **学生行为** | 玩手机、举手、睡觉、站立、阅读等 | `student_*.pt` + 与人脸/人数并行 |
-| **老师行为（旧）** | 讲台区域人物、站/坐、板书、打电话（基于姿态关键点规则） | `teacher.pt`（姿态 + 规则引擎） |
-| **老师行为（新）** | 讲台区域人物、站/坐、板书、讲授（同主体多标签聚合） | `teacher_behavior.pt` |
+| **老师行为** | 讲台区域人物、站/坐、板书、讲授（同主体多标签聚合） | `teacher_behavior.pt` |
 
 - **IAS 同步任务**（`/AE/SyncTasks`）：按任务下发的多边形列表，对本地或挂载目录中的图片做人数 + 人脸，可选输出画框结果图。  
 - **学生 / 老师 REST 接口**（`/ImageDetect/...`）：支持 Base64、`data:` URL、HTTP(S) 图片 URL、或 `IMAGE_ROOT` 下的相对路径；可选多边形遮罩。
@@ -62,8 +61,7 @@ jy-algorithm-tias-server/
 | 人数 | `app/models/person_count_20251222_1920p.pt` |
 | 人脸 | `app/models/face_count_20251212.pt` |
 | 学生行为 | `app/models/student_20250819.pt`（若与仓库实际文件名不一致，请同步修改 `STUDENT_MODEL_PATH`） |
-| 老师姿态旧方案 | `app/models/teacher.pt` |
-| 老师行为新方案 | `app/models/teacher_behavior.pt` |
+| 老师行为 | `app/models/teacher_behavior.pt` |
 
 `app/models/READEME.md` 中说明该目录用于存放模型。
 
@@ -85,13 +83,15 @@ jy-algorithm-tias-server/
 | `Person_Thresd` | 人数模型各类别置信度阈值（Head、Top_Head、Hat 等） |
 | `Face_Thresd` | 人脸检测阈值 |
 | `Student_Thresd` | 学生行为各类别阈值（Using_phone、Hand_raising、Sleep 等） |
-| `Teacher_Thresd.SittingShoulderAngle` | 老师坐姿补充阈值：0-6 与 0-5 夹角需大于该角度，默认 `105.0` |
 | `Teacher_Behavior_Thresd.MergeIoU` | 新老师行为模型同主体多类别框的高重叠合并阈值，默认 `0.8` |
 | `Teacher_Behavior_Thresd.SubjectClusterIoU` | 主体聚类 IoU 阈值，用于把同一老师的姿态框和授课行为框合成一个主体，默认 `0.45` |
 | `Teacher_Behavior_Thresd.ImageSize` | 新老师行为模型推理尺寸，默认 `640` |
 | `Teacher_Behavior_Thresd.sit` / `stand` / `bbwriting` / `teach` | 新老师行为模型各类别默认置信度阈值；`sit` / `stand` 默认 `0.4`，`bbwriting` / `teach` 默认 `0.25`，接口请求中同名字段可临时覆盖 |
 | `Teacher_Behavior_Thresd.KeepOnlyMainSubject` | 是否只保留一个主老师主体，默认 `true` |
 | `Teacher_Behavior_Thresd.MainSubjectStrategy` | 主主体选择策略，默认 `posture_confidence`：优先按 `sit` / `stand` 姿态置信度选择老师主体 |
+| `Teacher_Behavior_Thresd.PostureConflictRatio` | `sit` / `stand` 同时过阈值时的置信度差值比例阈值，默认 `0.10` |
+| `Teacher_Behavior_Thresd.PostureConflictDefault` | 姿态冲突不明显或缺失时的默认姿态，默认 `stand` |
+| `Teacher_Behavior_Thresd.ForcePostureWhenMissing` | 主体存在但姿态都未过阈值时是否强制输出默认姿态，默认 `true` |
 
 可选：`RESULT_IMAGE_ROOT`、`SAVE_RESULT_IMAGE`（在 `settings.py` 中定义，用于额外保存结果图）。
 
@@ -117,8 +117,7 @@ jy-algorithm-tias-server/
 | 方法 | 路径 | 说明 |
 |------|------|------|
 | POST | `/ImageDetect/student/v1.0.0` | 学生：人数(100)、人脸/抬头(101)、行为(201–205) |
-| POST | `/ImageDetect/teacher/v1.0.0` | 老师：讲台人员(100)、站立(201)、坐(202)、板书(203)、打电话(204) |
-| POST | `/ImageDetect/teacher_behavior/v1.0.0` | 新老师行为：讲台人员(100)、坐(201)、站立(202)、板书(203)、讲授(204) |
+| POST | `/ImageDetect/teacher/v1.0.0` | 老师：讲台人员(100)、坐(201)、站立(202)、板书(203)、讲授(204) |
 
 **学生行为 `ObjectType` 编码**（`student_behavior_service.py`）：
 
@@ -130,15 +129,7 @@ jy-algorithm-tias-server/
 - `204`：站立  
 - `205`：阅读  
 
-**老师行为 `ObjectType` 编码**（`teacher_behavior_service.py`）：
-
-- `100`：讲台区域检测到人（与姿态检测框一致）  
-- `201`：站立（板书时也会计入站立）  
-- `202`：坐着  
-- `203`：板书（手腕高举 + 肘部角度等规则）  
-- `204`：打电话（手腕与耳部距离规则）
-
-**新老师行为 `ObjectType` 编码**（`teacher_behavior.pt` + 同主体 IoU 聚合）：
+**老师行为 `ObjectType` 编码**（`teacher_behavior.pt` + 同主体 IoU 聚合）：
 
 - `100`：讲台区域检测到老师主体
 - `201`：坐着（`sit`）
@@ -146,9 +137,9 @@ jy-algorithm-tias-server/
 - `203`：板书（`bbwriting`）
 - `204`：讲授（`teach`）
 
-新接口会按 `SubjectClusterIoU` 把同一老师的姿态框和授课行为框聚合为一个主体。默认只保留一个主主体，选择规则为优先按 `sit` / `stand` 姿态置信度确认主体，再保留 `bbwriting` / `teach` 等授课行为。`sit` / `stand` 暂不强制互斥；`bbwriting` / `teach` 可同时保留。
+老师接口会按 `SubjectClusterIoU` 把同一老师的姿态框和授课行为框聚合为一个主体。默认只保留一个主主体，选择规则为优先按 `sit` / `stand` 姿态置信度确认主体，再保留 `bbwriting` / `teach` 等授课行为。`sit` / `stand` 最终互斥；当两者置信度差值比例小于等于 `PostureConflictRatio` 时默认输出 `stand` 并标记 `SuspectedSitting=true`，主体存在但姿态都没过阈值时按 `PostureConflictDefault` 兜底输出并标记 `PostureFallback=true`。
 
-新接口请求体可选传 `Teacher_Behavior_Thresd` 覆盖单次请求阈值，例如只覆盖 `sit` 和 `teach`：
+老师接口请求体可选传 `Teacher_Behavior_Thresd` 覆盖单次请求阈值，例如只覆盖 `sit` 和 `teach`：
 
 ```json
 {

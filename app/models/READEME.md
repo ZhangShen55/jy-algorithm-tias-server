@@ -16,8 +16,6 @@ student.pt
     2: Sleep
     3: standing
     4: Read_W
-teacher.pt	
-    0: person
 teacher_behavior.pt
     0: sit
     1: stand

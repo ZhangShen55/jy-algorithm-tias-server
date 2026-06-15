@@ -2,7 +2,6 @@
 import os
 from ultralytics import YOLO
 import torch
-import time
 from pydantic import Field
 from pydantic_settings import BaseSettings
 from typing import Any, Dict, Union
@@ -20,9 +19,6 @@ class Settings(BaseSettings):
     Person_Thresd: Dict[str, float]
     Face_Thresd: Dict[str, float]
     Student_Thresd: Dict[str, float]  # 新增学生行为阈值
-    Teacher_Thresd: Dict[str, float] = Field(default_factory=lambda: {
-        "SittingShoulderAngle": 105.0
-    })
     Teacher_Behavior_Thresd: Dict[str, Any] = Field(default_factory=lambda: {
         "MergeIoU": 0.8,
         "ImageSize": 640,
@@ -65,12 +61,10 @@ Total_HaveProcess_Tasks = {"val": 0}
 PERSON_MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', 'models', 'person_count.pt')
 FACE_MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', 'models', 'face_count.pt')
 STUDENT_MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', 'models', 'student.pt')
-TEACHER_MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', 'models', 'teacher.pt')
 TEACHER_BEHAVIOR_MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', 'models', 'teacher_behavior.pt')
 
 
 yolo_person_model = YOLO(PERSON_MODEL_PATH).to(device)
 yolo_face_model = YOLO(FACE_MODEL_PATH).to(device)
 yolo_student_model = YOLO(STUDENT_MODEL_PATH).to(device)
-yolo_teacher_model = YOLO(TEACHER_MODEL_PATH).to(device)
 yolo_teacher_behavior_model = YOLO(TEACHER_BEHAVIOR_MODEL_PATH).to(device)
