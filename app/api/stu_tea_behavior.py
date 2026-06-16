@@ -3,11 +3,11 @@ from fastapi import APIRouter, HTTPException
 from ..schemas.stu_tea_behavior import (
     Stu_Tea_BehaviorRequest,
     Stu_Tea_BehaviorResponse,
-    TeacherBehaviorV2Request,
-    TeacherBehaviorV2Response,
+    TeacherBehaviorRequest,
+    TeacherBehaviorResponse,
 )
 from ..services.student_behavior_service import analyze_student_behavior
-from ..services.teacher_behavior_service import analyze_teacher_behavior_by_model, analyze_teacher_behavior_by_model_v2
+from ..services.teacher_behavior_service import analyze_teacher_behavior_by_model
 import logging
 
 logger = logging.getLogger(__name__)
@@ -27,11 +27,16 @@ async def student_behavior_analysis(request: Stu_Tea_BehaviorRequest):
         logger.error(f"Student behavior analysis failed: {str(e)}")
         raise HTTPException(status_code=500, detail=f"分析失败: {str(e)}")
 
-@router.post("/ImageDetect/teacher/v1.0.0", response_model=Stu_Tea_BehaviorResponse)
-async def teacher_behavior_analysis(request: Stu_Tea_BehaviorRequest):
+@router.post(
+    "/ImageDetect/teacher/v1.0.0",
+    response_model=TeacherBehaviorResponse,
+    response_model_exclude_none=True,
+)
+async def teacher_behavior_analysis(request: TeacherBehaviorRequest):
     """
     老师行为分析接口。
     使用 teacher_behavior.pt，包含：讲台是否有人(100)、坐着(201)、站立(202)、板书(203)、讲授(204)。
+    当 Teacher_Head_Pose.Enabled=true 且 ReturnHeadPose=true 时，返回 HeadPoseResult。
     """
     try:
         logger.info(f"Received teacher behavior analysis request for {len(request.ImageList)} images")
@@ -39,22 +44,4 @@ async def teacher_behavior_analysis(request: Stu_Tea_BehaviorRequest):
         return result
     except Exception as e:
         logger.error(f"Teacher behavior analysis failed: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"分析失败: {str(e)}")
-
-@router.post(
-    "/ImageDetect/teacher/v2.0.0",
-    response_model=TeacherBehaviorV2Response,
-    response_model_exclude_none=True,
-)
-async def teacher_behavior_analysis_v2(request: TeacherBehaviorV2Request):
-    """
-    老师行为分析接口 v2。
-    在 v1 的 100/201/202/203/204 行为结果基础上，可通过 ReturnHeadPose 返回头部方向。
-    """
-    try:
-        logger.info(f"Received teacher behavior analysis v2 request for {len(request.ImageList)} images")
-        result = await analyze_teacher_behavior_by_model_v2(request)
-        return result
-    except Exception as e:
-        logger.error(f"Teacher behavior analysis v2 failed: {str(e)}")
         raise HTTPException(status_code=500, detail=f"分析失败: {str(e)}")

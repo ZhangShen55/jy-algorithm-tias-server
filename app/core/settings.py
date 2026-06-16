@@ -34,6 +34,7 @@ class Settings(BaseSettings):
         "ForcePostureWhenMissing": True
     })
     Teacher_Head_Pose: Dict[str, Any] = Field(default_factory=lambda: {
+        "Enabled": False,
         "DirectMHPRoot": "app/vendor/DirectMHP",
         "DirectMHPWeights": "app/models/cmu_m_1280_e200_t40_lw010_best.pt",
         "DirectMHPData": "app/models/cmu_panoptic_coco.yaml",

@@ -19,7 +19,7 @@ class Stu_Tea_BehaviorRequest(BaseModel):
     ImageList: List[ImageItem]
     Teacher_Behavior_Thresd: Optional[TeacherBehaviorThresholds] = None
 
-class TeacherBehaviorV2Request(Stu_Tea_BehaviorRequest):
+class TeacherBehaviorRequest(Stu_Tea_BehaviorRequest):
     ReturnHeadPose: bool = False
 
 class ObjectPosition(BaseModel):
@@ -65,11 +65,11 @@ class Stu_Tea_BehaviorResponse(BaseModel):
     StatusObject: dict
     DataList: List[ImageResult]
 
-class TeacherBehaviorV2ImageResult(ImageResult):
+class TeacherBehaviorImageResult(ImageResult):
     HeadPoseResult: Optional[HeadPoseResultModel] = None
 
-class TeacherBehaviorV2Response(BaseModel):
+class TeacherBehaviorResponse(BaseModel):
     StatusObject: dict
-    DataList: List[TeacherBehaviorV2ImageResult]
+    DataList: List[TeacherBehaviorImageResult]
 
 HeadPoseResult = HeadPoseResultModel

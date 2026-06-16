@@ -48,6 +48,8 @@ PostureConflictDefault = "stand"
 ForcePostureWhenMissing = true
 
 [Teacher_Head_Pose]
+# 头部姿态检测总开关。false 时不加载 DirectMHP，ReturnHeadPose=true 也不会返回 HeadPoseResult。
+Enabled = false
 # DirectMHP 源码目录；支持绝对路径，也支持相对项目根目录的路径。
 DirectMHPRoot = "app/vendor/DirectMHP"
 # DirectMHP 权重文件；当前默认使用 m 模型。
@@ -65,6 +67,6 @@ IouThres = 0.45
 # 老师主体框 crop 扩展比例。
 CropScale = 1.35
 # 学生视角左右方向阈值；Yaw <= -阈值为 left，Yaw >= 阈值为 right。
-SideYawThreshold = 25.0
+SideYawThreshold = 20.0
 # 低头阈值；Pitch >= 阈值时 IsLookingDown=true。
-DownPitchThreshold = 25.0
+DownPitchThreshold = 20.0

@@ -6,12 +6,9 @@ import time
 import numpy as np
 from typing import Any, List, Optional, Tuple, Dict
 from ..schemas.stu_tea_behavior import (
-    Stu_Tea_BehaviorRequest,
-    Stu_Tea_BehaviorResponse,
-    TeacherBehaviorV2Request,
-    TeacherBehaviorV2Response,
-    TeacherBehaviorV2ImageResult,
-    ImageResult,
+    TeacherBehaviorRequest,
+    TeacherBehaviorResponse,
+    TeacherBehaviorImageResult,
     ResultItem,
     ObjectPosition
 )
@@ -39,6 +36,16 @@ def no_teacher_head_pose_result():
     from .teacher_head_pose_service import no_teacher_head_pose_result as no_teacher_head_pose_result_impl
 
     return no_teacher_head_pose_result_impl()
+
+
+def get_teacher_head_pose_enabled() -> bool:
+    head_pose_config = getattr(settings, "Teacher_Head_Pose", {})
+    value = head_pose_config.get("Enabled", False)
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        return value.strip().lower() in {"1", "true", "yes", "on"}
+    return bool(value)
 # 教师行为模型目标类别码定义：teacher_behavior.pt
 TEACHER_BEHAVIOR_OBJECT_TYPES = {
     'platform_person': 100,  # 讲台是否有人
@@ -646,13 +653,14 @@ def build_teacher_result_list(behavior_results: Dict[str, List[ObjectPosition]],
     return result_list
 
 
-async def analyze_teacher_behavior_by_model(request: Stu_Tea_BehaviorRequest) -> Stu_Tea_BehaviorResponse:
+async def analyze_teacher_behavior_by_model(request: TeacherBehaviorRequest) -> TeacherBehaviorResponse:
     """
-    新老师行为分析主函数：使用 teacher_behavior.pt 输出站/坐/板书/讲授。
+    老师行为分析主函数：使用 teacher_behavior.pt 输出站/坐/板书/讲授。
+    当 Teacher_Head_Pose.Enabled=true 且 ReturnHeadPose=true 时，追加头部方向检测。
     """
     start_time = time.time()
     timestamp = int(time.time())
-    logger.info(f"========== 开始新老师行为模型分析 ========== 图片数量: {len(request.ImageList)}")
+    logger.info(f"========== 开始老师行为模型分析 ========== 图片数量: {len(request.ImageList)}")
     from .capacity_service import increment_connection, increment_processed_images
     increment_connection()
     increment_processed_images(len(request.ImageList))
@@ -670,98 +678,10 @@ async def analyze_teacher_behavior_by_model(request: Stu_Tea_BehaviorRequest) ->
     for image_item in request.ImageList:
         image_start_time = time.time()
         try:
-            logger.debug(f"[新老师行为模型] 开始处理图片 {image_item.ImageId}")
+            logger.debug(f"[老师行为模型] 开始处理图片 {image_item.ImageId}")
             img = load_behavior_image(image_item)
             if img is None:
-                logger.error(f"[新老师行为模型] 图片解码失败: {image_item.ImageId}")
-                raise ValueError(f"无法读取图片: {image_item.ImageId}")
-
-            original_height, original_width = img.shape[:2]
-            img_size = (original_height, original_width)
-            if image_item.Points:
-                processed_img, offset = mask_polygon(img, image_item.Points)
-            else:
-                processed_img, offset = img, (0, 0)
-
-            behavior_results = process_teacher_behavior_model_detection(
-                processed_img,
-                offset,
-                img_size,
-                request.Teacher_Behavior_Thresd
-            )
-            result_list = build_teacher_result_list(behavior_results, TEACHER_BEHAVIOR_OBJECT_TYPES)
-            for stat_key in total_stats:
-                total_stats[stat_key] += len(behavior_results[stat_key])
-
-            image_use_time_ms = int((time.time() - image_start_time) * 1000)
-            data_list.append(ImageResult(
-                StatusObject={
-                    "StatusString": "success",
-                    "ImageId": image_item.ImageId,
-                    "TimeStamp": timestamp,
-                    "UseTimeMs": image_use_time_ms,
-                    "StatusCode": 0
-                },
-                ResultList=result_list
-            ))
-            processed_image_ids.append(image_item.ImageId)
-            logger.info(f"Successfully processed teacher behavior image {image_item.ImageId}")
-        except Exception as e:
-            logger.error(f"[新老师行为模型] 处理图片失败 {image_item.ImageId}: {str(e)}", exc_info=True)
-            data_list.append(ImageResult(
-                StatusObject={"StatusString": "failed", "StatusCode": 500},
-                ResultList=[]
-            ))
-            from fastapi import HTTPException
-            raise HTTPException(status_code=500, detail=str(e))
-
-    use_time_ms = int((time.time() - start_time) * 1000)
-    response = Stu_Tea_BehaviorResponse(
-        StatusObject={
-            "StatusString": "success" if processed_image_ids else "failed",
-            "ImageIdList": processed_image_ids,
-            "TimeStamp": timestamp,
-            "UseTimeMs": use_time_ms,
-            "StatusCode": 0 if processed_image_ids else 500
-        },
-        DataList=data_list
-    )
-    logger.info(
-        f"[新老师行为模型最终统计] 主体:{total_stats['platform_person']} "
-        f"站立:{total_stats['standing']} 坐着:{total_stats['sitting']} "
-        f"板书:{total_stats['writing']} 讲授:{total_stats['teaching']} | "
-        f"耗时:{use_time_ms}ms 图片:{len(processed_image_ids)}张")
-    return response
-
-
-async def analyze_teacher_behavior_by_model_v2(request: TeacherBehaviorV2Request) -> TeacherBehaviorV2Response:
-    """
-    老师行为分析 v2：保留 v1 行为结果，可选追加头部方向检测。
-    """
-    start_time = time.time()
-    timestamp = int(time.time())
-    logger.info(f"========== 开始老师行为模型 v2 分析 ========== 图片数量: {len(request.ImageList)}")
-    from .capacity_service import increment_connection, increment_processed_images
-    increment_connection()
-    increment_processed_images(len(request.ImageList))
-
-    processed_image_ids = []
-    data_list = []
-    total_stats = {
-        'platform_person': 0,
-        'standing': 0,
-        'sitting': 0,
-        'writing': 0,
-        'teaching': 0
-    }
-
-    for image_item in request.ImageList:
-        image_start_time = time.time()
-        try:
-            logger.debug(f"[老师行为模型 v2] 开始处理图片 {image_item.ImageId}")
-            img = load_behavior_image(image_item)
-            if img is None:
-                logger.error(f"[老师行为模型 v2] 图片解码失败: {image_item.ImageId}")
+                logger.error(f"[老师行为模型] 图片解码失败: {image_item.ImageId}")
                 raise ValueError(f"无法读取图片: {image_item.ImageId}")
 
             original_height, original_width = img.shape[:2]
@@ -782,7 +702,13 @@ async def analyze_teacher_behavior_by_model_v2(request: TeacherBehaviorV2Request
                 total_stats[stat_key] += len(behavior_results[stat_key])
 
             head_pose_result = None
-            if request.ReturnHeadPose:
+            return_head_pose = getattr(request, "ReturnHeadPose", False)
+            head_pose_enabled = get_teacher_head_pose_enabled()
+            if return_head_pose and not head_pose_enabled:
+                logger.info(
+                    "[老师行为模型] ReturnHeadPose=true，但 Teacher_Head_Pose.Enabled=false，跳过头部姿态检测"
+                )
+            if return_head_pose and head_pose_enabled:
                 if behavior_details:
                     try:
                         head_pose_result = analyze_teacher_head_pose(
@@ -791,7 +717,7 @@ async def analyze_teacher_behavior_by_model_v2(request: TeacherBehaviorV2Request
                         )
                     except Exception as head_pose_error:
                         logger.error(
-                            f"[老师行为模型 v2] 头部方向检测失败 {image_item.ImageId}: {str(head_pose_error)}",
+                            f"[老师行为模型] 头部方向检测失败 {image_item.ImageId}: {str(head_pose_error)}",
                             exc_info=True,
                         )
                         head_pose_result = failed_head_pose_result(str(head_pose_error))
@@ -799,7 +725,7 @@ async def analyze_teacher_behavior_by_model_v2(request: TeacherBehaviorV2Request
                     head_pose_result = no_teacher_head_pose_result()
 
             image_use_time_ms = int((time.time() - image_start_time) * 1000)
-            data_list.append(TeacherBehaviorV2ImageResult(
+            data_list.append(TeacherBehaviorImageResult(
                 StatusObject={
                     "StatusString": "success",
                     "ImageId": image_item.ImageId,
@@ -811,10 +737,10 @@ async def analyze_teacher_behavior_by_model_v2(request: TeacherBehaviorV2Request
                 HeadPoseResult=head_pose_result
             ))
             processed_image_ids.append(image_item.ImageId)
-            logger.info(f"Successfully processed teacher behavior v2 image {image_item.ImageId}")
+            logger.info(f"Successfully processed teacher behavior image {image_item.ImageId}")
         except Exception as e:
-            logger.error(f"[老师行为模型 v2] 处理图片失败 {image_item.ImageId}: {str(e)}", exc_info=True)
-            data_list.append(TeacherBehaviorV2ImageResult(
+            logger.error(f"[老师行为模型] 处理图片失败 {image_item.ImageId}: {str(e)}", exc_info=True)
+            data_list.append(TeacherBehaviorImageResult(
                 StatusObject={"StatusString": "failed", "StatusCode": 500},
                 ResultList=[]
             ))
@@ -822,7 +748,7 @@ async def analyze_teacher_behavior_by_model_v2(request: TeacherBehaviorV2Request
             raise HTTPException(status_code=500, detail=str(e))
 
     use_time_ms = int((time.time() - start_time) * 1000)
-    response = TeacherBehaviorV2Response(
+    response = TeacherBehaviorResponse(
         StatusObject={
             "StatusString": "success" if processed_image_ids else "failed",
             "ImageIdList": processed_image_ids,
@@ -833,9 +759,10 @@ async def analyze_teacher_behavior_by_model_v2(request: TeacherBehaviorV2Request
         DataList=data_list
     )
     logger.info(
-        f"[老师行为模型 v2 最终统计] 主体:{total_stats['platform_person']} "
+        f"[老师行为模型最终统计] 主体:{total_stats['platform_person']} "
         f"站立:{total_stats['standing']} 坐着:{total_stats['sitting']} "
         f"板书:{total_stats['writing']} 讲授:{total_stats['teaching']} | "
         f"耗时:{use_time_ms}ms 图片:{len(processed_image_ids)}张 "
-        f"ReturnHeadPose:{request.ReturnHeadPose}")
+        f"ReturnHeadPose:{getattr(request, 'ReturnHeadPose', False)} "
+        f"HeadPoseEnabled:{get_teacher_head_pose_enabled()}")
     return response
