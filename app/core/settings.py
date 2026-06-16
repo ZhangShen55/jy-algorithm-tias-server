@@ -33,6 +33,18 @@ class Settings(BaseSettings):
         "PostureConflictDefault": "stand",
         "ForcePostureWhenMissing": True
     })
+    Teacher_Head_Pose: Dict[str, Any] = Field(default_factory=lambda: {
+        "DirectMHPRoot": "app/vendor/DirectMHP",
+        "DirectMHPWeights": "app/models/cmu_m_1280_e200_t40_lw010_best.pt",
+        "DirectMHPData": "app/models/cmu_panoptic_coco.yaml",
+        "Device": "cpu",
+        "ImageSize": 1280,
+        "ConfThres": 0.35,
+        "IouThres": 0.45,
+        "CropScale": 1.35,
+        "SideYawThreshold": 25.0,
+        "DownPitchThreshold": 25.0
+    })
     INSTANCE_COUNT: int = 1  # nginx实例个数
     WORKERS_PER_INSTANCE: int = 1 # 每实例workers数量，默认1
 

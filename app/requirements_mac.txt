@@ -52,3 +52,8 @@ requests>=2.31.0
 
 # --- 配置文件解析依赖 ---
 tomli>=2.0.1; python_version < "3.11"
+
+# --- DirectMHP 头部姿态 v2 接口依赖 ---
+PyYAML>=5.3.1
+setuptools<81
+seaborn>=0.11.0

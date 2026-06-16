@@ -5,3 +5,6 @@ ultralytics==8.3.156
 uvicorn==0.33.0
 httptools
 uvloop
+PyYAML>=5.3.1
+setuptools<81
+seaborn>=0.11.0

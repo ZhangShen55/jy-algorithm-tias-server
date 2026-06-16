@@ -1,8 +1,13 @@
 # app/api/stu_tea_behavior.py
 from fastapi import APIRouter, HTTPException
-from ..schemas.stu_tea_behavior import Stu_Tea_BehaviorRequest, Stu_Tea_BehaviorResponse
+from ..schemas.stu_tea_behavior import (
+    Stu_Tea_BehaviorRequest,
+    Stu_Tea_BehaviorResponse,
+    TeacherBehaviorV2Request,
+    TeacherBehaviorV2Response,
+)
 from ..services.student_behavior_service import analyze_student_behavior
-from ..services.teacher_behavior_service import analyze_teacher_behavior_by_model
+from ..services.teacher_behavior_service import analyze_teacher_behavior_by_model, analyze_teacher_behavior_by_model_v2
 import logging
 
 logger = logging.getLogger(__name__)
@@ -34,4 +39,22 @@ async def teacher_behavior_analysis(request: Stu_Tea_BehaviorRequest):
         return result
     except Exception as e:
         logger.error(f"Teacher behavior analysis failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"分析失败: {str(e)}")
+
+@router.post(
+    "/ImageDetect/teacher/v2.0.0",
+    response_model=TeacherBehaviorV2Response,
+    response_model_exclude_none=True,
+)
+async def teacher_behavior_analysis_v2(request: TeacherBehaviorV2Request):
+    """
+    老师行为分析接口 v2。
+    在 v1 的 100/201/202/203/204 行为结果基础上，可通过 ReturnHeadPose 返回头部方向。
+    """
+    try:
+        logger.info(f"Received teacher behavior analysis v2 request for {len(request.ImageList)} images")
+        result = await analyze_teacher_behavior_by_model_v2(request)
+        return result
+    except Exception as e:
+        logger.error(f"Teacher behavior analysis v2 failed: {str(e)}")
         raise HTTPException(status_code=500, detail=f"分析失败: {str(e)}")

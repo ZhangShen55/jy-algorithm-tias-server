@@ -8,6 +8,9 @@ from typing import Any, List, Optional, Tuple, Dict
 from ..schemas.stu_tea_behavior import (
     Stu_Tea_BehaviorRequest,
     Stu_Tea_BehaviorResponse,
+    TeacherBehaviorV2Request,
+    TeacherBehaviorV2Response,
+    TeacherBehaviorV2ImageResult,
     ImageResult,
     ResultItem,
     ObjectPosition
@@ -18,6 +21,24 @@ import logging
 
 logger = logging.getLogger(__name__)
 verbose=True
+
+
+def analyze_teacher_head_pose(img, position):
+    from .teacher_head_pose_service import analyze_teacher_head_pose as analyze_teacher_head_pose_impl
+
+    return analyze_teacher_head_pose_impl(img, position)
+
+
+def failed_head_pose_result(message: str):
+    from .teacher_head_pose_service import failed_head_pose_result as failed_head_pose_result_impl
+
+    return failed_head_pose_result_impl(message)
+
+
+def no_teacher_head_pose_result():
+    from .teacher_head_pose_service import no_teacher_head_pose_result as no_teacher_head_pose_result_impl
+
+    return no_teacher_head_pose_result_impl()
 # 教师行为模型目标类别码定义：teacher_behavior.pt
 TEACHER_BEHAVIOR_OBJECT_TYPES = {
     'platform_person': 100,  # 讲台是否有人
@@ -519,11 +540,21 @@ def collect_teacher_behavior_results(
     return behavior_results
 
 
-def process_teacher_behavior_model_detection(
+def empty_teacher_behavior_results() -> Dict[str, List[ObjectPosition]]:
+    return {
+        'platform_person': [],
+        'standing': [],
+        'sitting': [],
+        'writing': [],
+        'teaching': []
+    }
+
+
+def process_teacher_behavior_model_detection_with_details(
         img: np.ndarray,
         offset: Tuple[int, int],
         img_size: Tuple[int, int],
-        threshold_overrides: Optional[Any] = None) -> Dict[str, List[ObjectPosition]]:
+        threshold_overrides: Optional[Any] = None):
     """
     使用 teacher_behavior.pt 检测老师行为。
     同一主体的高 IoU 多类别框会聚合为一个主体；姿态类和授课行为类按类别保留。
@@ -538,28 +569,43 @@ def process_teacher_behavior_model_detection(
         verbose=verbose
     )
     if not results or len(results) == 0:
-        return {
-            'platform_person': [],
-            'standing': [],
-            'sitting': [],
-            'writing': [],
-            'teaching': []
-        }
+        return empty_teacher_behavior_results(), []
 
     result = results[0]
     detections = result.boxes.data.tolist() if result.boxes is not None else []
     names = getattr(result, "names", None) or getattr(yolo_teacher_behavior_model, "names", {})
-    behavior_results = collect_teacher_behavior_results(
+    details = collect_teacher_behavior_group_details(
         detections,
         names,
         offset,
         get_teacher_behavior_merge_iou(),
         threshold_overrides
     )
+    behavior_results = empty_teacher_behavior_results()
+    for detail in details:
+        positions = detail["positions"]
+        for behavior_key in behavior_results:
+            position = positions.get(behavior_key)
+            if position is not None:
+                behavior_results[behavior_key].append(position)
     logger.info(
         f"[新老师行为模型] 主体:{len(behavior_results['platform_person'])} "
         f"站立:{len(behavior_results['standing'])} 坐着:{len(behavior_results['sitting'])} "
         f"板书:{len(behavior_results['writing'])} 讲授:{len(behavior_results['teaching'])}")
+    return behavior_results, details
+
+
+def process_teacher_behavior_model_detection(
+        img: np.ndarray,
+        offset: Tuple[int, int],
+        img_size: Tuple[int, int],
+        threshold_overrides: Optional[Any] = None) -> Dict[str, List[ObjectPosition]]:
+    behavior_results, _ = process_teacher_behavior_model_detection_with_details(
+        img,
+        offset,
+        img_size,
+        threshold_overrides,
+    )
     return behavior_results
 
 
@@ -685,4 +731,111 @@ async def analyze_teacher_behavior_by_model(request: Stu_Tea_BehaviorRequest) ->
         f"站立:{total_stats['standing']} 坐着:{total_stats['sitting']} "
         f"板书:{total_stats['writing']} 讲授:{total_stats['teaching']} | "
         f"耗时:{use_time_ms}ms 图片:{len(processed_image_ids)}张")
+    return response
+
+
+async def analyze_teacher_behavior_by_model_v2(request: TeacherBehaviorV2Request) -> TeacherBehaviorV2Response:
+    """
+    老师行为分析 v2：保留 v1 行为结果，可选追加头部方向检测。
+    """
+    start_time = time.time()
+    timestamp = int(time.time())
+    logger.info(f"========== 开始老师行为模型 v2 分析 ========== 图片数量: {len(request.ImageList)}")
+    from .capacity_service import increment_connection, increment_processed_images
+    increment_connection()
+    increment_processed_images(len(request.ImageList))
+
+    processed_image_ids = []
+    data_list = []
+    total_stats = {
+        'platform_person': 0,
+        'standing': 0,
+        'sitting': 0,
+        'writing': 0,
+        'teaching': 0
+    }
+
+    for image_item in request.ImageList:
+        image_start_time = time.time()
+        try:
+            logger.debug(f"[老师行为模型 v2] 开始处理图片 {image_item.ImageId}")
+            img = load_behavior_image(image_item)
+            if img is None:
+                logger.error(f"[老师行为模型 v2] 图片解码失败: {image_item.ImageId}")
+                raise ValueError(f"无法读取图片: {image_item.ImageId}")
+
+            original_height, original_width = img.shape[:2]
+            img_size = (original_height, original_width)
+            if image_item.Points:
+                processed_img, offset = mask_polygon(img, image_item.Points)
+            else:
+                processed_img, offset = img, (0, 0)
+
+            behavior_results, behavior_details = process_teacher_behavior_model_detection_with_details(
+                processed_img,
+                offset,
+                img_size,
+                request.Teacher_Behavior_Thresd
+            )
+            result_list = build_teacher_result_list(behavior_results, TEACHER_BEHAVIOR_OBJECT_TYPES)
+            for stat_key in total_stats:
+                total_stats[stat_key] += len(behavior_results[stat_key])
+
+            head_pose_result = None
+            if request.ReturnHeadPose:
+                if behavior_details:
+                    try:
+                        head_pose_result = analyze_teacher_head_pose(
+                            img,
+                            behavior_details[0]["position"],
+                        )
+                    except Exception as head_pose_error:
+                        logger.error(
+                            f"[老师行为模型 v2] 头部方向检测失败 {image_item.ImageId}: {str(head_pose_error)}",
+                            exc_info=True,
+                        )
+                        head_pose_result = failed_head_pose_result(str(head_pose_error))
+                else:
+                    head_pose_result = no_teacher_head_pose_result()
+
+            image_use_time_ms = int((time.time() - image_start_time) * 1000)
+            data_list.append(TeacherBehaviorV2ImageResult(
+                StatusObject={
+                    "StatusString": "success",
+                    "ImageId": image_item.ImageId,
+                    "TimeStamp": timestamp,
+                    "UseTimeMs": image_use_time_ms,
+                    "StatusCode": 0
+                },
+                ResultList=result_list,
+                HeadPoseResult=head_pose_result
+            ))
+            processed_image_ids.append(image_item.ImageId)
+            logger.info(f"Successfully processed teacher behavior v2 image {image_item.ImageId}")
+        except Exception as e:
+            logger.error(f"[老师行为模型 v2] 处理图片失败 {image_item.ImageId}: {str(e)}", exc_info=True)
+            data_list.append(TeacherBehaviorV2ImageResult(
+                StatusObject={"StatusString": "failed", "StatusCode": 500},
+                ResultList=[]
+            ))
+            from fastapi import HTTPException
+            raise HTTPException(status_code=500, detail=str(e))
+
+    use_time_ms = int((time.time() - start_time) * 1000)
+    response = TeacherBehaviorV2Response(
+        StatusObject={
+            "StatusString": "success" if processed_image_ids else "failed",
+            "ImageIdList": processed_image_ids,
+            "TimeStamp": timestamp,
+            "UseTimeMs": use_time_ms,
+            "StatusCode": 0 if processed_image_ids else 500
+        },
+        DataList=data_list
+    )
+    logger.info(
+        f"[老师行为模型 v2 最终统计] 主体:{total_stats['platform_person']} "
+        f"站立:{total_stats['standing']} 坐着:{total_stats['sitting']} "
+        f"板书:{total_stats['writing']} 讲授:{total_stats['teaching']} | "
+        f"耗时:{use_time_ms}ms 图片:{len(processed_image_ids)}张 "
+        f"ReturnHeadPose:{request.ReturnHeadPose}")
     return response
