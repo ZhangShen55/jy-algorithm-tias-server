@@ -46,3 +46,25 @@ PostureConflictDefault = "stand"
 
 # 主体存在但 sit/stand 都未过阈值时，是否强制输出默认姿态并标记 PostureFallback。
 ForcePostureWhenMissing = true
+
+[Teacher_Head_Pose]
+# DirectMHP 源码目录；支持绝对路径，也支持相对项目根目录的路径。
+DirectMHPRoot = "app/vendor/DirectMHP"
+# DirectMHP 权重文件；当前默认使用 m 模型。
+DirectMHPWeights = "app/models/cmu_m_1280_e200_t40_lw010_best.pt"
+# DirectMHP 数据配置文件。
+DirectMHPData = "app/models/cmu_panoptic_coco.yaml"
+# DirectMHP 推理设备。Mac 本地用 cpu；NVIDIA GPU 环境可配置为 "0"。
+Device = "cpu"
+# DirectMHP 推理尺寸。
+ImageSize = 1280
+# DirectMHP 头部检测置信度阈值。
+ConfThres = 0.35
+# DirectMHP NMS IoU 阈值。
+IouThres = 0.45
+# 老师主体框 crop 扩展比例。
+CropScale = 1.35
+# 学生视角左右方向阈值；Yaw <= -阈值为 left，Yaw >= 阈值为 right。
+SideYawThreshold = 25.0
+# 低头阈值；Pitch >= 阈值时 IsLookingDown=true。
+DownPitchThreshold = 25.0
