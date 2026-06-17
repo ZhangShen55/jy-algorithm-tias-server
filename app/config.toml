@@ -14,11 +14,11 @@ Shoulder = 0.1
 face = 0.1
 
 [Student_Thresd]
-Using_phone = 0.3
-Hand_raising = 0.75
-Sleep = 0.15
-standing = 0.2
-Read_W = 0.4
+Using_phone = 0.7
+Hand_raising = 0.99
+Sleep = 0.5
+standing = 0.99
+Read_W = 0.5
 
 [Teacher_Behavior_Thresd]
 # 同一主体多类别框的高重叠合并阈值，主要用于兼容旧逻辑和结果聚合。
