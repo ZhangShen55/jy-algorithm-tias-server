@@ -52,7 +52,8 @@ STUDENT_LABEL_TO_THRESHOLD_FIELD = {
 DEFAULT_STUDENT_BEHAVIOR_CLASS_THRESHOLD = 0.15
 STUDENT_IMAGE_SIZE = 1920
 MAX_INFERENCE_WIDTH = 1920
-MAX_INFERENCE_HEIGHT = 1080
+MAX_INFERENCE_HEIGHT = 1088
+INFERENCE_STRIDE = 32
 
 
 def normalize_student_behavior_threshold_overrides(threshold_overrides: Optional[Any]) -> Dict[str, float]:
@@ -99,7 +100,17 @@ def get_capped_inference_size(img_size: Tuple[int, int]) -> Tuple[int, int]:
     if width <= MAX_INFERENCE_WIDTH and height <= MAX_INFERENCE_HEIGHT:
         return height, width
     scale = min(MAX_INFERENCE_WIDTH / width, MAX_INFERENCE_HEIGHT / height)
-    return max(1, round(height * scale)), max(1, round(width * scale))
+    scaled_height = max(1, round(height * scale))
+    scaled_width = max(1, round(width * scale))
+    aligned_height = min(
+        MAX_INFERENCE_HEIGHT,
+        ((scaled_height + INFERENCE_STRIDE - 1) // INFERENCE_STRIDE) * INFERENCE_STRIDE,
+    )
+    aligned_width = min(
+        MAX_INFERENCE_WIDTH,
+        ((scaled_width + INFERENCE_STRIDE - 1) // INFERENCE_STRIDE) * INFERENCE_STRIDE,
+    )
+    return aligned_height, aligned_width
 
 def mask_polygon(img: np.ndarray, points: List[Point]) -> Tuple[np.ndarray, Tuple[int, int]]:
     """
