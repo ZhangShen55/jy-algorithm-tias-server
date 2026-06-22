@@ -4,9 +4,9 @@ import cv2
 import base64
 import time
 import numpy as np
-from typing import List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 from ..schemas.stu_tea_behavior import (
-    Stu_Tea_BehaviorRequest,
+    StudentBehaviorRequest,
     Stu_Tea_BehaviorResponse,
     ImageResult,
     ResultItem,
@@ -37,6 +37,57 @@ STUDENT_BEHAVIOR_CLASSES = {
     3: 'standing',  # 站立
     4: 'Read_W'  # 阅读
 }
+STUDENT_THRESHOLD_FIELD_TO_LABEL = {
+    "phone": "Using_phone",
+    "hand": "Hand_raising",
+    "sleep": "Sleep",
+    "stand": "standing",
+    "read": "Read_W",
+}
+STUDENT_LABEL_TO_THRESHOLD_FIELD = {
+    label: field_name
+    for field_name, label in STUDENT_THRESHOLD_FIELD_TO_LABEL.items()
+}
+DEFAULT_STUDENT_BEHAVIOR_CLASS_THRESHOLD = 0.15
+
+
+def normalize_student_behavior_threshold_overrides(threshold_overrides: Optional[Any]) -> Dict[str, float]:
+    if threshold_overrides is None:
+        return {}
+    if hasattr(threshold_overrides, "model_dump"):
+        raw_values = threshold_overrides.model_dump(exclude_none=True)
+    elif isinstance(threshold_overrides, dict):
+        raw_values = threshold_overrides
+    else:
+        raw_values = {
+            field_name: getattr(threshold_overrides, field_name)
+            for field_name in STUDENT_THRESHOLD_FIELD_TO_LABEL
+            if hasattr(threshold_overrides, field_name) and getattr(threshold_overrides, field_name) is not None
+        }
+
+    normalized = {}
+    for field_name, value in raw_values.items():
+        behavior_label = STUDENT_THRESHOLD_FIELD_TO_LABEL.get(field_name)
+        if behavior_label is None or value is None:
+            continue
+        normalized[behavior_label] = float(value)
+    return normalized
+
+
+def get_student_behavior_label_threshold(behavior_name: str, threshold_overrides: Optional[Any] = None) -> float:
+    normalized_overrides = normalize_student_behavior_threshold_overrides(threshold_overrides)
+    if behavior_name in normalized_overrides:
+        return normalized_overrides[behavior_name]
+    config_key = STUDENT_LABEL_TO_THRESHOLD_FIELD.get(behavior_name, behavior_name)
+    return float(settings.Student_Thresd.get(config_key, DEFAULT_STUDENT_BEHAVIOR_CLASS_THRESHOLD))
+
+
+def get_student_behavior_predict_conf(threshold_overrides: Optional[Any] = None) -> float:
+    thresholds = [
+        get_student_behavior_label_threshold(behavior_name, threshold_overrides)
+        for behavior_name in STUDENT_BEHAVIOR_CLASSES.values()
+    ]
+    return min(thresholds) if thresholds else DEFAULT_STUDENT_BEHAVIOR_CLASS_THRESHOLD
 
 def mask_polygon(img: np.ndarray, points: List[Point]) -> Tuple[np.ndarray, Tuple[int, int]]:
     """
@@ -120,7 +171,11 @@ def process_face_detection(img: np.ndarray, offset: Tuple[int, int], img_size: T
     return positions
 
 
-def process_student_behavior(img: np.ndarray, offset: Tuple[int, int],img_size: Tuple[int, int]) -> dict:
+def process_student_behavior(
+        img: np.ndarray,
+        offset: Tuple[int, int],
+        img_size: Tuple[int, int],
+        threshold_overrides: Optional[Any] = None) -> dict:
     """
     # todo 学生行为检测
     返回各种行为的检测结果
@@ -128,7 +183,13 @@ def process_student_behavior(img: np.ndarray, offset: Tuple[int, int],img_size: 
     start_time = time.time()
     ox, oy = offset
     height, width = img_size
-    pred = yolo_student_model.predict(img, conf=0.1, imgsz=(height, width),half=use_half,verbose=verbose)[0]  # 可调整置信度阈值
+    pred = yolo_student_model.predict(
+        img,
+        conf=get_student_behavior_predict_conf(threshold_overrides),
+        imgsz=(height, width),
+        half=use_half,
+        verbose=verbose
+    )[0]
     dets = pred.boxes.data.tolist()
     inference_time = time.time() - start_time
     logger.info(f"[学生行为检测] 模型推理耗时: {inference_time * 1000:.1f}ms, 检测到 {len(dets)} 个目标")
@@ -142,8 +203,8 @@ def process_student_behavior(img: np.ndarray, offset: Tuple[int, int],img_size: 
             continue
 
         behavior_name = STUDENT_BEHAVIOR_CLASSES[cls]
-        # 第二步：使用配置文件中的阈值进行筛选
-        threshold = settings.Student_Thresd.get(behavior_name, 0.15)
+        # 第二步：优先使用请求阈值，未传则使用配置文件阈值。
+        threshold = get_student_behavior_label_threshold(behavior_name, threshold_overrides)
         if conf < threshold:
             logger.debug(f"[学生行为检测] 过滤低置信度目标: {behavior_name} conf={conf:.3f} < {threshold}")
             continue
@@ -160,7 +221,7 @@ def process_student_behavior(img: np.ndarray, offset: Tuple[int, int],img_size: 
     return behavior_results
 
 
-async def analyze_student_behavior(request: Stu_Tea_BehaviorRequest) -> Stu_Tea_BehaviorResponse:
+async def analyze_student_behavior(request: StudentBehaviorRequest) -> Stu_Tea_BehaviorResponse:
     """
     学生行为分析主函数
     """
@@ -235,7 +296,12 @@ async def analyze_student_behavior(request: Stu_Tea_BehaviorRequest) -> Stu_Tea_
             detection_start = time.time()
             person_positions = process_person_detection(processed_img, offset, img_size)
             face_positions = process_face_detection(processed_img, offset, img_size)
-            behavior_results = process_student_behavior(processed_img, offset, img_size)
+            behavior_results = process_student_behavior(
+                processed_img,
+                offset,
+                img_size,
+                request.Student_Thresd,
+            )
             detection_time = time.time() - detection_start
             logger.info(f"[学生行为分析] 三种检测总耗时: {detection_time * 1000:.1f}ms")
 

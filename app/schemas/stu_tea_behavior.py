@@ -1,5 +1,5 @@
 # app/schemas/student_behavior.py
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Optional
 from .geometry import Point
 from .error_codes import AppErrCode
@@ -15,9 +15,20 @@ class TeacherBehaviorThresholds(BaseModel):
     bbwriting: Optional[float] = None
     teach: Optional[float] = None
 
+class StudentBehaviorThresholds(BaseModel):
+    phone: Optional[float] = Field(default=None, ge=0.0, le=1.0)
+    hand: Optional[float] = Field(default=None, ge=0.0, le=1.0)
+    sleep: Optional[float] = Field(default=None, ge=0.0, le=1.0)
+    stand: Optional[float] = Field(default=None, ge=0.0, le=1.0)
+    read: Optional[float] = Field(default=None, ge=0.0, le=1.0)
+
 class Stu_Tea_BehaviorRequest(BaseModel):
     ImageList: List[ImageItem]
     Teacher_Behavior_Thresd: Optional[TeacherBehaviorThresholds] = None
+
+class StudentBehaviorRequest(BaseModel):
+    ImageList: List[ImageItem]
+    Student_Thresd: Optional[StudentBehaviorThresholds] = None
 
 class TeacherBehaviorRequest(Stu_Tea_BehaviorRequest):
     ReturnHeadPose: bool = False

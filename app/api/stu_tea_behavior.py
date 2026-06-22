@@ -1,7 +1,7 @@
 # app/api/stu_tea_behavior.py
 from fastapi import APIRouter, HTTPException
 from ..schemas.stu_tea_behavior import (
-    Stu_Tea_BehaviorRequest,
+    StudentBehaviorRequest,
     Stu_Tea_BehaviorResponse,
     TeacherBehaviorRequest,
     TeacherBehaviorResponse,
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 @router.post("/ImageDetect/student/v1.0.0", response_model=Stu_Tea_BehaviorResponse)
-async def student_behavior_analysis(request: Stu_Tea_BehaviorRequest):
+async def student_behavior_analysis(request: StudentBehaviorRequest):
     """
     学生行为分析接口
     集成人数统计、抬头检测和学生行为识别
