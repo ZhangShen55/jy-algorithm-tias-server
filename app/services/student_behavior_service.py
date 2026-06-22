@@ -1,4 +1,5 @@
 # app/services/student_behavior_service.py
+import asyncio
 import os
 import cv2
 import base64
@@ -49,6 +50,9 @@ STUDENT_LABEL_TO_THRESHOLD_FIELD = {
     for field_name, label in STUDENT_THRESHOLD_FIELD_TO_LABEL.items()
 }
 DEFAULT_STUDENT_BEHAVIOR_CLASS_THRESHOLD = 0.15
+STUDENT_IMAGE_SIZE = 1920
+MAX_INFERENCE_WIDTH = 1920
+MAX_INFERENCE_HEIGHT = 1080
 
 
 def normalize_student_behavior_threshold_overrides(threshold_overrides: Optional[Any]) -> Dict[str, float]:
@@ -89,6 +93,14 @@ def get_student_behavior_predict_conf(threshold_overrides: Optional[Any] = None)
     ]
     return min(thresholds) if thresholds else DEFAULT_STUDENT_BEHAVIOR_CLASS_THRESHOLD
 
+
+def get_capped_inference_size(img_size: Tuple[int, int]) -> Tuple[int, int]:
+    height, width = img_size
+    if width <= MAX_INFERENCE_WIDTH and height <= MAX_INFERENCE_HEIGHT:
+        return height, width
+    scale = min(MAX_INFERENCE_WIDTH / width, MAX_INFERENCE_HEIGHT / height)
+    return max(1, round(height * scale)), max(1, round(width * scale))
+
 def mask_polygon(img: np.ndarray, points: List[Point]) -> Tuple[np.ndarray, Tuple[int, int]]:
     """
     使用多边形区域对图像进行遮罩，仅保留多边形内区域
@@ -114,7 +126,13 @@ def process_person_detection(img: np.ndarray, offset: Tuple[int, int], img_size:
     ox, oy = offset
     height, width = img_size
     # logger.info(f"[人数检测] 开始检测，图像尺寸: {width}x{height}, 偏移: ({ox}, {oy})")
-    pred = yolo_person_model.predict(img, conf=0.1, imgsz=(height, width),half=use_half,verbose=verbose)[0]
+    pred = yolo_person_model.predict(
+        img,
+        conf=0.1,
+        imgsz=get_capped_inference_size(img_size),
+        half=use_half,
+        verbose=verbose,
+    )[0]
     dets = pred.boxes.data.tolist()
     inference_time = time.time() - start_time
     logger.info(f"[人数检测] 模型推理耗时: {inference_time * 1000:.1f}ms, 检测到 {len(dets)} 个目标")
@@ -150,7 +168,13 @@ def process_face_detection(img: np.ndarray, offset: Tuple[int, int], img_size: T
     start_time = time.time()
     ox, oy = offset
     height, width = img_size
-    pred = yolo_face_model.predict(img, conf=0.1,imgsz=(height, width),half=use_half,verbose=verbose)[0]
+    pred = yolo_face_model.predict(
+        img,
+        conf=0.1,
+        imgsz=get_capped_inference_size(img_size),
+        half=use_half,
+        verbose=verbose,
+    )[0]
     dets = pred.boxes.data.tolist()
     inference_time = time.time() - start_time
     logger.info(f"[抬头检测] 模型推理耗时: {inference_time * 1000:.1f}ms, 检测到 {len(dets)} 个目标")
@@ -175,7 +199,8 @@ def process_student_behavior(
         img: np.ndarray,
         offset: Tuple[int, int],
         img_size: Tuple[int, int],
-        threshold_overrides: Optional[Any] = None) -> dict:
+        threshold_overrides: Optional[Any] = None,
+        inference_imgsz: Optional[Any] = None) -> dict:
     """
     # todo 学生行为检测
     返回各种行为的检测结果
@@ -183,10 +208,15 @@ def process_student_behavior(
     start_time = time.time()
     ox, oy = offset
     height, width = img_size
+    capped_imgsz = get_capped_inference_size(img_size)
+    if capped_imgsz != img_size:
+        predict_imgsz = capped_imgsz
+    else:
+        predict_imgsz = inference_imgsz if inference_imgsz is not None else STUDENT_IMAGE_SIZE
     pred = yolo_student_model.predict(
         img,
         conf=get_student_behavior_predict_conf(threshold_overrides),
-        imgsz=(height, width),
+        imgsz=predict_imgsz,
         half=use_half,
         verbose=verbose
     )[0]
@@ -221,7 +251,32 @@ def process_student_behavior(
     return behavior_results
 
 
-async def analyze_student_behavior(request: StudentBehaviorRequest) -> Stu_Tea_BehaviorResponse:
+async def process_student_detections_parallel(
+        img: np.ndarray,
+        offset: Tuple[int, int],
+        img_size: Tuple[int, int],
+        threshold_overrides: Optional[Any] = None):
+    person_task = asyncio.to_thread(process_person_detection, img, offset, img_size)
+    face_task = asyncio.to_thread(process_face_detection, img, offset, img_size)
+    behavior_task = asyncio.to_thread(
+        process_student_behavior,
+        img,
+        offset,
+        img_size,
+        threshold_overrides,
+        STUDENT_IMAGE_SIZE,
+    )
+    person_positions, face_positions, behavior_results = await asyncio.gather(
+        person_task,
+        face_task,
+        behavior_task,
+    )
+    return person_positions, face_positions, behavior_results
+
+
+async def analyze_student_behavior(
+        request: StudentBehaviorRequest,
+        parallel_models: bool = False) -> Stu_Tea_BehaviorResponse:
     """
     学生行为分析主函数
     """
@@ -294,14 +349,22 @@ async def analyze_student_behavior(request: StudentBehaviorRequest) -> Stu_Tea_B
 
             # 执行三种检测
             detection_start = time.time()
-            person_positions = process_person_detection(processed_img, offset, img_size)
-            face_positions = process_face_detection(processed_img, offset, img_size)
-            behavior_results = process_student_behavior(
-                processed_img,
-                offset,
-                img_size,
-                request.Student_Thresd,
-            )
+            if parallel_models:
+                person_positions, face_positions, behavior_results = await process_student_detections_parallel(
+                    processed_img,
+                    offset,
+                    img_size,
+                    request.Student_Thresd,
+                )
+            else:
+                person_positions = process_person_detection(processed_img, offset, img_size)
+                face_positions = process_face_detection(processed_img, offset, img_size)
+                behavior_results = process_student_behavior(
+                    processed_img,
+                    offset,
+                    img_size,
+                    request.Student_Thresd,
+                )
             detection_time = time.time() - detection_start
             logger.info(f"[学生行为分析] 三种检测总耗时: {detection_time * 1000:.1f}ms")
 
@@ -381,3 +444,7 @@ async def analyze_student_behavior(request: StudentBehaviorRequest) -> Stu_Tea_B
     logger.info(
         f"[学生行为分析] 全部完成: 成功处理 {len(processed_image_ids)}/{len(request.ImageList)} 张图片, 总耗时: {use_time_ms}ms")
     return response
+
+
+async def analyze_student_behavior_parallel(request: StudentBehaviorRequest) -> Stu_Tea_BehaviorResponse:
+    return await analyze_student_behavior(request, parallel_models=True)

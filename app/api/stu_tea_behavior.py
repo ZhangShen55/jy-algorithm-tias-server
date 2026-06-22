@@ -6,7 +6,10 @@ from ..schemas.stu_tea_behavior import (
     TeacherBehaviorRequest,
     TeacherBehaviorResponse,
 )
-from ..services.student_behavior_service import analyze_student_behavior
+from ..services.student_behavior_service import (
+    analyze_student_behavior,
+    analyze_student_behavior_parallel as analyze_student_behavior_parallel_service,
+)
 from ..services.teacher_behavior_service import analyze_teacher_behavior_by_model
 import logging
 
@@ -25,6 +28,18 @@ async def student_behavior_analysis(request: StudentBehaviorRequest):
         return result
     except Exception as e:
         logger.error(f"Student behavior analysis failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"分析失败: {str(e)}")
+
+
+@router.post("/ImageDetect/student/v1.0.1", response_model=Stu_Tea_BehaviorResponse)
+async def student_behavior_analysis_parallel(request: StudentBehaviorRequest):
+    """学生行为分析并行接口，三个检测模型对同一张图片并行推理。"""
+    try:
+        logger.info(f"Received parallel student behavior analysis request for {len(request.ImageList)} images")
+        result = await analyze_student_behavior_parallel_service(request)
+        return result
+    except Exception as e:
+        logger.error(f"Parallel student behavior analysis failed: {str(e)}")
         raise HTTPException(status_code=500, detail=f"分析失败: {str(e)}")
 
 @router.post(
