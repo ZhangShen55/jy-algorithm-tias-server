@@ -5,6 +5,11 @@ from typing import Callable, Optional
 from ai_quality.config import AiQualityConfig
 from ai_quality.infrastructure.kafka.message import InvalidTaskMessage, VisualTaskMessage
 
+try:
+    from kafka import KafkaConsumer
+except ModuleNotFoundError:
+    KafkaConsumer = None
+
 
 logger = logging.getLogger(__name__)
 
@@ -75,10 +80,8 @@ class AiQualityKafkaConsumer:
 
 
 def create_kafka_consumer(config: AiQualityConfig):
-    try:
-        from kafka import KafkaConsumer
-    except ModuleNotFoundError as exc:
-        raise RuntimeError("缺少 kafka-python 依赖，请安装 app/requirements.txt") from exc
+    if KafkaConsumer is None:
+        raise RuntimeError("缺少 kafka-python 依赖，请安装 app/requirements.txt")
 
     return KafkaConsumer(
         config.kafka_topic,
@@ -86,5 +89,7 @@ def create_kafka_consumer(config: AiQualityConfig):
         group_id=config.kafka_group_id,
         enable_auto_commit=False,
         auto_offset_reset="earliest",
+        max_poll_interval_ms=config.kafka_max_poll_interval_ms,
+        max_poll_records=config.kafka_max_poll_records,
         value_deserializer=lambda value: json.loads(value.decode("utf-8")),
     )

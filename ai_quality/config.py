@@ -19,6 +19,8 @@ class AiQualityConfig:
     kafka_bootstrap_servers: str = "10.67.65.8:9092"
     kafka_topic: str = "classroom_asr_task"
     kafka_group_id: str = "cv-analysis-service"
+    kafka_max_poll_interval_ms: int = 7200000
+    kafka_max_poll_records: int = 1
     db_host: str = "10.67.65.8"
     db_port: int = 23308
     db_user: str = "root"
@@ -70,6 +72,16 @@ def load_ai_quality_config(config_path: str) -> AiQualityConfig:
         kafka_bootstrap_servers=str(_get_value(section, "KafkaBootstrapServers", AiQualityConfig.kafka_bootstrap_servers)),
         kafka_topic=str(_get_value(section, "KafkaTopic", AiQualityConfig.kafka_topic)),
         kafka_group_id=str(_get_value(section, "KafkaGroupId", AiQualityConfig.kafka_group_id)),
+        kafka_max_poll_interval_ms=int(_get_value(
+            section,
+            "KafkaMaxPollIntervalMs",
+            AiQualityConfig.kafka_max_poll_interval_ms,
+        )),
+        kafka_max_poll_records=int(_get_value(
+            section,
+            "KafkaMaxPollRecords",
+            AiQualityConfig.kafka_max_poll_records,
+        )),
         db_host=str(_get_value(section, "DBHost", AiQualityConfig.db_host)),
         db_port=int(_get_value(section, "DBPort", AiQualityConfig.db_port)),
         db_user=str(_get_value(section, "DBUser", AiQualityConfig.db_user)),
