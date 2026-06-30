@@ -70,3 +70,53 @@ CropScale = 1.35
 SideYawThreshold = 20.0
 # 低头阈值；Pitch >= 阈值时 IsLookingDown=true。
 DownPitchThreshold = 20.0
+
+[AI_Quality]
+# Kafka 可按本地 Docker 或测试环境覆盖；测试环境地址当前为 10.67.65.8:9092。
+KafkaBootstrapServers = "10.67.65.8:9092"
+KafkaTopic = "classroom_asr_task"
+KafkaGroupId = "cv-analysis-service"
+
+# ai_quality 测试库连接配置。
+DBHost = "10.67.65.8"
+DBPort = 23308
+DBUser = "root"
+DBPassword = "123456"
+#DBName = "ai_quality"
+DBName = "ai_quality_eval"
+
+# 本地/生产抓拍根目录。当前 NFS 不可写时，本地使用项目内 blobstor/image 替代。
+SnapshotMountRoot = "/Users/zhangshen/Documents/workspace/jy-algorithm-tias-server/blobstor/image"
+SnapshotRelativePrefix = "cv"
+SnapshotScale = 0.25
+# 每节课最多保存多少条核心课堂快照事件，避免报告和存储膨胀。
+SnapshotMaxTotal = 30
+# 学生抬头高峰：按抬头率取最高 N 张，再按最低抬头率过滤。
+SnapshotHeadUpTopK = 3
+SnapshotHeadUpMinRate = 0.70
+# 学生阅读专注：按 Read_W / present_count 取最高 N 张，再按最低阅读占比过滤。
+SnapshotReadTopK = 3
+SnapshotReadMinRate = 0.30
+# 学生睡觉：满足睡觉人数或睡觉占比任一阈值即进入候选。
+SnapshotSleepMinCount = 2
+SnapshotSleepMinRate = 0.05
+# 学生玩手机：满足玩手机人数或玩手机占比任一阈值即进入候选。
+SnapshotPhoneMinCount = 2
+SnapshotPhoneMinRate = 0.05
+# 教师教态预警：连续 N 个有效教师帧非面向学生或低头时保存。
+SnapshotTeacherAlertConsecutiveFrames = 3
+# 同类快照最小间隔秒数，避免相邻帧重复入库。
+SnapshotSameTypeMinIntervalSeconds = 90
+# 学生异常行为统计：跳过课程开始前 N 分钟，避免课前准备画面污染统计。
+BehaviorStatStartMinute = 3
+# 学生异常行为统计：peak_period_desc 最多保留多少个高峰候选段。
+BehaviorStatPeakMaxSegments = 5
+
+# Worker 运行参数。
+TempRoot = "/tmp/ai-quality"
+FrameIntervalSeconds = 30
+MaxTaskRetries = 3
+WorkerConcurrency = 1
+DefaultStudentCount = 50
+# 本地联调大视频时可设置为 1，只抽每路视频第一帧；生产建议注释或设为 0。
+MaxFramesPerVideo = 0

@@ -181,6 +181,74 @@ jy-algorithm-tias-server/
 
 服务启动后不再向 IAS 执行注册、注销或保活请求，推理接口可直接在本地或容器内使用。
 
+### AI 课堂视觉分析 Worker
+
+Worker 与 FastAPI HTTP 服务分开启动，用于从 Kafka 消费课次视频任务，或用 JSON 文件模拟一条 Kafka 消息做联调。
+
+代码位于仓库顶层 `ai_quality/`，当前按职责分层；仍复用 `app/services`、`app/core`、`app/schemas` 中的 TIAS 模型服务代码和配置加载能力：
+
+- `app.py` / `config.py`：保留稳定 CLI 入口和配置入口。
+- `application/`：课次任务编排、Worker、依赖组装和应用级常量。
+- `domain/`：指标聚合、快照策略、学生异常行为统计、评分和稳定 ID。
+- `infrastructure/`：Kafka、MySQL、视频下载抽帧、抓拍存储和视觉模型适配。
+
+运行环境建议使用已有 conda 环境：
+
+```bash
+conda activate jy-tias
+pip install -r app/requirements.txt
+export CONFIG_PATH="/Users/zhangshen/Documents/workspace/jy-algorithm-tias-server/app/config.toml"
+```
+
+抓拍目录使用 `app/config.toml` 的 `AI_Quality.SnapshotMountRoot`。当前本地默认使用项目内 `blobstor/image` 作为 NFS 不可写时的替代目录；生产或测试环境 NFS 恢复后，可改为实际挂载目录，示例：
+
+```bash
+mount -t nfs -o nolock,vers=3,tcp 10.80.5.120:/blobstor/image /mnt
+```
+
+用测试 JSON 模拟一条 Kafka 消息：
+
+```bash
+python -m ai_quality.app --config "$CONFIG_PATH" run-json tests/fixtures/ai_quality_lesson_message.json
+```
+
+本地课程视频可用 Docker Nginx 起一个只读文件服务器，避免从公网重新下载大视频：
+
+```bash
+docker run -d --name ai-quality-course-nginx \
+  -p 18080:80 \
+  -v "/Users/zhangshen/Documents/course/0912空中交通管理与签派_1223121_1223122_90020060,徐月芳,__2025年9月12号17时10分:/usr/share/nginx/html:ro" \
+  -v "/Users/zhangshen/Documents/workspace/jy-algorithm-tias-server/deploy/local-course-nginx.conf:/etc/nginx/nginx.conf:ro" \
+  nginx:1.27-alpine
+```
+
+本地 Nginx 消息文件：
+
+```bash
+python -m ai_quality.app --config "$CONFIG_PATH" run-json tests/fixtures/ai_quality_lesson_message_local_nginx.json
+```
+
+停止本地文件服务器：
+
+```bash
+docker rm -f ai-quality-course-nginx
+```
+
+从 Kafka 持续消费：
+
+```bash
+python -m ai_quality.app --config "$CONFIG_PATH" consume
+```
+
+可配置参数位于 `app/config.toml` 的 `[AI_Quality]`：
+
+- `KafkaBootstrapServers`：Kafka 地址，本地 Docker 或测试环境 `10.67.65.8:9092`。
+- `KafkaTopic` / `KafkaGroupId`：消费 topic 和 consumer group。
+- `DBHost` / `DBPort` / `DBUser` / `DBPassword` / `DBName`：`ai_quality` 数据库。
+- `SnapshotMountRoot` / `SnapshotRelativePrefix` / `SnapshotScale`：抓拍根目录、落库相对路径前缀、图片缩放比例；本地默认写入项目内 `blobstor/image`。
+- `FrameIntervalSeconds` / `MaxTaskRetries` / `WorkerConcurrency` / `DefaultStudentCount`：抽帧间隔、失败重试、并发和默认应到人数。
+- `MaxFramesPerVideo`：本地联调大视频时可设为 `1`，每路视频只处理第一帧；生产建议设为 `0` 或删除该项。
+
 ---
 
 ## Docker 部署

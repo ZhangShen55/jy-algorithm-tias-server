@@ -1,0 +1,145 @@
+import shutil
+from pathlib import Path
+from typing import List, Optional
+
+from ai_quality.application.constants import INDICATOR_CODES
+from ai_quality.config import AiQualityConfig
+from ai_quality.domain.behavior_stats import build_student_behavior_stats
+from ai_quality.domain.metrics import StudentFrameMetric, TeacherFrameMetric, aggregate_visual_metrics
+from ai_quality.domain.scoring import score_indicator
+from ai_quality.domain.snapshots import (
+    StudentFrameSnapshotInput,
+    TeacherFrameSnapshotInput,
+    build_snapshot_events,
+)
+from ai_quality.infrastructure.db.repositories import AiQualityRepository
+from ai_quality.infrastructure.kafka.message import VisualTaskMessage
+from ai_quality.infrastructure.media.snapshot_storage import SnapshotStorage
+from ai_quality.infrastructure.media.video import download_video, extract_frames
+from ai_quality.infrastructure.vision.frame_analyzer import FrameAnalyzer
+
+
+class VisualAnalysisWorker:
+    def __init__(
+            self,
+            config: AiQualityConfig,
+            repository: AiQualityRepository,
+            frame_analyzer: Optional[FrameAnalyzer] = None,
+            snapshot_storage: Optional[SnapshotStorage] = None):
+        self.config = config
+        self.repository = repository
+        self.frame_analyzer = frame_analyzer or FrameAnalyzer()
+        self.snapshot_storage = snapshot_storage or SnapshotStorage(
+            config.snapshot_mount_root,
+            config.snapshot_relative_prefix,
+            config.snapshot_scale,
+        )
+
+    def process_task(self, message: VisualTaskMessage) -> None:
+        task_dir = self.config.temp_root / message.task_id
+        try:
+            self.repository.mark_workflow_running(message.task_id)
+            self.repository.mark_job_running(message.task_id)
+            self.repository.clear_previous_results(message.task_id)
+            task_dir.mkdir(parents=True, exist_ok=True)
+
+            student_video = download_video(
+                message.student_video_url,
+                task_dir / "student.mp4",
+            )
+            teacher_video = download_video(
+                message.teacher_video_url,
+                task_dir / "teacher.mp4",
+            )
+            student_frames = extract_frames(student_video, self.config.frame_interval_seconds)
+            teacher_frames = extract_frames(teacher_video, self.config.frame_interval_seconds)
+            if self.config.max_frames_per_video is not None:
+                student_frames = student_frames[:self.config.max_frames_per_video]
+                teacher_frames = teacher_frames[:self.config.max_frames_per_video]
+
+            student_metrics: List[StudentFrameMetric] = []
+            teacher_metrics: List[TeacherFrameMetric] = []
+            student_snapshot_inputs: List[StudentFrameSnapshotInput] = []
+            teacher_snapshot_inputs: List[TeacherFrameSnapshotInput] = []
+            timeline_rows = []
+            snapshot_rows = []
+
+            for frame in student_frames:
+                metric = self.frame_analyzer.analyze_student_frame(frame.point.minute_no, frame.image)
+                student_metrics.append(metric)
+                student_snapshot_inputs.append(StudentFrameSnapshotInput(
+                    frame_index=frame.point.frame_index,
+                    timestamp_seconds=frame.point.timestamp_seconds,
+                    image=frame.image,
+                    metric=metric,
+                ))
+                if metric.present_count > 0:
+                    timeline_rows.append({
+                        "metric_type": 3,
+                        "minute_no": metric.minute_no,
+                        "metric_value": round(metric.face_count / metric.present_count * 100, 2),
+                    })
+
+            for frame in teacher_frames:
+                metric = self.frame_analyzer.analyze_teacher_frame(frame.point.minute_no, frame.image)
+                teacher_metrics.append(metric)
+                teacher_snapshot_inputs.append(TeacherFrameSnapshotInput(
+                    frame_index=frame.point.frame_index,
+                    timestamp_seconds=frame.point.timestamp_seconds,
+                    image=frame.image,
+                    metric=metric,
+                ))
+
+            for event in build_snapshot_events(
+                    message.task_id,
+                    self.config,
+                    student_snapshot_inputs,
+                    teacher_snapshot_inputs):
+                snapshot = self.snapshot_storage.save_snapshot(message.task_id, event.image_id, event.image)
+                snapshot_rows.append({
+                    "target_type": event.target_type,
+                    "record_type": event.record_type,
+                    "behavior_type": event.behavior_type,
+                    "capture_second": event.capture_second,
+                    "confidence_score": event.confidence_score,
+                    "image_url": snapshot.relative_path,
+                })
+
+            aggregated = aggregate_visual_metrics(
+                task_id=message.task_id,
+                student_count=message.student_count,
+                student_frames=student_metrics,
+                teacher_frames=teacher_metrics,
+            )
+            student_behavior_stats = build_student_behavior_stats(
+                student_metrics,
+                start_minute=self.config.behavior_stat_start_minute,
+                peak_max_segments=self.config.behavior_stat_peak_max_segments,
+            )
+            indicator_definitions = self.repository.load_indicator_definitions(INDICATOR_CODES)
+            rescored_indicators = {}
+            for code, metric in aggregated.indicators.items():
+                definition = indicator_definitions.get(code)
+                rule = definition.score_rule if definition else None
+                rescored_indicators[code] = type(metric)(
+                    code=metric.code,
+                    value=metric.value,
+                    score=score_indicator(metric.value, rule),
+                )
+
+            self.repository.insert_timeline_rows(message.task_id, timeline_rows)
+            self.repository.insert_snapshot_events(message.task_id, snapshot_rows)
+            self.repository.upsert_student_behavior_stats(message.task_id, student_behavior_stats)
+            self.repository.upsert_indicator_results(
+                message.task_id,
+                rescored_indicators,
+                indicator_definitions,
+            )
+            self.repository.mark_workflow_success(message.task_id)
+            self.repository.mark_job_success(message.task_id)
+        except Exception as exc:
+            self.repository.mark_workflow_failed(message.task_id, str(exc))
+            self.repository.mark_job_failed(message.task_id, str(exc))
+            raise
+        finally:
+            shutil.rmtree(task_dir, ignore_errors=True)

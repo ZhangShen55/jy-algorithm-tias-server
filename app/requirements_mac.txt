@@ -49,6 +49,8 @@ uvloop
 
 # --- 业务代码显式依赖 ---
 requests>=2.31.0
+PyMySQL>=1.1.1
+kafka-python>=2.0.2
 
 # --- 配置文件解析依赖 ---
 tomli>=2.0.1; python_version < "3.11"
