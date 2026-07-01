@@ -9,7 +9,7 @@ from kafka import KafkaProducer
 
 
 DEFAULT_BOOTSTRAP_SERVERS = "10.67.65.8:9092"
-DEFAULT_TOPIC = "classroom_asr_task"
+DEFAULT_TOPIC = "classroom_cv_task"
 DEFAULT_MESSAGE_PATH = "tests/fixtures/test111.json"
 
 

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable, Mapping
 
-from app.core.config_loader import load_config
+from tias.core.config_loader import load_config
 
 
 class DependencyCheckError(RuntimeError):
@@ -17,10 +17,23 @@ def _get_value(config: Mapping[str, object], key: str, default):
 @dataclass(frozen=True)
 class AiQualityConfig:
     kafka_bootstrap_servers: str = "10.67.65.8:9092"
-    kafka_topic: str = "classroom_asr_task"
+    kafka_topic: str = "classroom_cv_task"
     kafka_group_id: str = "cv-analysis-service"
     kafka_max_poll_interval_ms: int = 7200000
     kafka_max_poll_records: int = 1
+    http_host: str = "0.0.0.0"
+    http_port: int = 9000
+    redis_url: str = "redis://127.0.0.1:6379/0"
+    redis_key_prefix: str = "ai_quality:tias"
+    tias_inference_mode: str = "remote"
+    tias_batch_size: int = 8
+    tias_request_timeout_seconds: int = 60
+    tias_max_retry_per_batch: int = 3
+    tias_busy_retry_delay_seconds: int = 5
+    tias_circuit_breaker_failure_threshold: int = 3
+    tias_circuit_breaker_cooldown_seconds: int = 30
+    tias_heartbeat_timeout_seconds: int = 15
+    tias_fallback_instances: tuple[str, ...] = ()
     db_host: str = "10.67.65.8"
     db_port: int = 23308
     db_user: str = "root"
@@ -59,7 +72,10 @@ class AiQualityConfig:
             raise DependencyCheckError("缺少运行依赖: " + ", ".join(missing))
 
     def ensure_runtime_dependencies(self) -> None:
-        self.check_required_modules(["cv2", "requests", "pymysql", "kafka"])
+        modules = ["cv2", "requests", "pymysql", "kafka"]
+        if self.tias_inference_mode == "remote" and not self.tias_fallback_instances:
+            modules.append("redis")
+        self.check_required_modules(modules)
 
 
 def load_ai_quality_config(config_path: str) -> AiQualityConfig:
@@ -67,6 +83,16 @@ def load_ai_quality_config(config_path: str) -> AiQualityConfig:
     section = raw_config.get("AI_Quality", {})
     if not isinstance(section, Mapping):
         section = {}
+
+    fallback_instances = _get_value(section, "TiasFallbackInstances", AiQualityConfig.tias_fallback_instances)
+    if isinstance(fallback_instances, str):
+        fallback_instances = tuple(
+            item.strip()
+            for item in fallback_instances.split(",")
+            if item.strip()
+        )
+    else:
+        fallback_instances = tuple(str(item).strip() for item in fallback_instances if str(item).strip())
 
     return AiQualityConfig(
         kafka_bootstrap_servers=str(_get_value(section, "KafkaBootstrapServers", AiQualityConfig.kafka_bootstrap_servers)),
@@ -82,6 +108,39 @@ def load_ai_quality_config(config_path: str) -> AiQualityConfig:
             "KafkaMaxPollRecords",
             AiQualityConfig.kafka_max_poll_records,
         )),
+        http_host=str(_get_value(section, "HttpHost", AiQualityConfig.http_host)),
+        http_port=int(_get_value(section, "HttpPort", AiQualityConfig.http_port)),
+        redis_url=str(_get_value(section, "RedisUrl", AiQualityConfig.redis_url)),
+        redis_key_prefix=str(_get_value(section, "RedisKeyPrefix", AiQualityConfig.redis_key_prefix)),
+        tias_inference_mode=str(_get_value(section, "TiasInferenceMode", AiQualityConfig.tias_inference_mode)),
+        tias_batch_size=int(_get_value(section, "TiasBatchSize", AiQualityConfig.tias_batch_size)),
+        tias_request_timeout_seconds=int(_get_value(
+            section,
+            "TiasRequestTimeoutSeconds",
+            AiQualityConfig.tias_request_timeout_seconds,
+        )),
+        tias_max_retry_per_batch=int(_get_value(section, "TiasMaxRetryPerBatch", AiQualityConfig.tias_max_retry_per_batch)),
+        tias_busy_retry_delay_seconds=int(_get_value(
+            section,
+            "TiasBusyRetryDelaySeconds",
+            AiQualityConfig.tias_busy_retry_delay_seconds,
+        )),
+        tias_circuit_breaker_failure_threshold=int(_get_value(
+            section,
+            "TiasCircuitBreakerFailureThreshold",
+            AiQualityConfig.tias_circuit_breaker_failure_threshold,
+        )),
+        tias_circuit_breaker_cooldown_seconds=int(_get_value(
+            section,
+            "TiasCircuitBreakerCooldownSeconds",
+            AiQualityConfig.tias_circuit_breaker_cooldown_seconds,
+        )),
+        tias_heartbeat_timeout_seconds=int(_get_value(
+            section,
+            "TiasHeartbeatTimeoutSeconds",
+            AiQualityConfig.tias_heartbeat_timeout_seconds,
+        )),
+        tias_fallback_instances=fallback_instances,
         db_host=str(_get_value(section, "DBHost", AiQualityConfig.db_host)),
         db_port=int(_get_value(section, "DBPort", AiQualityConfig.db_port)),
         db_user=str(_get_value(section, "DBUser", AiQualityConfig.db_user)),

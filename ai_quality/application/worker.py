@@ -39,7 +39,6 @@ class VisualAnalysisWorker:
         task_dir = self.config.temp_root / message.task_id
         try:
             self.repository.mark_workflow_running(message.task_id)
-            self.repository.mark_job_running(message.task_id)
             self.repository.clear_previous_results(message.task_id)
             task_dir.mkdir(parents=True, exist_ok=True)
 
@@ -64,9 +63,15 @@ class VisualAnalysisWorker:
             timeline_rows = []
             snapshot_rows = []
 
-            for frame in student_frames:
-                metric = self.frame_analyzer.analyze_student_frame(frame.point.minute_no, frame.image)
-                student_metrics.append(metric)
+            if hasattr(self.frame_analyzer, "analyze_student_frames"):
+                student_metrics_result = self.frame_analyzer.analyze_student_frames(message.task_id, student_frames)
+            else:
+                student_metrics_result = [
+                    self.frame_analyzer.analyze_student_frame(frame.point.minute_no, frame.image)
+                    for frame in student_frames
+                ]
+            student_metrics = list(student_metrics_result)
+            for frame, metric in zip(student_frames, student_metrics):
                 student_snapshot_inputs.append(StudentFrameSnapshotInput(
                     frame_index=frame.point.frame_index,
                     timestamp_seconds=frame.point.timestamp_seconds,
@@ -80,9 +85,15 @@ class VisualAnalysisWorker:
                         "metric_value": round(metric.face_count / metric.present_count * 100, 2),
                     })
 
-            for frame in teacher_frames:
-                metric = self.frame_analyzer.analyze_teacher_frame(frame.point.minute_no, frame.image)
-                teacher_metrics.append(metric)
+            if hasattr(self.frame_analyzer, "analyze_teacher_frames"):
+                teacher_metrics_result = self.frame_analyzer.analyze_teacher_frames(message.task_id, teacher_frames)
+            else:
+                teacher_metrics_result = [
+                    self.frame_analyzer.analyze_teacher_frame(frame.point.minute_no, frame.image)
+                    for frame in teacher_frames
+                ]
+            teacher_metrics = list(teacher_metrics_result)
+            for frame, metric in zip(teacher_frames, teacher_metrics):
                 teacher_snapshot_inputs.append(TeacherFrameSnapshotInput(
                     frame_index=frame.point.frame_index,
                     timestamp_seconds=frame.point.timestamp_seconds,
@@ -136,10 +147,8 @@ class VisualAnalysisWorker:
                 indicator_definitions,
             )
             self.repository.mark_workflow_success(message.task_id)
-            self.repository.mark_job_success(message.task_id)
         except Exception as exc:
             self.repository.mark_workflow_failed(message.task_id, str(exc))
-            self.repository.mark_job_failed(message.task_id, str(exc))
             raise
         finally:
             shutil.rmtree(task_dir, ignore_errors=True)

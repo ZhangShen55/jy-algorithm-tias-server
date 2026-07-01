@@ -29,18 +29,41 @@ class AiQualityKafkaConsumer:
             try:
                 task_message = self._parse_message(raw_message)
             except InvalidTaskMessage as exc:
-                logger.error("Kafka 消息不可处理，提交 offset: %s", exc)
+                logger.error(
+                    "Kafka 消息不可处理，提交 offset topic=%s partition=%s offset=%s reason=%s",
+                    _message_attr(raw_message, "topic"),
+                    _message_attr(raw_message, "partition"),
+                    _message_attr(raw_message, "offset"),
+                    exc,
+                )
                 if invalid_message_handler is not None:
                     invalid_message_handler(self._raw_value(raw_message), exc)
                 self.consumer.commit()
+                logger.info(
+                    "Kafka offset 已提交 task_id=- status=invalid topic=%s partition=%s offset=%s",
+                    _message_attr(raw_message, "topic"),
+                    _message_attr(raw_message, "partition"),
+                    _message_attr(raw_message, "offset"),
+                )
                 processed += 1
                 if limit is not None and processed >= limit:
                     break
                 continue
 
+            logger.info(
+                "消费 Kafka 任务 task_id=%s course_id=%s student_count=%s topic=%s partition=%s offset=%s",
+                task_message.task_id,
+                task_message.course_id,
+                task_message.student_count,
+                _message_attr(raw_message, "topic"),
+                _message_attr(raw_message, "partition"),
+                _message_attr(raw_message, "offset"),
+            )
+            final_status = "failed"
             for attempt in range(1, self.max_retries + 1):
                 try:
                     handler(task_message)
+                    final_status = "success"
                     break
                 except Exception as exc:
                     logger.warning(
@@ -53,6 +76,14 @@ class AiQualityKafkaConsumer:
                     if attempt >= self.max_retries:
                         break
             self.consumer.commit()
+            logger.info(
+                "Kafka offset 已提交 task_id=%s status=%s topic=%s partition=%s offset=%s",
+                task_message.task_id,
+                final_status,
+                _message_attr(raw_message, "topic"),
+                _message_attr(raw_message, "partition"),
+                _message_attr(raw_message, "offset"),
+            )
             processed += 1
             if limit is not None and processed >= limit:
                 break
@@ -81,7 +112,7 @@ class AiQualityKafkaConsumer:
 
 def create_kafka_consumer(config: AiQualityConfig):
     if KafkaConsumer is None:
-        raise RuntimeError("缺少 kafka-python 依赖，请安装 app/requirements.txt")
+        raise RuntimeError("缺少 kafka-python 依赖，请安装 tias/requirements.txt")
 
     return KafkaConsumer(
         config.kafka_topic,
@@ -93,3 +124,7 @@ def create_kafka_consumer(config: AiQualityConfig):
         max_poll_records=config.kafka_max_poll_records,
         value_deserializer=lambda value: json.loads(value.decode("utf-8")),
     )
+
+
+def _message_attr(raw_message, name: str):
+    return getattr(raw_message, name, None)

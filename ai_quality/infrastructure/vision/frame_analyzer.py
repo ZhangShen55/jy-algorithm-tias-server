@@ -4,8 +4,8 @@ from typing import Optional, Tuple
 import numpy as np
 
 from ai_quality.domain.metrics import StudentFrameMetric, TeacherFrameMetric
-from app.services import student_behavior_service as student_service
-from app.services import teacher_behavior_service as teacher_service
+from tias.services import student_behavior_service as student_service
+from tias.services import teacher_behavior_service as teacher_service
 
 
 @dataclass(frozen=True)

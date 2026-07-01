@@ -7,6 +7,7 @@ from pathlib import Path
 from ai_quality.application.factories import build_worker
 from ai_quality.application.worker import VisualAnalysisWorker
 from ai_quality.config import load_ai_quality_config
+from ai_quality.http_app import create_app_from_config
 from ai_quality.infrastructure.kafka.consumer import AiQualityKafkaConsumer, create_kafka_consumer
 from ai_quality.infrastructure.kafka.message import VisualTaskMessage
 
@@ -43,6 +44,14 @@ def consume(config_path: str) -> None:
     )
 
 
+def serve(config_path: str) -> None:
+    import uvicorn
+
+    config = load_ai_quality_config(config_path)
+    app = create_app_from_config(config)
+    uvicorn.run(app, host=config.http_host, port=config.http_port)
+
+
 def handle_invalid_message(worker: VisualAnalysisWorker, payload, error: Exception) -> None:
     if not isinstance(payload, dict):
         return
@@ -51,20 +60,22 @@ def handle_invalid_message(worker: VisualAnalysisWorker, payload, error: Excepti
         return
     error_msg = str(error)
     worker.repository.mark_workflow_failed(str(task_id), error_msg)
-    worker.repository.mark_job_failed(str(task_id), error_msg)
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="AI 课堂质量视觉分析 Worker")
     parser.add_argument(
         "--config",
-        default=os.getenv("CONFIG_PATH", "app/config.toml"),
-        help="配置文件路径，默认读取 CONFIG_PATH 或 app/config.toml",
+        default=os.getenv("CONFIG_PATH", "tias/config.toml"),
+        help="配置文件路径，默认读取 CONFIG_PATH 或 tias/config.toml",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     consume_parser = subparsers.add_parser("consume", help="从 Kafka 消费视觉分析任务")
     consume_parser.set_defaults(func=lambda args: consume(args.config))
+
+    serve_parser = subparsers.add_parser("serve", help="启动 ai_quality HTTP 注册和心跳服务")
+    serve_parser.set_defaults(func=lambda args: serve(args.config))
 
     run_json_parser = subparsers.add_parser("run-json", help="使用 JSON 字符串或 JSON 文件模拟一条 Kafka 消息")
     run_json_parser.add_argument("message_json", help="JSON 字符串或 JSON 文件路径")

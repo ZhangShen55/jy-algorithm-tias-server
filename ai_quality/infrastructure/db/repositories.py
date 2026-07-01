@@ -90,54 +90,6 @@ class AiQualityRepository:
             })
         self.connection.commit()
 
-    def mark_job_running(self, task_id: str) -> None:
-        sql = """
-            INSERT INTO lesson_ai_job
-                (job_id, task_id, overall_status, error_msg, enqueued_at, started_at, completed_at, create_by, update_by)
-            VALUES
-                (%(job_id)s, %(task_id)s, %(status)s, NULL, NOW(), NOW(), NULL, 'cv-worker', 'cv-worker')
-            ON DUPLICATE KEY UPDATE
-                overall_status = VALUES(overall_status),
-                error_msg = NULL,
-                started_at = COALESCE(started_at, NOW()),
-                completed_at = NULL,
-                update_by = 'cv-worker'
-        """
-        with self.connection.cursor() as cursor:
-            cursor.execute(sql, {
-                "job_id": stable_id("job", task_id),
-                "task_id": task_id,
-                "status": STATUS_RUNNING,
-            })
-        self.connection.commit()
-
-    def mark_job_success(self, task_id: str) -> None:
-        self._update_job_final(task_id, STATUS_SUCCESS, None)
-
-    def mark_job_failed(self, task_id: str, error_msg: str) -> None:
-        self._update_job_final(task_id, STATUS_FAILED, error_msg[:500])
-
-    def _update_job_final(self, task_id: str, status: int, error_msg: Optional[str]) -> None:
-        sql = """
-            INSERT INTO lesson_ai_job
-                (job_id, task_id, overall_status, error_msg, enqueued_at, started_at, completed_at, create_by, update_by)
-            VALUES
-                (%(job_id)s, %(task_id)s, %(status)s, %(error_msg)s, NOW(), NOW(), NOW(), 'cv-worker', 'cv-worker')
-            ON DUPLICATE KEY UPDATE
-                overall_status = VALUES(overall_status),
-                error_msg = VALUES(error_msg),
-                completed_at = NOW(),
-                update_by = 'cv-worker'
-        """
-        with self.connection.cursor() as cursor:
-            cursor.execute(sql, {
-                "job_id": stable_id("job", task_id),
-                "task_id": task_id,
-                "status": status,
-                "error_msg": error_msg,
-            })
-        self.connection.commit()
-
     def clear_previous_results(self, task_id: str) -> None:
         with self.connection.cursor() as cursor:
             cursor.execute("DELETE FROM lesson_behavior_timeline WHERE task_id = %(task_id)s", {"task_id": task_id})
