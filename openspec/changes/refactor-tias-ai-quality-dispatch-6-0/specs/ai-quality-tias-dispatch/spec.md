@@ -46,7 +46,7 @@ ai_quality 必须为每个小批次按实例健康状态、能力、并发容量
 
 #### Scenario: 存在健康实例
 - **WHEN** 多个已注册 TIAS 实例都能处理该批次
-- **THEN** ai_quality 必须优先选择 `running_batches < max_concurrent_batches` 的实例，再按更低的 `running_batches`、`avg_latency_ms`、`p95_latency_ms`、`queued_batches` 和 `recent_failure_count` 排序
+- **THEN** ai_quality 必须优先选择 `running_batches < max_concurrent_batches` 的实例，再按更低的 `running_batches`、本进程近期选择次数、`avg_latency_ms`、`p95_latency_ms`、`queued_batches` 和 `recent_failure_count` 排序
 
 #### Scenario: 实例缺少所需能力
 - **WHEN** 某个 TIAS 实例没有声明批次所需能力

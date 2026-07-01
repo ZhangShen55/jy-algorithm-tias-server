@@ -23,7 +23,7 @@
 - **Python 3** + **FastAPI** + **Uvicorn**（可选 **uvloop**）
 - **Ultralytics YOLO**（`ultralytics`）
 - **OpenCV**、**NumPy**、**PyTorch**
-- 生产环境可通过 **Nginx** 对多 Uvicorn 实例做负载均衡（见 `app/start.sh`）
+- 生产环境可通过 **Nginx** 对多 Uvicorn 实例做负载均衡（见 `tias/start.sh`）
 
 ---
 
@@ -32,9 +32,10 @@
 ```
 jy-algorithm-tias-server/
 ├── README.md                 # 本说明
-└── app/
+├── tias/
     ├── main.py               # FastAPI 入口、IAS 客户端生命周期
     ├── config.toml           # 默认配置示例（部署时常挂载或复制）
+    ├── config.toml.example   # TIAS 6.0 配置样例
     ├── start.sh              # 启动脚本（单实例 / Nginx + 多实例）
     ├── requirements.txt      # PyTorch 2.6 / CUDA 11.8 主线依赖
     ├── requirements_cuda113.txt
@@ -42,10 +43,16 @@ jy-algorithm-tias-server/
     ├── Dockerfile_cuda113    # CUDA 11.3 备选镜像
     ├── core/
     │   └── settings.py       # 配置加载、设备选择、YOLO 模型全局加载
-    ├── api/                  # 路由：任务、容量、版本、日志等级、师生行为
-    ├── services/             # 任务处理、容量/版本信息、师生行为推理
+    ├── api/                  # 路由：师生行为、WorkerStatus、Health、Drain
+    ├── services/             # 师生行为推理、本地准入、注册心跳
     ├── schemas/              # Pydantic 请求/响应模型
     └── models/               # 权重文件目录（需自行放置，见下文）
+└── ai_quality/
+    ├── app.py                # CLI 入口：serve / consume / run-json
+    ├── config.toml.example   # ai_quality 6.0 配置样例
+    ├── application/          # 课堂质量任务编排
+    ├── domain/               # 指标、快照、学生行为统计
+    └── infrastructure/       # Kafka、MySQL、视频、TIAS 调度
 ```
 
 > **说明**：`Dockerfile` 中会 `COPY nginx/nginx.conf`；若你本地构建镜像，请在构建上下文中提供 `nginx/nginx.conf`（与 Dockerfile 中路径一致）。
@@ -54,16 +61,16 @@ jy-algorithm-tias-server/
 
 ## 模型文件
 
-请将训练好的权重放到 **`app/models/`**（与 `settings.py` 中路径一致）。当前代码中约定的文件名包括：
+请将训练好的权重放到 **`tias/models/`**（与 `settings.py` 中路径一致）。当前代码中约定的文件名包括：
 
-| 变量 | 路径（相对 `app/core/settings.py`） |
+| 变量 | 路径（相对 `tias/core/settings.py`） |
 |------|--------------------------------------|
-| 人数 | `app/models/person_count_20251222_1920p.pt` |
-| 人脸 | `app/models/face_count_20251212.pt` |
-| 学生行为 | `app/models/student_20250819.pt`（若与仓库实际文件名不一致，请同步修改 `STUDENT_MODEL_PATH`） |
-| 老师行为 | `app/models/teacher_behavior.pt` |
+| 人数 | `tias/models/person_count_20251222_1920p.pt` |
+| 人脸 | `tias/models/face_count_20251212.pt` |
+| 学生行为 | `tias/models/student_20250819.pt`（若与仓库实际文件名不一致，请同步修改 `STUDENT_MODEL_PATH`） |
+| 老师行为 | `tias/models/teacher_behavior.pt` |
 
-`app/models/READEME.md` 中说明该目录用于存放模型。
+`tias/models/READEME.md` 中说明该目录用于存放模型。
 
 ---
 
@@ -71,7 +78,7 @@ jy-algorithm-tias-server/
 
 ### `config.toml`（或 `CONFIG_PATH` 指向的文件）
 
-应用通过环境变量 **`CONFIG_PATH`** 指定配置文件，默认在 `settings.py` 中解析为 `app/config.toml`；Docker 内 `start.sh` 固定为 **`/app/config.toml`**。
+应用通过环境变量 **`CONFIG_PATH`** 指定配置文件，默认在 `settings.py` 中解析为 `tias/config.toml`；Docker 内 `start.sh` 默认读取 **`/workspace/tias/config.toml`**。
 
 常用字段：
 
@@ -105,12 +112,13 @@ jy-algorithm-tias-server/
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| POST | `/AE/SyncTasks` | IAS 同步任务：多边形 ROI + 图片 URI，返回每 ROI 人数与人脸 |
-| POST | `/AE/SyncTasks2` | 与 SyncTasks 类似，实现位于 `task_service_base64`（适合内嵌图片等场景） |
-| GET | `/AE/Capacity` | 能力/容量信息 |
-| GET | `/AE/Capacity_v2` | 增强信息（连接数、处理图片数、运行时间等） |
-| GET | `/AE/Version` | APP / Adapter / 算法版本及累计任务数等 |
-| GET/PUT | `/AE/LogLevel` | 查询/设置日志级别 |
+| GET | `/AE/WorkerStatus` | TIAS 6.0 实例状态、并发、队列和耗时指标 |
+| GET | `/AE/Health` | 轻量健康检查 |
+| PUT | `/AE/Drain` | 实例进入排空状态，不再接收新批次 |
+| POST | `/AE/SyncTasks` | 旧 IAS 同步任务，默认不暴露；`TiasExposeLegacySyncTasks=true` 时启用 |
+| POST | `/AE/SyncTasks2` | 旧 IAS 同步任务 base64 变体，默认不暴露 |
+
+6.0 默认移除 `/AE/Capacity`、`/AE/Capacity_v2`、`/AE/Version`、`/AE/LogLevel` 和 `/ImageDetect/student/v1.0.1`。
 
 ### 学生 / 老师行为
 
@@ -151,7 +159,7 @@ jy-algorithm-tias-server/
 }
 ```
 
-未传的类别继续使用 `app/config.toml` 中的默认阈值。
+未传的类别继续使用 `tias/config.toml` 中的默认阈值。
 
 请求体见 `schemas/stu_tea_behavior.py`：`ImageList` 中每项含 `StoragePath`、`ImageId`、可选 `Points`（多边形）。
 
@@ -167,43 +175,42 @@ jy-algorithm-tias-server/
 2. 安装依赖：
 
    ```bash
-   cd app
-   pip install -r requirements.txt
+   pip install -r tias/requirements.txt
    ```
 
-3. 将模型放入 `app/models/`，并按需修改 `app/core/settings.py` 中的路径或 `config.toml`。
-4. 从 **`app` 的父目录** 启动（保证 `app` 为包名）：
+3. 将模型放入 `tias/models/`，并按需修改 `tias/core/settings.py` 中的路径或 `config.toml`。
+4. 从仓库根目录启动：
 
    ```bash
-   export CONFIG_PATH="/绝对路径/app/config.toml"
-   uvicorn app.main:app --host 0.0.0.0 --port 8881 --reload
+   export CONFIG_PATH="/绝对路径/tias/config.toml"
+   uvicorn tias.main:app --host 0.0.0.0 --port 8881 --reload
    ```
 
 服务启动后不再向 IAS 执行注册、注销或保活请求，推理接口可直接在本地或容器内使用。
 
 ### AI 课堂视觉分析 Worker
 
-Worker 与 FastAPI HTTP 服务分开启动，用于从 Kafka 消费课次视频任务，或用 JSON 文件模拟一条 Kafka 消息做联调。
+`ai_quality` 与 TIAS 是两个独立服务。`ai_quality serve` 只负责接收 TIAS 注册、心跳和注销；`ai_quality consume` 负责消费 Kafka 并把抽帧小批次调度到 TIAS。
 
-代码位于仓库顶层 `ai_quality/`，当前按职责分层；仍复用 `app/services`、`app/core`、`app/schemas` 中的 TIAS 模型服务代码和配置加载能力：
+代码位于仓库顶层 `ai_quality/`，当前按职责分层：
 
 - `app.py` / `config.py`：保留稳定 CLI 入口和配置入口。
 - `application/`：课次任务编排、Worker、依赖组装和应用级常量。
 - `domain/`：指标聚合、快照策略、学生异常行为统计、评分和稳定 ID。
-- `infrastructure/`：Kafka、MySQL、视频下载抽帧、抓拍存储和视觉模型适配。
+- `infrastructure/`：Kafka、MySQL、视频下载抽帧、抓拍存储、TIAS 注册表、调度器和远程 HTTP 调用。
 
 运行环境建议使用已有 conda 环境：
 
 ```bash
 conda activate jy-tias
-pip install -r app/requirements.txt
-export CONFIG_PATH="/Users/zhangshen/Documents/workspace/jy-algorithm-tias-server/app/config.toml"
+pip install -r tias/requirements.txt
+export CONFIG_PATH="/Users/zhangshen/Documents/workspace/jy-algorithm-tias-server/tias/config.toml"
 ```
 
-抓拍目录使用 `app/config.toml` 的 `AI_Quality.SnapshotMountRoot`。当前本地默认使用项目内 `blobstor/image` 作为 NFS 不可写时的替代目录；生产或测试环境 NFS 恢复后，可改为实际挂载目录，示例：
+抓拍目录使用 `tias/config.toml` 的 `AI_Quality.SnapshotMountRoot`。当前本地默认使用项目内 `mnt` 作为挂载目录；生产或测试环境 NFS 恢复后，可改为实际挂载目录，示例：
 
 ```bash
-mount -t nfs -o nolock,vers=3,tcp 10.80.5.120:/blobstor/image /mnt
+mount -t nfs -o nolock,vers=3,tcp 10.80.5.131:/image /Users/zhangshen/Documents/workspace/jy-algorithm-tias-server/mnt
 ```
 
 用测试 JSON 模拟一条 Kafka 消息：
@@ -240,12 +247,21 @@ docker rm -f ai-quality-course-nginx
 python -m ai_quality.app --config "$CONFIG_PATH" consume
 ```
 
-可配置参数位于 `app/config.toml` 的 `[AI_Quality]`：
+启动 ai_quality HTTP 注册服务：
+
+```bash
+python -m ai_quality.app --config "$CONFIG_PATH" serve
+```
+
+可配置参数位于 `tias/config.toml` 的 `[AI_Quality]`：
 
 - `KafkaBootstrapServers`：Kafka 地址，本地 Docker 或测试环境 `10.67.65.8:9092`。
-- `KafkaTopic` / `KafkaGroupId`：消费 topic 和 consumer group。
+- `KafkaTopic` / `KafkaGroupId`：消费 topic 和 consumer group；课堂视觉链路固定使用 `classroom_cv_task`。
+- `HttpHost` / `HttpPort`：ai_quality 注册心跳 HTTP 服务地址。
+- `RedisUrl` / `RedisKeyPrefix`：多 ai_quality 实例共享 TIAS 注册表。
+- `TiasInferenceMode` / `TiasBatchSize`：远程推理模式和小批次大小。
 - `DBHost` / `DBPort` / `DBUser` / `DBPassword` / `DBName`：`ai_quality` 数据库。
-- `SnapshotMountRoot` / `SnapshotRelativePrefix` / `SnapshotScale`：抓拍根目录、落库相对路径前缀、图片缩放比例；本地默认写入项目内 `blobstor/image`。
+- `SnapshotMountRoot` / `SnapshotRelativePrefix` / `SnapshotScale`：抓拍根目录、落库相对路径前缀、图片缩放比例；本地默认写入项目内 `mnt`。
 - `FrameIntervalSeconds` / `MaxTaskRetries` / `WorkerConcurrency` / `DefaultStudentCount`：抽帧间隔、失败重试、并发和默认应到人数。
 - `MaxFramesPerVideo`：本地联调大视频时可设为 `1`，每路视频只处理第一帧；生产建议设为 `0` 或删除该项。
 
@@ -253,23 +269,23 @@ python -m ai_quality.app --config "$CONFIG_PATH" consume
 
 ## Docker 部署
 
-- **主线**：`app/Dockerfile`（`pytorch/pytorch:2.6.0-cuda11.8-cudnn9-runtime`）。  
-- **备选**：`app/Dockerfile_cuda113`（CUDA 11.3 + Python 3.8 + 独立 `requirements_cuda113.txt`）。
+- **主线**：`tias/Dockerfile`（`pytorch/pytorch:2.6.0-cuda11.8-cudnn9-runtime`）。  
+- **备选**：`tias/Dockerfile_cuda113`（CUDA 11.3 + Python 3.8 + 独立 `requirements_cuda113.txt`）。
 
-构建时需保证构建上下文包含：`app/`、`config.toml`、`start.sh`、以及 Dockerfile 引用的 **`nginx/nginx.conf`** 等文件。
+构建时需保证构建上下文包含：`tias/` 以及 Dockerfile 引用的 **`nginx/nginx.conf`** 等文件。
 
 容器内：
 
 - 暴露端口 **8881**  
 - `start.sh` 根据 `INSTANCE_COUNT` 选择单 Uvicorn 或 Nginx + 多 Uvicorn  
 
-请将图片目录与模型通过卷挂载到容器内对应路径（如 `IMAGE_ROOT`、`/app/app/models`）。
+请将图片目录与模型通过卷挂载到容器内对应路径（如 `IMAGE_ROOT`、`/workspace/tias/models`）。
 
 ---
 
 ## 版本与算法说明
 
-应用版本、适配器版本与算法版本字符串定义在 **`app/core/settings.py`**（如 `APP_VER`、`ALG_VER`），`/AE/Version` 会返回这些信息及已处理同步任务累计数等。
+应用版本、适配器版本与算法版本字符串定义在 **`tias/core/settings.py`**（如 `APP_VER`、`ALG_VER`）。6.0 默认不再暴露 `/AE/Version`，版本和模型信息通过注册/心跳字段上报给 ai_quality。
 
 ---
 
@@ -279,4 +295,4 @@ Docker 镜像中 `LABEL authors="SeaCraft"`。具体开源协议以仓库内授�
 
 ---
 
-如有接口字段或 IAS 协议变更，请以 `app/schemas/` 与 `app/services/` 中的实现为准。
+如有接口字段或 IAS 协议变更，请以 `tias/schemas/` 与 `tias/services/` 中的实现为准。

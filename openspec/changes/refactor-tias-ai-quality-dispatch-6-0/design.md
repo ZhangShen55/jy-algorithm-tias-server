@@ -182,15 +182,17 @@ TIAS 本地准入规则：
 
 优先级 =
   1. running_batches 最小
-  2. avg_latency_ms 更低
-  3. p95_latency_ms 更低
-  4. queued_batches 更低
-  5. recent_failure_count 更低
+  2. 本 ai_quality 进程内近期选择次数更少
+  3. avg_latency_ms 更低
+  4. p95_latency_ms 更低
+  5. queued_batches 更低
+  6. recent_failure_count 更低
 ```
 
 字段中文说明：
 
 - `running_batches`：正在处理的批次数，越少越优先。
+- 本进程近期选择次数：只在单个 `ai_quality` 进程内生效，用于让同等空闲实例轮转，避免空闲实例因为没有延迟样本长期不被选择。
 - `avg_latency_ms`：最近窗口内平均批次耗时，越低越优先。
 - `p95_latency_ms`：最近窗口内 P95 批次耗时，用于避免尾延迟过高的实例。
 - `queued_batches`：本地排队批次数，第一版默认应为 `0`。
