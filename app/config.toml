@@ -76,6 +76,10 @@ DownPitchThreshold = 20.0
 KafkaBootstrapServers = "10.67.65.8:9092"
 KafkaTopic = "classroom_asr_task"
 KafkaGroupId = "cv-analysis-service"
+# 单条视觉任务会同步处理完整课次视频，必须大于单条任务最大处理时长，否则 consumer 会被踢出消费组导致 offset 提交失败。
+KafkaMaxPollIntervalMs = 7200000
+# 每次 poll 最多拉取任务数；当前 Worker 串行处理，固定 1 可避免一次拉取多条后长时间不提交。
+KafkaMaxPollRecords = 1
 
 # ai_quality 测试库连接配置。
 DBHost = "10.67.65.8"

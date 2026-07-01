@@ -36,3 +36,7 @@ tests2/vendor/*
 !tests2/vendor/.gitkeep
 tests2/head_pose_outputs/*
 !tests2/head_pose_outputs/.gitkeep
+
+docs/
+tmp/
+mnt/
