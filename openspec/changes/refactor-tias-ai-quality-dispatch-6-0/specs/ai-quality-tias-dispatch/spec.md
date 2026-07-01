@@ -1,6 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: ai_quality 必须通过 TIAS HTTP 接口完成推理调度
+MUST：以下场景为本要求的强制验收条件。
 ai_quality 必须把 TIAS 视为独立 HTTP 服务，课堂质量推理链路不得直接导入 TIAS 的实现模块。
 
 #### Scenario: 远程推理模式启用
@@ -12,6 +13,7 @@ ai_quality 必须把 TIAS 视为独立 HTTP 服务，课堂质量推理链路不
 - **THEN** 它不得导入 `app.services.student_behavior_service`、`app.services.teacher_behavior_service` 或迁移后的 `tias.services.*` 作为推理实现
 
 ### Requirement: ai_quality 必须把帧切分为可配置小批次
+MUST：以下场景为本要求的强制验收条件。
 ai_quality 必须在调度给 TIAS 前，把抽取出的学生帧和教师帧切分为可配置的小批次。
 
 #### Scenario: 帧被切分为多个批次
@@ -23,6 +25,7 @@ ai_quality 必须在调度给 TIAS 前，把抽取出的学生帧和教师帧切
 - **THEN** 后续任务必须使用新的批大小进行调度
 
 ### Requirement: ai_quality 必须输出简洁关键流程日志
+MUST：以下场景为本要求的强制验收条件。
 ai_quality 必须用简洁中文记录关键流程日志，并使用稳定英文 key 便于检索。
 
 #### Scenario: Kafka 任务被消费
@@ -42,6 +45,7 @@ ai_quality 必须用简洁中文记录关键流程日志，并使用稳定英文
 - **THEN** 它必须记录 `task_id`、最终状态、Kafka topic、partition 和 offset
 
 ### Requirement: ai_quality 必须按健康状态和负载指标选择 TIAS 实例
+MUST：以下场景为本要求的强制验收条件。
 ai_quality 必须为每个小批次按实例健康状态、能力、并发容量、队列状态、耗时和失败指标选择 TIAS 实例。
 
 #### Scenario: 存在健康实例
@@ -61,6 +65,7 @@ ai_quality 必须为每个小批次按实例健康状态、能力、并发容量
 - **THEN** ai_quality 必须按配置等待并重试，不能立即提交 Kafka offset
 
 ### Requirement: ai_quality 必须区分可重试失败
+MUST：以下场景为本要求的强制验收条件。
 当选中 TIAS 返回忙碌、不可用、超时或服务端错误时，ai_quality 必须支持换实例重试。
 
 #### Scenario: TIAS 返回忙碌
@@ -76,6 +81,7 @@ ai_quality 必须为每个小批次按实例健康状态、能力、并发容量
 - **THEN** ai_quality 必须将课堂质量任务标记为失败，并把失败原因写入 `lesson_ai_workflow`
 
 ### Requirement: ai_quality 必须对不稳定 TIAS 实例做熔断
+MUST：以下场景为本要求的强制验收条件。
 ai_quality 必须在 TIAS 实例近期连续失败时，临时避开该实例。
 
 #### Scenario: 达到失败阈值
@@ -87,6 +93,7 @@ ai_quality 必须在 TIAS 实例近期连续失败时，临时避开该实例。
 - **THEN** ai_quality 可以允许一次探测请求，或在心跳健康时重新把该实例纳入调度
 
 ### Requirement: ai_quality 必须确定性合并批次结果
+MUST：以下场景为本要求的强制验收条件。
 ai_quality 必须基于帧身份和帧顺序，把学生和教师批次结果合并回课程级指标。
 
 #### Scenario: 批次结果乱序返回
@@ -98,6 +105,7 @@ ai_quality 必须基于帧身份和帧顺序，把学生和教师批次结果合
 - **THEN** ai_quality 必须按配置把该批次视为失败或部分失败，并记录明确错误
 
 ### Requirement: ai_quality 必须在远程调度成功后持久化课堂质量结果
+MUST：以下场景为本要求的强制验收条件。
 远程 TIAS 调度成功后，ai_quality 必须继续写入当前课堂质量产出表。
 
 #### Scenario: 任务成功
@@ -109,6 +117,7 @@ ai_quality 必须基于帧身份和帧顺序，把学生和教师批次结果合
 - **THEN** ai_quality 必须标记 `lesson_ai_workflow` 失败，并按既有失败策略提交 Kafka offset
 
 ### Requirement: ai_quality 不得写入 lesson_ai_job
+MUST：以下场景为本要求的强制验收条件。
 `lesson_ai_job` 由上游生产者服务负责，ai_quality 不得插入、更新或改写该表状态。
 
 #### Scenario: 任务开始处理
@@ -124,6 +133,7 @@ ai_quality 必须基于帧身份和帧顺序，把学生和教师批次结果合
 - **THEN** 判定依据必须是 `lesson_ai_workflow` 已写入最终成功或最终失败状态，而不是 `lesson_ai_job` 状态
 
 ### Requirement: ai_quality 必须支持静态 TIAS 兜底实例
+MUST：以下场景为本要求的强制验收条件。
 ai_quality 必须支持静态 TIAS 实例列表，作为本地开发或注册机制不可用时的兜底方案。
 
 #### Scenario: 注册表为空且配置了兜底实例
@@ -135,6 +145,7 @@ ai_quality 必须支持静态 TIAS 实例列表，作为本地开发或注册机
 - **THEN** ai_quality 必须优先使用注册实例，而不是静态兜底实例
 
 ### Requirement: ai_quality 必须通过多 TIAS 端到端联调
+MUST：以下场景为本要求的强制验收条件。
 ai_quality 必须支持 4 个 TIAS 实例注册后，从 Kafka `classroom_cv_task` 消费多任务并完成远程推理调度。
 
 #### Scenario: Redis 由本地 Docker 提供

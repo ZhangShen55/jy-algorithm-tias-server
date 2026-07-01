@@ -1,6 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: TIAS 必须主动注册到 ai_quality
+MUST：以下场景为本要求的强制验收条件。
 TIAS 必须在启动后主动注册到 ai_quality，并且只有注册和心跳有效的实例才可进入可调度集合。
 
 #### Scenario: TIAS 使用配置中的 ai_quality 入口
@@ -16,6 +17,7 @@ TIAS 必须在启动后主动注册到 ai_quality，并且只有注册和心跳�
 - **THEN** ai_quality 必须把实例记录写入或更新到 Redis，使所有 ai_quality worker 都读取同一份实例状态
 
 ### Requirement: ai_quality 必须提供 TIAS 注册 HTTP 接口
+MUST：以下场景为本要求的强制验收条件。
 ai_quality 必须提供 FastAPI HTTP 入口，用于接收 TIAS 注册、心跳和注销请求。
 
 #### Scenario: 注册 HTTP 接口可用
@@ -27,6 +29,7 @@ ai_quality 必须提供 FastAPI HTTP 入口，用于接收 TIAS 注册、心跳�
 - **THEN** 它必须从 Redis 读取 TIAS 实例状态，不得依赖进程内注册表
 
 ### Requirement: TIAS 必须向 ai_quality 上报心跳状态
+MUST：以下场景为本要求的强制验收条件。
 TIAS 必须按配置周期向 ai_quality 发送心跳请求，心跳中包含当前运行状态、队列状态、耗时指标和失败指标。
 
 #### Scenario: 心跳更新实例状态
@@ -38,6 +41,7 @@ TIAS 必须按配置周期向 ai_quality 发送心跳请求，心跳中包含当
 - **THEN** 心跳必须上报对应 `status`，使 ai_quality 停止或减少向该实例调度新批次
 
 ### Requirement: ai_quality 必须让过期 TIAS 实例失效
+MUST：以下场景为本要求的强制验收条件。
 当 TIAS 心跳租约过期时，ai_quality 必须把该实例视为不可调度。
 
 #### Scenario: 心跳租约过期
@@ -49,6 +53,7 @@ TIAS 必须按配置周期向 ai_quality 发送心跳请求，心跳中包含当
 - **THEN** ai_quality 必须更新实例状态，并且只有当状态和能力都合法时才允许重新调度
 
 ### Requirement: ai_quality 必须支持 TIAS 显式注销
+MUST：以下场景为本要求的强制验收条件。
 ai_quality 必须支持 TIAS 在优雅关闭或排空时发送显式注销或下线通知。
 
 #### Scenario: TIAS 注销
@@ -60,6 +65,7 @@ ai_quality 必须支持 TIAS 在优雅关闭或排空时发送显式注销或下
 - **THEN** 它必须先上报 `DRAINING`，使 ai_quality 停止分配新批次
 
 ### Requirement: 注册和心跳字段必须稳定且有中文语义
+MUST：以下场景为本要求的强制验收条件。
 注册和心跳契约必须使用稳定字段，并在设计文档中说明字段中文含义。
 
 #### Scenario: 注册字段被解析
