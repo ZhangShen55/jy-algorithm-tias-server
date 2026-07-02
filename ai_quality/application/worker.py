@@ -1,3 +1,4 @@
+import inspect
 import shutil
 from pathlib import Path
 from typing import List, Optional
@@ -16,7 +17,6 @@ from ai_quality.infrastructure.db.repositories import AiQualityRepository
 from ai_quality.infrastructure.kafka.message import VisualTaskMessage
 from ai_quality.infrastructure.media.snapshot_storage import SnapshotStorage
 from ai_quality.infrastructure.media.video import download_video, extract_frames
-from ai_quality.infrastructure.vision.frame_analyzer import FrameAnalyzer
 
 
 class VisualAnalysisWorker:
@@ -24,23 +24,30 @@ class VisualAnalysisWorker:
             self,
             config: AiQualityConfig,
             repository: AiQualityRepository,
-            frame_analyzer: Optional[FrameAnalyzer] = None,
+            frame_analyzer: Optional[object] = None,
             snapshot_storage: Optional[SnapshotStorage] = None):
         self.config = config
         self.repository = repository
-        self.frame_analyzer = frame_analyzer or FrameAnalyzer()
+        self.frame_analyzer = frame_analyzer or self._default_frame_analyzer()
         self.snapshot_storage = snapshot_storage or SnapshotStorage(
             config.snapshot_mount_root,
             config.snapshot_relative_prefix,
             config.snapshot_scale,
         )
+        self.worker_id = ""
 
-    def process_task(self, message: VisualTaskMessage) -> None:
+    def set_worker_id(self, worker_id: str) -> None:
+        self.worker_id = worker_id
+        if hasattr(self.frame_analyzer, "set_worker_id"):
+            self.frame_analyzer.set_worker_id(worker_id)
+
+    def process_task(self, message: VisualTaskMessage, heartbeat=None) -> None:
         task_dir = self.config.temp_root / message.task_id
         try:
             self.repository.mark_workflow_running(message.task_id)
             self.repository.clear_previous_results(message.task_id)
             task_dir.mkdir(parents=True, exist_ok=True)
+            self._heartbeat(heartbeat)
 
             student_video = download_video(
                 message.student_video_url,
@@ -55,6 +62,7 @@ class VisualAnalysisWorker:
             if self.config.max_frames_per_video is not None:
                 student_frames = student_frames[:self.config.max_frames_per_video]
                 teacher_frames = teacher_frames[:self.config.max_frames_per_video]
+            self._heartbeat(heartbeat)
 
             student_metrics: List[StudentFrameMetric] = []
             teacher_metrics: List[TeacherFrameMetric] = []
@@ -64,13 +72,19 @@ class VisualAnalysisWorker:
             snapshot_rows = []
 
             if hasattr(self.frame_analyzer, "analyze_student_frames"):
-                student_metrics_result = self.frame_analyzer.analyze_student_frames(message.task_id, student_frames)
+                student_metrics_result = self._call_batch_analyzer(
+                    self.frame_analyzer.analyze_student_frames,
+                    message.task_id,
+                    student_frames,
+                    heartbeat,
+                )
             else:
                 student_metrics_result = [
                     self.frame_analyzer.analyze_student_frame(frame.point.minute_no, frame.image)
                     for frame in student_frames
                 ]
             student_metrics = list(student_metrics_result)
+            self._heartbeat(heartbeat)
             for frame, metric in zip(student_frames, student_metrics):
                 student_snapshot_inputs.append(StudentFrameSnapshotInput(
                     frame_index=frame.point.frame_index,
@@ -86,13 +100,19 @@ class VisualAnalysisWorker:
                     })
 
             if hasattr(self.frame_analyzer, "analyze_teacher_frames"):
-                teacher_metrics_result = self.frame_analyzer.analyze_teacher_frames(message.task_id, teacher_frames)
+                teacher_metrics_result = self._call_batch_analyzer(
+                    self.frame_analyzer.analyze_teacher_frames,
+                    message.task_id,
+                    teacher_frames,
+                    heartbeat,
+                )
             else:
                 teacher_metrics_result = [
                     self.frame_analyzer.analyze_teacher_frame(frame.point.minute_no, frame.image)
                     for frame in teacher_frames
                 ]
             teacher_metrics = list(teacher_metrics_result)
+            self._heartbeat(heartbeat)
             for frame, metric in zip(teacher_frames, teacher_metrics):
                 teacher_snapshot_inputs.append(TeacherFrameSnapshotInput(
                     frame_index=frame.point.frame_index,
@@ -147,8 +167,30 @@ class VisualAnalysisWorker:
                 indicator_definitions,
             )
             self.repository.mark_workflow_success(message.task_id)
+            self._heartbeat(heartbeat)
         except Exception as exc:
             self.repository.mark_workflow_failed(message.task_id, str(exc))
             raise
         finally:
             shutil.rmtree(task_dir, ignore_errors=True)
+
+    @staticmethod
+    def _heartbeat(heartbeat) -> None:
+        if heartbeat is not None:
+            heartbeat()
+
+    @staticmethod
+    def _call_batch_analyzer(analyzer, task_id: str, frames, heartbeat):
+        try:
+            signature = inspect.signature(analyzer)
+            if "heartbeat" in signature.parameters:
+                return analyzer(task_id, frames, heartbeat=heartbeat)
+        except (TypeError, ValueError):
+            pass
+        return analyzer(task_id, frames)
+
+    @staticmethod
+    def _default_frame_analyzer():
+        from ai_quality.infrastructure.vision.frame_analyzer import FrameAnalyzer
+
+        return FrameAnalyzer()

@@ -19,12 +19,26 @@ class AiQualityConfig:
     kafka_bootstrap_servers: str = "10.67.65.8:9092"
     kafka_topic: str = "classroom_cv_task"
     kafka_group_id: str = "cv-analysis-service"
+    kafka_auto_offset_reset: str = "earliest"
     kafka_max_poll_interval_ms: int = 7200000
     kafka_max_poll_records: int = 1
     http_host: str = "0.0.0.0"
     http_port: int = 9000
     redis_url: str = "redis://127.0.0.1:6379/0"
     redis_key_prefix: str = "ai_quality:tias"
+    health_check_redis: bool = False
+    worker_control_enabled: bool = True
+    worker_control_key: str = "change-me"
+    worker_control_header_name: str = "X-AI-QUALITY-KEY"
+    worker_control_state_key: str = "ai_quality:worker_control:state"
+    worker_registry_key_prefix: str = "ai_quality"
+    worker_id: str = ""
+    worker_controlled_by_redis: bool = True
+    worker_default_desired_state: str = "PAUSED"
+    worker_heartbeat_interval_seconds: int = 5
+    worker_heartbeat_timeout_seconds: int = 30
+    worker_poll_when_paused_seconds: int = 5
+    worker_stop_exits: bool = False
     tias_inference_mode: str = "remote"
     tias_batch_size: int = 8
     tias_request_timeout_seconds: int = 60
@@ -98,6 +112,11 @@ def load_ai_quality_config(config_path: str) -> AiQualityConfig:
         kafka_bootstrap_servers=str(_get_value(section, "KafkaBootstrapServers", AiQualityConfig.kafka_bootstrap_servers)),
         kafka_topic=str(_get_value(section, "KafkaTopic", AiQualityConfig.kafka_topic)),
         kafka_group_id=str(_get_value(section, "KafkaGroupId", AiQualityConfig.kafka_group_id)),
+        kafka_auto_offset_reset=str(_get_value(
+            section,
+            "KafkaAutoOffsetReset",
+            AiQualityConfig.kafka_auto_offset_reset,
+        )),
         kafka_max_poll_interval_ms=int(_get_value(
             section,
             "KafkaMaxPollIntervalMs",
@@ -112,6 +131,55 @@ def load_ai_quality_config(config_path: str) -> AiQualityConfig:
         http_port=int(_get_value(section, "HttpPort", AiQualityConfig.http_port)),
         redis_url=str(_get_value(section, "RedisUrl", AiQualityConfig.redis_url)),
         redis_key_prefix=str(_get_value(section, "RedisKeyPrefix", AiQualityConfig.redis_key_prefix)),
+        health_check_redis=_to_bool(_get_value(section, "HealthCheckRedis", AiQualityConfig.health_check_redis)),
+        worker_control_enabled=_to_bool(_get_value(
+            section,
+            "WorkerControlEnabled",
+            AiQualityConfig.worker_control_enabled,
+        )),
+        worker_control_key=str(_get_value(section, "WorkerControlKey", AiQualityConfig.worker_control_key)),
+        worker_control_header_name=str(_get_value(
+            section,
+            "WorkerControlHeaderName",
+            AiQualityConfig.worker_control_header_name,
+        )),
+        worker_control_state_key=str(_get_value(
+            section,
+            "WorkerControlStateKey",
+            AiQualityConfig.worker_control_state_key,
+        )),
+        worker_registry_key_prefix=str(_get_value(
+            section,
+            "WorkerRegistryKeyPrefix",
+            AiQualityConfig.worker_registry_key_prefix,
+        )),
+        worker_id=str(_get_value(section, "WorkerId", AiQualityConfig.worker_id)),
+        worker_controlled_by_redis=_to_bool(_get_value(
+            section,
+            "WorkerControlledByRedis",
+            AiQualityConfig.worker_controlled_by_redis,
+        )),
+        worker_default_desired_state=str(_get_value(
+            section,
+            "WorkerDefaultDesiredState",
+            AiQualityConfig.worker_default_desired_state,
+        )),
+        worker_heartbeat_interval_seconds=int(_get_value(
+            section,
+            "WorkerHeartbeatIntervalSeconds",
+            AiQualityConfig.worker_heartbeat_interval_seconds,
+        )),
+        worker_heartbeat_timeout_seconds=int(_get_value(
+            section,
+            "WorkerHeartbeatTimeoutSeconds",
+            AiQualityConfig.worker_heartbeat_timeout_seconds,
+        )),
+        worker_poll_when_paused_seconds=int(_get_value(
+            section,
+            "WorkerPollWhenPausedSeconds",
+            AiQualityConfig.worker_poll_when_paused_seconds,
+        )),
+        worker_stop_exits=_to_bool(_get_value(section, "WorkerStopExits", AiQualityConfig.worker_stop_exits)),
         tias_inference_mode=str(_get_value(section, "TiasInferenceMode", AiQualityConfig.tias_inference_mode)),
         tias_batch_size=int(_get_value(section, "TiasBatchSize", AiQualityConfig.tias_batch_size)),
         tias_request_timeout_seconds=int(_get_value(
@@ -189,3 +257,13 @@ def load_ai_quality_config(config_path: str) -> AiQualityConfig:
             else None
         ),
     )
+
+
+def _to_bool(value) -> bool:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return bool(value)
+    if isinstance(value, str):
+        return value.strip().lower() in {"1", "true", "yes", "on"}
+    return bool(value)

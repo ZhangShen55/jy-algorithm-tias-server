@@ -1,5 +1,6 @@
 import base64
 import logging
+import time
 from typing import Dict, Iterable, List
 
 import cv2
@@ -31,13 +32,23 @@ class RemoteFrameAnalyzer:
         self.config = config
         self.scheduler = scheduler
         self.client = client or TiasHttpClient(config.tias_request_timeout_seconds)
+        self.worker_id = ""
 
-    def analyze_student_frames(self, task_id: str, frames: List[ExtractedFrame]) -> List[StudentFrameMetric]:
+    def set_worker_id(self, worker_id: str) -> None:
+        self.worker_id = worker_id
+
+    def analyze_student_frames(
+            self,
+            task_id: str,
+            frames: List[ExtractedFrame],
+            heartbeat=None) -> List[StudentFrameMetric]:
         results: Dict[int, StudentFrameMetric] = {}
         for batch_index, batch in enumerate(_chunks(frames, self.config.tias_batch_size), start=1):
             batch_id = f"{task_id}-student-{batch_index:04d}"
             payload = self._build_payload(task_id, batch_id, "student", batch)
+            _heartbeat(heartbeat)
             response = self._dispatch("student_behavior", task_id, batch_id, "student", payload)
+            _heartbeat(heartbeat)
             for item in response.get("DataList", []):
                 frame_index = _frame_index_from_image_id(item.get("StatusObject", {}).get("ImageId"))
                 if frame_index is None:
@@ -55,13 +66,19 @@ class RemoteFrameAnalyzer:
             self._ensure_complete(batch, results, batch_id)
         return [results[frame.point.frame_index] for frame in sorted(frames, key=lambda item: item.point.frame_index)]
 
-    def analyze_teacher_frames(self, task_id: str, frames: List[ExtractedFrame]) -> List[TeacherFrameMetric]:
+    def analyze_teacher_frames(
+            self,
+            task_id: str,
+            frames: List[ExtractedFrame],
+            heartbeat=None) -> List[TeacherFrameMetric]:
         results: Dict[int, TeacherFrameMetric] = {}
         for batch_index, batch in enumerate(_chunks(frames, self.config.tias_batch_size), start=1):
             batch_id = f"{task_id}-teacher-{batch_index:04d}"
             payload = self._build_payload(task_id, batch_id, "teacher", batch)
             payload["ReturnHeadPose"] = True
+            _heartbeat(heartbeat)
             response = self._dispatch("teacher_behavior", task_id, batch_id, "teacher", payload)
+            _heartbeat(heartbeat)
             for item in response.get("DataList", []):
                 frame_index = _frame_index_from_image_id(item.get("StatusObject", {}).get("ImageId"))
                 if frame_index is None:
@@ -83,13 +100,15 @@ class RemoteFrameAnalyzer:
         excluded_instance_ids: set[str] = set()
         for attempt in range(1, self.config.tias_max_retry_per_batch + 1):
             instance = None
+            started_at = time.monotonic()
             try:
                 instance, reason = self.scheduler.select_instance(
                     capability,
                     excluded_instance_ids=excluded_instance_ids,
                 )
                 logger.info(
-                    "选择 TIAS 实例 task_id=%s batch_id=%s stream_type=%s instance_id=%s reason=%s",
+                    "选择 TIAS 实例 worker_id=%s task_id=%s batch_id=%s stream_type=%s instance_id=%s reason=%s",
+                    self.worker_id or "-",
                     task_id,
                     batch_id,
                     stream_type,
@@ -100,6 +119,16 @@ class RemoteFrameAnalyzer:
                     response = self.client.infer_student(instance, payload)
                 else:
                     response = self.client.infer_teacher(instance, payload)
+                duration_ms = int((time.monotonic() - started_at) * 1000)
+                logger.info(
+                    "TIAS 批次调用完成 worker_id=%s task_id=%s batch_id=%s stream_type=%s instance_id=%s duration_ms=%s",
+                    self.worker_id or "-",
+                    task_id,
+                    batch_id,
+                    stream_type,
+                    instance.instance_id,
+                    duration_ms,
+                )
                 self.scheduler.record_success(instance.instance_id)
                 return response
             except NoAvailableTiasInstance:
@@ -111,13 +140,15 @@ class RemoteFrameAnalyzer:
                     if exc.retryable:
                         excluded_instance_ids.add(instance.instance_id)
                 logger.warning(
-                    "TIAS 批次调用失败 task_id=%s batch_id=%s stream_type=%s attempt=%s/%s retryable=%s reason=%s",
+                    "TIAS 批次调用失败 worker_id=%s task_id=%s batch_id=%s stream_type=%s attempt=%s/%s retryable=%s duration_ms=%s reason=%s",
+                    self.worker_id or "-",
                     task_id,
                     batch_id,
                     stream_type,
                     attempt,
                     self.config.tias_max_retry_per_batch,
                     exc.retryable,
+                    int((time.monotonic() - started_at) * 1000),
                     exc,
                 )
                 if not exc.retryable:
@@ -192,3 +223,8 @@ def _find_frame(frames: List[ExtractedFrame], frame_index: int) -> ExtractedFram
         if frame.point.frame_index == frame_index:
             return frame
     raise RuntimeError(f"未找到帧 frame_index={frame_index}")
+
+
+def _heartbeat(heartbeat) -> None:
+    if heartbeat is not None:
+        heartbeat()

@@ -2,14 +2,22 @@ import argparse
 import json
 import logging
 import os
+import socket
+import uuid
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from ai_quality.application.factories import build_worker
-from ai_quality.application.worker import VisualAnalysisWorker
 from ai_quality.config import load_ai_quality_config
 from ai_quality.http_app import create_app_from_config
+from ai_quality.infrastructure.kafka.controlled_consumer import ControlledAiQualityKafkaConsumer
 from ai_quality.infrastructure.kafka.consumer import AiQualityKafkaConsumer, create_kafka_consumer
 from ai_quality.infrastructure.kafka.message import VisualTaskMessage
+from ai_quality.infrastructure.worker_control import RedisWorkerControlStateRepository, WorkerDesiredState
+from ai_quality.infrastructure.worker_registry import RedisWorkerRegistry
+
+
+if TYPE_CHECKING:
+    from ai_quality.application.worker import VisualAnalysisWorker
 
 
 logger = logging.getLogger(__name__)
@@ -25,12 +33,16 @@ def load_message_from_json_arg(value: str) -> VisualTaskMessage:
 
 
 def run_single_json(config_path: str, message_json: str) -> None:
+    from ai_quality.application.factories import build_worker
+
     worker = build_worker(config_path)
     message = load_message_from_json_arg(message_json)
     worker.process_task(message)
 
 
 def consume(config_path: str) -> None:
+    from ai_quality.application.factories import build_worker
+
     config = load_ai_quality_config(config_path)
     config.ensure_runtime_dependencies()
     worker = build_worker(config_path)
@@ -44,6 +56,47 @@ def consume(config_path: str) -> None:
     )
 
 
+def worker(config_path: str) -> None:
+    from ai_quality.application.factories import build_worker
+
+    config = load_ai_quality_config(config_path)
+    config.ensure_runtime_dependencies()
+    worker_id = resolve_worker_id(config.worker_id)
+    visual_worker = build_worker(config_path)
+    visual_worker.set_worker_id(worker_id)
+    kafka_consumer = ControlledAiQualityKafkaConsumer(
+        create_kafka_consumer(config),
+        worker_id=worker_id,
+        control_repository=RedisWorkerControlStateRepository(
+            redis_url=config.redis_url,
+            state_key=config.worker_control_state_key,
+            default_state=WorkerDesiredState(config.worker_default_desired_state),
+        ),
+        worker_registry=RedisWorkerRegistry(
+            redis_url=config.redis_url,
+            key_prefix=config.worker_registry_key_prefix,
+            default_ttl_seconds=config.worker_heartbeat_timeout_seconds,
+        ),
+        topic=config.kafka_topic,
+        consumer_group=config.kafka_group_id,
+        max_retries=config.max_task_retries,
+        heartbeat_ttl_seconds=config.worker_heartbeat_timeout_seconds,
+        poll_timeout_ms=max(1000, config.worker_heartbeat_interval_seconds * 1000),
+        stop_exits=config.worker_stop_exits,
+    )
+    logger.info(
+        "ai_quality Worker 启动 worker_id=%s topic=%s group=%s default_state=%s",
+        worker_id,
+        config.kafka_topic,
+        config.kafka_group_id,
+        config.worker_default_desired_state,
+    )
+    kafka_consumer.run_forever(
+        visual_worker.process_task,
+        sleep_seconds=config.worker_poll_when_paused_seconds,
+    )
+
+
 def serve(config_path: str) -> None:
     import uvicorn
 
@@ -52,7 +105,7 @@ def serve(config_path: str) -> None:
     uvicorn.run(app, host=config.http_host, port=config.http_port)
 
 
-def handle_invalid_message(worker: VisualAnalysisWorker, payload, error: Exception) -> None:
+def handle_invalid_message(worker: "VisualAnalysisWorker", payload, error: Exception) -> None:
     if not isinstance(payload, dict):
         return
     task_id = payload.get("task_id") or payload.get("taskId") or payload.get("taskID")
@@ -60,6 +113,16 @@ def handle_invalid_message(worker: VisualAnalysisWorker, payload, error: Excepti
         return
     error_msg = str(error)
     worker.repository.mark_workflow_failed(str(task_id), error_msg)
+
+
+def resolve_worker_id(configured_worker_id: str | None = None) -> str:
+    configured_worker_id = (configured_worker_id or "").strip()
+    if configured_worker_id:
+        return configured_worker_id
+    env_worker_id = os.getenv("AI_QUALITY_WORKER_ID", "").strip()
+    if env_worker_id:
+        return env_worker_id
+    return f"{socket.gethostname()}-{uuid.uuid4().hex[:8]}"
 
 
 def main() -> None:
@@ -73,6 +136,9 @@ def main() -> None:
 
     consume_parser = subparsers.add_parser("consume", help="从 Kafka 消费视觉分析任务")
     consume_parser.set_defaults(func=lambda args: consume(args.config))
+
+    worker_parser = subparsers.add_parser("worker", help="启动受 Redis 控制的 ai_quality Kafka Worker")
+    worker_parser.set_defaults(func=lambda args: worker(args.config))
 
     serve_parser = subparsers.add_parser("serve", help="启动 ai_quality HTTP 注册和心跳服务")
     serve_parser.set_defaults(func=lambda args: serve(args.config))

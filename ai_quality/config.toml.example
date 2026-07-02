@@ -3,6 +3,8 @@
 KafkaBootstrapServers = "10.67.65.8:9092"
 KafkaTopic = "classroom_cv_task"
 KafkaGroupId = "cv-analysis-service"
+# 默认兼容旧行为从 earliest 开始；全量联调使用新 group 时建议临时设为 latest，避免消费历史消息。
+KafkaAutoOffsetReset = "earliest"
 KafkaMaxPollIntervalMs = 7200000
 KafkaMaxPollRecords = 1
 
@@ -14,6 +16,27 @@ HttpPort = 9000
 RedisUrl = "redis://127.0.0.1:6379/0"
 RedisKeyPrefix = "ai_quality:tias"
 TiasHeartbeatTimeoutSeconds = 15
+
+# ai_quality API 健康检查是否探测 Redis。生产建议 true，本地无 Redis 时可 false。
+HealthCheckRedis = false
+
+# Worker 控制面配置。控制接口只修改 Redis 期望状态，不启动或杀死本地进程。
+WorkerControlEnabled = true
+WorkerControlKey = "change-me"
+WorkerControlHeaderName = "X-AI-QUALITY-KEY"
+WorkerControlStateKey = "ai_quality:worker_control:state"
+
+# Worker 注册表和受控消费配置。
+WorkerRegistryKeyPrefix = "ai_quality"
+# 为空时启动进程自动生成；生产多 Worker 可显式配置唯一 ID。
+WorkerId = ""
+WorkerControlledByRedis = true
+WorkerDefaultDesiredState = "PAUSED"
+WorkerHeartbeatIntervalSeconds = 5
+WorkerHeartbeatTimeoutSeconds = 30
+WorkerPollWhenPausedSeconds = 5
+# STOPPED 状态默认只停止消费循环并保持进程可控；由部署系统负责杀进程。
+WorkerStopExits = false
 
 # 远程 TIAS 调度配置。
 TiasInferenceMode = "remote"

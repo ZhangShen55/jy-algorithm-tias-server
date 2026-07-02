@@ -5,7 +5,6 @@ from ai_quality.infrastructure.db.repositories import AiQualityRepository
 from ai_quality.infrastructure.media.snapshot_storage import SnapshotStorage
 from ai_quality.infrastructure.tias.registry import InMemoryTiasRegistry, RedisTiasRegistry, TiasInstanceStatus
 from ai_quality.infrastructure.tias.scheduler import TiasScheduler
-from ai_quality.infrastructure.vision.frame_analyzer import FrameAnalyzer
 from ai_quality.infrastructure.vision.remote_frame_analyzer import RemoteFrameAnalyzer
 
 
@@ -26,6 +25,8 @@ def build_worker(config_path: str) -> VisualAnalysisWorker:
 
 def build_frame_analyzer(config):
     if config.tias_inference_mode != "remote":
+        from ai_quality.infrastructure.vision.frame_analyzer import FrameAnalyzer
+
         return FrameAnalyzer()
     try:
         registry = RedisTiasRegistry(

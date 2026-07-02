@@ -1,0 +1,32 @@
+services:
+  tias-8981:
+    build:
+      context: ../..
+      dockerfile: tias/docker/Dockerfile
+    container_name: tias-8981
+    command: python -m uvicorn tias.main:app --host 0.0.0.0 --port 8981
+    env_file:
+      - ./env.example
+    environment:
+      CONFIG_PATH: /workspace/tias/config.toml
+    ports:
+      - "8981:8981"
+    volumes:
+      - ./examples/tias-8981.toml:/workspace/tias/config.toml:ro
+      - ../models:/workspace/tias/models:ro
+
+  tias-8982:
+    build:
+      context: ../..
+      dockerfile: tias/docker/Dockerfile
+    container_name: tias-8982
+    command: python -m uvicorn tias.main:app --host 0.0.0.0 --port 8982
+    env_file:
+      - ./env.example
+    environment:
+      CONFIG_PATH: /workspace/tias/config.toml
+    ports:
+      - "8982:8982"
+    volumes:
+      - ./examples/tias-8982.toml:/workspace/tias/config.toml:ro
+      - ../models:/workspace/tias/models:ro

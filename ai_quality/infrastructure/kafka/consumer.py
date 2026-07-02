@@ -119,7 +119,7 @@ def create_kafka_consumer(config: AiQualityConfig):
         bootstrap_servers=config.kafka_bootstrap_servers,
         group_id=config.kafka_group_id,
         enable_auto_commit=False,
-        auto_offset_reset="earliest",
+        auto_offset_reset=config.kafka_auto_offset_reset,
         max_poll_interval_ms=config.kafka_max_poll_interval_ms,
         max_poll_records=config.kafka_max_poll_records,
         value_deserializer=lambda value: json.loads(value.decode("utf-8")),

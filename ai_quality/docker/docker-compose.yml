@@ -1,0 +1,37 @@
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: ai-quality-redis
+    ports:
+      - "6379:6379"
+
+  ai-quality-api:
+    build:
+      context: ../..
+      dockerfile: ai_quality/docker/Dockerfile
+    container_name: ai-quality-api
+    command: python -m ai_quality.app --config /workspace/ai_quality/config.toml serve
+    env_file:
+      - ./env.example
+    ports:
+      - "9000:9000"
+    volumes:
+      - ../config.toml:/workspace/ai_quality/config.toml:ro
+      - ../../mnt:/mnt
+    depends_on:
+      - redis
+
+  ai-quality-worker:
+    build:
+      context: ../..
+      dockerfile: ai_quality/docker/Dockerfile
+    container_name: ai-quality-worker
+    command: python -m ai_quality.app --config /workspace/ai_quality/config.toml worker
+    env_file:
+      - ./env.example
+    volumes:
+      - ../config.toml:/workspace/ai_quality/config.toml:ro
+      - ../../mnt:/mnt
+    depends_on:
+      - redis
+      - ai-quality-api
