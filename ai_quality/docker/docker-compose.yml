@@ -13,6 +13,8 @@ services:
     command: python -m ai_quality.app --config /workspace/ai_quality/config.toml serve
     env_file:
       - ./env.example
+    environment:
+      CONFIG_PATH: /workspace/ai_quality/config.toml
     ports:
       - "9000:9000"
     volumes:
@@ -29,6 +31,8 @@ services:
     command: python -m ai_quality.app --config /workspace/ai_quality/config.toml worker
     env_file:
       - ./env.example
+    environment:
+      CONFIG_PATH: /workspace/ai_quality/config.toml
     volumes:
       - ../config.toml:/workspace/ai_quality/config.toml:ro
       - ../../mnt:/mnt

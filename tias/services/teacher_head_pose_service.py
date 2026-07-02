@@ -93,15 +93,18 @@ def get_teacher_head_pose_int_config(key: str, default_value: int) -> int:
 
 def get_teacher_head_pose_config() -> TeacherHeadPoseConfig:
     from ..core.settings import settings
+    from ..core.settings import model_path_resolver
 
     return TeacherHeadPoseConfig(
         directmhp_root=resolve_project_path(
             get_teacher_head_pose_raw_config("DirectMHPRoot", DEFAULT_DIRECTMHP_ROOT),
             DEFAULT_DIRECTMHP_ROOT,
         ),
-        directmhp_weights=resolve_project_path(
-            get_teacher_head_pose_raw_config("DirectMHPWeights", DEFAULT_DIRECTMHP_WEIGHTS),
-            DEFAULT_DIRECTMHP_WEIGHTS,
+        directmhp_weights=model_path_resolver.prepare_model_path(
+            resolve_project_path(
+                get_teacher_head_pose_raw_config("DirectMHPWeights", DEFAULT_DIRECTMHP_WEIGHTS),
+                DEFAULT_DIRECTMHP_WEIGHTS,
+            )
         ),
         directmhp_data=resolve_project_path(
             get_teacher_head_pose_raw_config("DirectMHPData", DEFAULT_DIRECTMHP_DATA),
@@ -318,9 +321,17 @@ class DirectMHPBackend:
         self.LoadImages = LoadImages
         self.device = select_device(self.config.device, batch_size=1)
         self.model = attempt_load(str(self.config.directmhp_weights), map_location=self.device)
+        self._cleanup_prepared_weight()
         self.stride = int(self.model.stride.max())
         self.imgsz = self.check_img_size(self.config.image_size, s=self.stride)
         self._loaded = True
+
+    @staticmethod
+    def _cleanup_prepared_weight():
+        from ..core.settings import model_path_resolver, model_protection_config
+
+        if model_protection_config.cleanup_after_load:
+            model_path_resolver.cleanup()
 
     def predict_file(self, image_path: Path) -> List[HeadPosePrediction]:
         self.load()

@@ -13,6 +13,7 @@ RUN apt-get update && \
         python3.8-distutils \
         python3.8-dev \
         python3-pip \
+        build-essential \
         git \
         jq \
         curl \
@@ -40,6 +41,7 @@ RUN pip install torch==1.12.1+cu113 torchvision==0.13.1+cu113 torchaudio==0.12.1
 WORKDIR /workspace
 
 COPY ./tias ./tias
+COPY ./scripts/build_cython_modules.py ./scripts/build_cython_modules.py
 COPY ./tias/docker/nginx.conf /etc/nginx/nginx.conf
 
 RUN pip install -i https://mirrors.aliyun.com/pypi/simple/ -r tias/requirements_cuda113.txt
@@ -48,6 +50,27 @@ ENV PYTHONUNBUFFERED=1 \
     CONFIG_PATH=/workspace/tias/config.toml
 
 RUN chmod +x tias/start.sh
+ARG PROTECT_SOURCE=0
+RUN set -e; \
+    if [ "$PROTECT_SOURCE" = "1" ]; then \
+        python scripts/build_cython_modules.py \
+          --root /workspace \
+          --package tias/api \
+          --package tias/core \
+          --package tias/services \
+          --package tias/schemas \
+          --keep-source tias/__init__.py \
+          --keep-source tias/main.py \
+          --keep-source tias/core/__init__.py \
+          --keep-source tias/api/__init__.py \
+          --keep-source tias/services/__init__.py \
+          --keep-source tias/schemas/__init__.py \
+          --exclude-glob 'tias/vendor/**' \
+          --exclude-glob 'tias/models/**' \
+          --remove-sources; \
+        rm -rf build; \
+        find /workspace -type d -name '__pycache__' -prune -exec rm -rf {} +; \
+    fi
 
 EXPOSE 8881
 CMD ["/bin/bash", "-c", "tias/start.sh"]

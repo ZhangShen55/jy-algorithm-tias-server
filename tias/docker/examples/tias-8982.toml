@@ -61,3 +61,11 @@ IouThres = 0.45
 CropScale = 1.35
 SideYawThreshold = 20.0
 DownPitchThreshold = 20.0
+
+[ModelProtection]
+# 模型保护开关。生产可改为 true，并挂载加密模型目录和密钥文件。
+Enabled = false
+EncryptedModelRoot = "/workspace/tias/models-encrypted"
+DecryptedTempRoot = "/dev/shm/tias-models"
+KeyFile = "/run/secrets/tias_model_key"
+CleanupAfterLoad = true

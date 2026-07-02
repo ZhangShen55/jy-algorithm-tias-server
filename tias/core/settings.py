@@ -6,6 +6,7 @@ from pydantic import Field
 from pydantic_settings import BaseSettings
 from typing import Any, Dict, Union
 from .config_loader import load_config
+from .model_protection import ModelPathResolver, ModelProtectionConfig
 
 CONFIG_PATH = os.getenv("CONFIG_PATH",os.path.abspath(os.path.join(os.path.dirname(__file__), "../config.toml")))
 _cfg = load_config(CONFIG_PATH)
@@ -58,6 +59,13 @@ class Settings(BaseSettings):
     HeartbeatIntervalSeconds: int = 5
     HeartbeatTimeoutSeconds: int = 15
     RegisterRetryIntervalSeconds: int = 5
+    ModelProtection: Dict[str, Any] = Field(default_factory=lambda: {
+        "Enabled": False,
+        "EncryptedModelRoot": "tias/models-encrypted",
+        "DecryptedTempRoot": "/dev/shm/tias-models",
+        "KeyFile": "/run/secrets/tias_model_key",
+        "CleanupAfterLoad": True
+    })
 
     model_config = {"env_file": None, "extra": "ignore"}
 
@@ -94,15 +102,19 @@ APP_VER = "V4.1_20251222"
 ADP_VER = "V4.1_20251222"
 ALG_VER = "person_count_20251222_1920p/face_count(20251212)/student(20250819)"
 #已经处理任务总数
-Total_HaveProcess_Tasks = {"val": 0} 
+Total_HaveProcess_Tasks = {"val": 0}
 
 PERSON_MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', 'models', 'person_count.pt')
 FACE_MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', 'models', 'face_count.pt')
 STUDENT_MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', 'models', 'student.pt')
 TEACHER_BEHAVIOR_MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', 'models', 'teacher_behavior.pt')
 
+model_protection_config = ModelProtectionConfig.from_mapping(getattr(settings, "ModelProtection", {}))
+model_path_resolver = ModelPathResolver(model_protection_config)
 
-yolo_person_model = YOLO(PERSON_MODEL_PATH).to(device)
-yolo_face_model = YOLO(FACE_MODEL_PATH).to(device)
-yolo_student_model = YOLO(STUDENT_MODEL_PATH).to(device)
-yolo_teacher_behavior_model = YOLO(TEACHER_BEHAVIOR_MODEL_PATH).to(device)
+yolo_person_model = YOLO(str(model_path_resolver.prepare_model_path(PERSON_MODEL_PATH))).to(device)
+yolo_face_model = YOLO(str(model_path_resolver.prepare_model_path(FACE_MODEL_PATH))).to(device)
+yolo_student_model = YOLO(str(model_path_resolver.prepare_model_path(STUDENT_MODEL_PATH))).to(device)
+yolo_teacher_behavior_model = YOLO(str(model_path_resolver.prepare_model_path(TEACHER_BEHAVIOR_MODEL_PATH))).to(device)
+if model_protection_config.cleanup_after_load:
+    model_path_resolver.cleanup()

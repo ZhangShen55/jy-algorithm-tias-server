@@ -6,7 +6,7 @@ def create_mysql_connection(config: AiQualityConfig):
         import pymysql
         from pymysql.cursors import DictCursor
     except ModuleNotFoundError as exc:
-        raise RuntimeError("缺少 PyMySQL 依赖，请安装 tias/requirements.txt") from exc
+        raise RuntimeError("缺少 PyMySQL 依赖，请安装 ai_quality/requirements.txt") from exc
 
     return pymysql.connect(
         host=config.db_host,

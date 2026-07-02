@@ -20,7 +20,7 @@
 
 ```bash
 conda activate jy-tias
-pip install -r tias/requirements.txt
+pip install -r ai_quality/requirements.txt
 ```
 
 准备配置文件：
@@ -129,6 +129,13 @@ df -h /Users/zhangshen/Documents/workspace/jy-algorithm-tias-server/mnt
 SnapshotMountRoot = "/Users/zhangshen/Documents/workspace/jy-algorithm-tias-server/mnt"
 SnapshotRelativePrefix = "cv"
 SnapshotScale = 0.25
+```
+
+Docker 容器内必须使用容器路径：
+
+```toml
+SnapshotMountRoot = "/mnt"
+SnapshotRelativePrefix = "cv"
 ```
 
 入库的 `image_url` 只保存相对路径，例如：
@@ -280,13 +287,67 @@ cp ai_quality/config.toml.example ai_quality/config.toml
 docker compose -f ai_quality/docker/docker-compose.yml up --build
 ```
 
+单独构建普通镜像：
+
+```bash
+docker build -f ai_quality/docker/Dockerfile -t ai-quality:6.0 .
+```
+
+构建 Cython 保护镜像：
+
+```bash
+docker build -f ai_quality/docker/Dockerfile \
+  --build-arg PROTECT_SOURCE=1 \
+  -t ai-quality:6.0-protected .
+```
+
+API 容器示例：
+
+```bash
+docker run -d \
+  --name ai-quality-api \
+  -p 9000:9000 \
+  -e CONFIG_PATH=/workspace/ai_quality/config.toml \
+  -v "$PWD/ai_quality/config.toml:/workspace/ai_quality/config.toml:ro" \
+  -v "$PWD/mnt:/mnt" \
+  ai-quality:6.0 \
+  python -m ai_quality.app --config /workspace/ai_quality/config.toml serve
+```
+
+Worker 容器示例：
+
+```bash
+docker run -d \
+  --name ai-quality-worker-1 \
+  -e CONFIG_PATH=/workspace/ai_quality/config.toml \
+  -e AI_QUALITY_WORKER_ID=worker-1 \
+  -v "$PWD/ai_quality/config.toml:/workspace/ai_quality/config.toml:ro" \
+  -v "$PWD/mnt:/mnt" \
+  ai-quality:6.0 \
+  python -m ai_quality.app --config /workspace/ai_quality/config.toml worker
+```
+
 如果部署 2 个 API 实例做高可用，可参考：
 
 ```text
 ai_quality/docker/nginx.conf.example
 ```
 
-Nginx 只代理 API，不代理 Worker。
+Nginx 只代理 API，不代理 Worker，也不会提升 Kafka 消费并发。控制接口请求打到任意 API 实例，都只读写 Redis 中的共享状态。
+
+2 个 API 实例示例：
+
+```bash
+docker run -d --name ai-quality-api-1 -p 9001:9000 \
+  -v "$PWD/ai_quality/config.toml:/workspace/ai_quality/config.toml:ro" \
+  -v "$PWD/mnt:/mnt" \
+  ai-quality:6.0 python -m ai_quality.app --config /workspace/ai_quality/config.toml serve
+
+docker run -d --name ai-quality-api-2 -p 9002:9000 \
+  -v "$PWD/ai_quality/config.toml:/workspace/ai_quality/config.toml:ro" \
+  -v "$PWD/mnt:/mnt" \
+  ai-quality:6.0 python -m ai_quality.app --config /workspace/ai_quality/config.toml serve
+```
 
 ## 模拟 Kafka 消息
 

@@ -129,8 +129,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="AI 课堂质量视觉分析 Worker")
     parser.add_argument(
         "--config",
-        default=os.getenv("CONFIG_PATH", "tias/config.toml"),
-        help="配置文件路径，默认读取 CONFIG_PATH 或 tias/config.toml",
+        default=os.getenv("CONFIG_PATH", "ai_quality/config.toml"),
+        help="配置文件路径，默认读取 CONFIG_PATH 或 ai_quality/config.toml",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 

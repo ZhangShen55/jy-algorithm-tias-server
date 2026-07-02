@@ -1,14 +1,16 @@
 services:
-  tias-8981:
+  tias-gpu-8981:
     build:
       context: ../..
       dockerfile: tias/docker/Dockerfile
-    container_name: tias-8981
+    container_name: tias-gpu-8981
     command: python -m uvicorn tias.main:app --host 0.0.0.0 --port 8981
     env_file:
       - ./env.example
     environment:
       CONFIG_PATH: /workspace/tias/config.toml
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility
     ports:
       - "8981:8981"
     volumes:
@@ -16,17 +18,26 @@ services:
       - ../models:/workspace/tias/models:ro
       - ../models-encrypted:/workspace/tias/models-encrypted:ro
       - ./secrets/tias_model_key:/run/secrets/tias_model_key:ro
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
 
-  tias-8982:
+  tias-gpu-8982:
     build:
       context: ../..
       dockerfile: tias/docker/Dockerfile
-    container_name: tias-8982
+    container_name: tias-gpu-8982
     command: python -m uvicorn tias.main:app --host 0.0.0.0 --port 8982
     env_file:
       - ./env.example
     environment:
       CONFIG_PATH: /workspace/tias/config.toml
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility
     ports:
       - "8982:8982"
     volumes:
@@ -34,3 +45,10 @@ services:
       - ../models:/workspace/tias/models:ro
       - ../models-encrypted:/workspace/tias/models-encrypted:ro
       - ./secrets/tias_model_key:/run/secrets/tias_model_key:ro
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]

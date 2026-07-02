@@ -13,7 +13,30 @@
 
 ```bash
 cp ai_quality/config.toml.example ai_quality/config.toml
+mkdir -p mnt
 docker compose -f ai_quality/docker/docker-compose.yml up --build
+```
+
+容器内配置要求：
+
+```toml
+SnapshotMountRoot = "/mnt"
+RedisUrl = "redis://redis:6379/0"
+```
+
+如果宿主机使用 NFS，先挂载到项目 `mnt`：
+
+```bash
+mkdir -p "$PWD/mnt"
+mount -t nfs -o nolock,vers=3,tcp 10.80.5.131:/image "$PWD/mnt"
+```
+
+构建 Cython 保护镜像：
+
+```bash
+docker build -f ai_quality/docker/Dockerfile \
+  --build-arg PROTECT_SOURCE=1 \
+  -t ai-quality:6.0-protected .
 ```
 
 API 启动命令：
@@ -27,6 +50,30 @@ Worker 启动命令：
 ```bash
 python -m ai_quality.app --config /workspace/ai_quality/config.toml worker
 ```
+
+Docker run 示例：
+
+```bash
+docker run -d \
+  --name ai-quality-api \
+  -p 9000:9000 \
+  -e CONFIG_PATH=/workspace/ai_quality/config.toml \
+  -v "$PWD/ai_quality/config.toml:/workspace/ai_quality/config.toml:ro" \
+  -v "$PWD/mnt:/mnt" \
+  ai-quality:6.0 \
+  python -m ai_quality.app --config /workspace/ai_quality/config.toml serve
+
+docker run -d \
+  --name ai-quality-worker-1 \
+  -e CONFIG_PATH=/workspace/ai_quality/config.toml \
+  -e AI_QUALITY_WORKER_ID=worker-1 \
+  -v "$PWD/ai_quality/config.toml:/workspace/ai_quality/config.toml:ro" \
+  -v "$PWD/mnt:/mnt" \
+  ai-quality:6.0 \
+  python -m ai_quality.app --config /workspace/ai_quality/config.toml worker
+```
+
+2 个 API 实例高可用时，参考 `nginx.conf.example`。Nginx 只代理 API 控制面，不代理 Worker，不提升 Kafka 消费并发。
 
 控制接口示例：
 

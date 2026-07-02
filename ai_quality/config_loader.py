@@ -9,6 +9,7 @@ except ModuleNotFoundError:  # pragma: no cover - Python < 3.11
 
 
 def load_config(config_path: str) -> Dict[str, Any]:
+    """加载 ai_quality 配置文件。"""
     lower_path = config_path.lower()
     _, ext = os.path.splitext(lower_path)
     with open(config_path, "rb") as config_file:
@@ -16,5 +17,4 @@ def load_config(config_path: str) -> Dict[str, Any]:
             return tomllib.load(config_file)
         if ext == ".json" or lower_path.endswith(".json.example"):
             return json.load(config_file)
-
     raise ValueError(f"Unsupported config file format: {config_path}")

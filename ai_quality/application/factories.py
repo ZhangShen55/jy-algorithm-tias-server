@@ -25,6 +25,8 @@ def build_worker(config_path: str) -> VisualAnalysisWorker:
 
 def build_frame_analyzer(config):
     if config.tias_inference_mode != "remote":
+        if config.tias_inference_mode == "local":
+            raise RuntimeError("ai_quality 独立交付镜像仅支持 TiasInferenceMode=remote，本地推理模式请使用开发源码环境")
         from ai_quality.infrastructure.vision.frame_analyzer import FrameAnalyzer
 
         return FrameAnalyzer()

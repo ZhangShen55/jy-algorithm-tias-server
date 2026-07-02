@@ -102,7 +102,7 @@ class RedisTiasRegistry:
         try:
             import redis
         except ModuleNotFoundError as exc:
-            raise RuntimeError("缺少 redis 依赖，请安装 tias/requirements.txt 或使用本地内存注册表测试") from exc
+            raise RuntimeError("缺少 redis 依赖，请安装 ai_quality/requirements.txt 或使用本地内存注册表测试") from exc
         self.client = redis.Redis.from_url(redis_url, decode_responses=True)
         self.key_prefix = key_prefix.rstrip(":")
         self.default_ttl_seconds = int(default_ttl_seconds)

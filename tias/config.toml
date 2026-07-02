@@ -154,3 +154,11 @@ TiasCircuitBreakerCooldownSeconds = 30
 RedisUrl = "redis://127.0.0.1:6379/0"
 RedisKeyPrefix = "ai_quality:tias"
 TiasHeartbeatTimeoutSeconds = 15
+
+[ModelProtection]
+# 模型静态加密开关。false 时按明文模型路径加载；true 时从 EncryptedModelRoot 解密 .enc 模型。
+Enabled = false
+EncryptedModelRoot = "/workspace/tias/models-encrypted"
+DecryptedTempRoot = "/dev/shm/tias-models"
+KeyFile = "/run/secrets/tias_model_key"
+CleanupAfterLoad = true

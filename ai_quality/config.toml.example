@@ -57,8 +57,8 @@ DBUser = "root"
 DBPassword = "123456"
 DBName = "ai_quality"
 
-# 抓拍存储配置。image_url 入库保存相对路径。
-SnapshotMountRoot = "/Users/zhangshen/Documents/workspace/jy-algorithm-tias-server/mnt"
+# 抓拍存储配置。image_url 入库保存相对路径。Docker 内请配置为 /mnt。
+SnapshotMountRoot = "/mnt"
 SnapshotRelativePrefix = "cv"
 SnapshotScale = 0.25
 SnapshotMaxTotal = 30

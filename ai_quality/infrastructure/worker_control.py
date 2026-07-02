@@ -92,7 +92,7 @@ class RedisWorkerControlStateRepository:
         try:
             import redis
         except ModuleNotFoundError as exc:
-            raise RuntimeError("缺少 redis 依赖，请安装 tias/requirements.txt") from exc
+            raise RuntimeError("缺少 redis 依赖，请安装 ai_quality/requirements.txt") from exc
         self.client = redis.Redis.from_url(redis_url, decode_responses=True)
         self.state_key = state_key
         self.default_state = default_state

@@ -52,13 +52,23 @@ class VisualAnalysisWorker:
             student_video = download_video(
                 message.student_video_url,
                 task_dir / "student.mp4",
+                progress_callback=lambda: self._heartbeat(heartbeat),
             )
             teacher_video = download_video(
                 message.teacher_video_url,
                 task_dir / "teacher.mp4",
+                progress_callback=lambda: self._heartbeat(heartbeat),
             )
-            student_frames = extract_frames(student_video, self.config.frame_interval_seconds)
-            teacher_frames = extract_frames(teacher_video, self.config.frame_interval_seconds)
+            student_frames = extract_frames(
+                student_video,
+                self.config.frame_interval_seconds,
+                progress_callback=lambda: self._heartbeat(heartbeat),
+            )
+            teacher_frames = extract_frames(
+                teacher_video,
+                self.config.frame_interval_seconds,
+                progress_callback=lambda: self._heartbeat(heartbeat),
+            )
             if self.config.max_frames_per_video is not None:
                 student_frames = student_frames[:self.config.max_frames_per_video]
                 teacher_frames = teacher_frames[:self.config.max_frames_per_video]

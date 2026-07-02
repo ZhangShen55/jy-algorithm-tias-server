@@ -232,6 +232,71 @@ docker run -d \
 
 如果使用 GPU，需要按部署环境补充 Docker GPU 参数，例如 NVIDIA runtime 的 `--gpus all`，并把 `GPU_ID` 改为对应设备编号。
 
+GPU compose 示例：
+
+```bash
+docker compose -f tias/docker/docker-compose.gpu.yml config
+docker compose -f tias/docker/docker-compose.gpu.yml up --build
+```
+
+宿主机需要提前安装 NVIDIA 驱动、Docker 和 NVIDIA Container Toolkit。
+
+构建 Cython 保护镜像：
+
+```bash
+docker build -f tias/docker/Dockerfile \
+  --build-arg PROTECT_SOURCE=1 \
+  -t tias:6.0-protected .
+```
+
+## 模型保护部署
+
+默认明文模型模式：
+
+```toml
+[ModelProtection]
+Enabled = false
+```
+
+该模式适合开发或可信内网环境，模型目录建议只读挂载：
+
+```bash
+-v "$PWD/tias/models:/workspace/tias/models:ro"
+```
+
+生产可启用静态加密模型模式。先生成密钥并加密模型：
+
+```bash
+mkdir -p tias/docker/secrets
+python scripts/protect_tias_models.py \
+  --source-dir tias/models \
+  --target-dir tias/models-encrypted \
+  --key-file tias/docker/secrets/tias_model_key \
+  --generate-key
+```
+
+配置：
+
+```toml
+[ModelProtection]
+Enabled = true
+EncryptedModelRoot = "/workspace/tias/models-encrypted"
+DecryptedTempRoot = "/dev/shm/tias-models"
+KeyFile = "/run/secrets/tias_model_key"
+CleanupAfterLoad = true
+```
+
+容器挂载：
+
+```bash
+-v "$PWD/tias/models-encrypted:/workspace/tias/models-encrypted:ro"
+-v "$PWD/tias/docker/secrets/tias_model_key:/run/secrets/tias_model_key:ro"
+```
+
+模型加密只保护静态文件，降低镜像或模型目录被直接复制后的离线使用风险。TIAS 运行时仍需要把模型解密并加载到内存，具备宿主机 root、容器调试或进程内存读取权限的人仍可能逆向。生产还需要结合私有镜像仓库、宿主机权限控制、只读挂载、密钥管理和最小权限运行。
+
+如果宿主机删除了被挂载的模型文件，已经加载到内存的运行中进程可能暂时继续工作，但服务重启、懒加载或再次读取模型时会失败。生产不得把“删除后当前进程仍可运行”作为保障。
+
 旧路径仍保留兼容：
 
 ```text

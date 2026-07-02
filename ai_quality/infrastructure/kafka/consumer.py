@@ -112,7 +112,7 @@ class AiQualityKafkaConsumer:
 
 def create_kafka_consumer(config: AiQualityConfig):
     if KafkaConsumer is None:
-        raise RuntimeError("缺少 kafka-python 依赖，请安装 tias/requirements.txt")
+        raise RuntimeError("缺少 kafka-python 依赖，请安装 ai_quality/requirements.txt")
 
     return KafkaConsumer(
         config.kafka_topic,

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable, Mapping
 
-from tias.core.config_loader import load_config
+from ai_quality.config_loader import load_config
 
 
 class DependencyCheckError(RuntimeError):

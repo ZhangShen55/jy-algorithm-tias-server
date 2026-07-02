@@ -79,3 +79,15 @@ IouThres = 0.45
 CropScale = 1.35
 SideYawThreshold = 20.0
 DownPitchThreshold = 20.0
+
+[ModelProtection]
+# 模型静态加密开关。false 时按明文模型路径加载；true 时从 EncryptedModelRoot 解密 .enc 模型。
+Enabled = false
+# 加密模型目录。容器部署建议只读挂载到该路径。
+EncryptedModelRoot = "/workspace/tias/models-encrypted"
+# 临时明文模型目录。建议使用内存盘，权限会设置为 0700。
+DecryptedTempRoot = "/dev/shm/tias-models"
+# 模型密钥文件。生产通过 Docker secret 或宿主机只读挂载注入，不要写入真实密钥。
+KeyFile = "/run/secrets/tias_model_key"
+# 模型加载成功后是否删除临时明文文件。
+CleanupAfterLoad = true

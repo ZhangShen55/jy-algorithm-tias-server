@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List
+from typing import Callable, List, Optional
 
 import cv2
 import requests
@@ -40,7 +40,11 @@ def build_frame_points(duration_seconds: float, interval_seconds: int = 30) -> L
     return points
 
 
-def download_video(url: str, destination: Path, timeout_seconds: int = 60) -> Path:
+def download_video(
+        url: str,
+        destination: Path,
+        timeout_seconds: int = 60,
+        progress_callback: Optional[Callable[[], None]] = None) -> Path:
     destination.parent.mkdir(parents=True, exist_ok=True)
     try:
         with requests.get(url, stream=True, timeout=timeout_seconds) as response:
@@ -49,6 +53,7 @@ def download_video(url: str, destination: Path, timeout_seconds: int = 60) -> Pa
                 for chunk in response.iter_content(chunk_size=1024 * 1024):
                     if chunk:
                         output.write(chunk)
+                        _notify_progress(progress_callback)
     except Exception as exc:
         raise VideoProcessingError(f"下载视频失败: {url}: {exc}") from exc
     if destination.stat().st_size <= 0:
@@ -87,12 +92,20 @@ def extract_frame_at(video_path: Path, point: FramePoint):
         capture.release()
 
 
-def extract_frames(video_path: Path, interval_seconds: int = 30) -> List[ExtractedFrame]:
+def extract_frames(
+        video_path: Path,
+        interval_seconds: int = 30,
+        progress_callback: Optional[Callable[[], None]] = None) -> List[ExtractedFrame]:
     duration = get_video_duration_seconds(video_path)
     frames = []
     for point in build_frame_points(duration, interval_seconds):
         frames.append(ExtractedFrame(point=point, image=extract_frame_at(video_path, point)))
+        _notify_progress(progress_callback)
     if not frames:
         raise VideoProcessingError(f"视频无有效抽帧点: {video_path}")
     return frames
 
+
+def _notify_progress(progress_callback: Optional[Callable[[], None]]) -> None:
+    if progress_callback is not None:
+        progress_callback()
