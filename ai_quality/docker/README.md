@@ -24,6 +24,29 @@ SnapshotMountRoot = "/mnt"
 RedisUrl = "redis://redis:6379/0"
 ```
 
+如果不用 compose，而是手动 `docker run`，需要先把 Redis、API 和 Worker 放到同一个 Docker 网络。此时 `config.toml` 中 Redis 地址要使用 Redis 容器名：
+
+```toml
+RedisUrl = "redis://ai-quality-redis:6379/0"
+```
+
+启动 Redis 容器：
+
+```bash
+docker network create ai-quality-net || true
+docker run -d \
+  --name ai-quality-redis \
+  --network ai-quality-net \
+  -p 6379:6379 \
+  redis:7-alpine
+```chrom
+
+如果 Redis 容器已经启动，但还没有加入网络，执行：
+
+```bash
+docker network connect ai-quality-net ai-quality-redis || true
+```
+
 如果宿主机使用 NFS，先挂载到项目 `mnt`：
 
 ```bash
@@ -56,6 +79,7 @@ Docker run 示例：
 ```bash
 docker run -d \
   --name ai-quality-api \
+  --network ai-quality-net \
   -p 9000:9000 \
   -e CONFIG_PATH=/workspace/ai_quality/config.toml \
   -v "$PWD/ai_quality/config.toml:/workspace/ai_quality/config.toml:ro" \
@@ -65,6 +89,7 @@ docker run -d \
 
 docker run -d \
   --name ai-quality-worker-1 \
+  --network ai-quality-net \
   -e CONFIG_PATH=/workspace/ai_quality/config.toml \
   -e AI_QUALITY_WORKER_ID=worker-1 \
   -v "$PWD/ai_quality/config.toml:/workspace/ai_quality/config.toml:ro" \
