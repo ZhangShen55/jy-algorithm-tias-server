@@ -1,0 +1,93 @@
+FROM pytorch/pytorch:2.6.0-cuda11.8-cudnn9-runtime AS builder
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        build-essential \
+        git \
+        libgl1-mesa-glx \
+        libglib2.0-0 \
+        libsm6 \
+        libxrender1 \
+        libxext6 && \
+    rm -rf /var/lib/apt/lists/* && \
+    apt-get clean
+
+WORKDIR /workspace
+
+COPY ./tias/requirements.txt ./tias/requirements.txt
+RUN pip3 install --no-cache-dir -i https://mirrors.aliyun.com/pypi/simple/ \
+    --timeout 300 \
+    --retries 5 \
+    --trusted-host mirrors.aliyun.com \
+    -r tias/requirements.txt && \
+    pip3 install --no-cache-dir Cython setuptools wheel
+
+COPY ./tias ./tias
+COPY ./scripts/build_cython_modules.py ./scripts/build_cython_modules.py
+
+RUN python scripts/build_cython_modules.py \
+      --root /workspace \
+      --package tias/api \
+      --package tias/core \
+      --package tias/services \
+      --package tias/schemas \
+      --keep-source tias/__init__.py \
+      --keep-source tias/main.py \
+      --keep-source tias/core/__init__.py \
+      --keep-source tias/api/__init__.py \
+      --keep-source tias/services/__init__.py \
+      --keep-source tias/schemas/__init__.py \
+      --exclude-glob 'tias/vendor/**' \
+      --exclude-glob 'tias/models/**' \
+      --remove-sources && \
+    rm -rf build /workspace/tias/models /workspace/tias/models-encrypted && \
+    find /workspace/tias/api /workspace/tias/core /workspace/tias/services /workspace/tias/schemas \
+      -type f -name '*.py' ! -name '__init__.py' -delete && \
+    find /workspace -type d -name '__pycache__' -prune -exec rm -rf {} + && \
+    find /workspace/tias -type f \( -name '*.c' -o -name '*.cpp' \) -delete
+
+FROM pytorch/pytorch:2.6.0-cuda11.8-cudnn9-runtime AS runtime
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        curl \
+        libgl1-mesa-glx \
+        libglib2.0-0 \
+        libsm6 \
+        libxrender1 \
+        libxext6 \
+        libfontconfig1 \
+        libice6 && \
+    rm -rf /var/lib/apt/lists/* && \
+    apt-get clean
+
+WORKDIR /workspace
+
+COPY --from=builder /opt/conda /opt/conda
+COPY --from=builder /workspace/tias/__init__.py ./tias/__init__.py
+COPY --from=builder /workspace/tias/main.py ./tias/main.py
+COPY --from=builder /workspace/tias/api ./tias/api
+COPY --from=builder /workspace/tias/core ./tias/core
+COPY --from=builder /workspace/tias/services ./tias/services
+COPY --from=builder /workspace/tias/schemas ./tias/schemas
+COPY --from=builder /workspace/tias/vendor/DirectMHP ./tias/vendor/DirectMHP
+COPY ./tias/docker/secure-entrypoint.sh /usr/local/bin/tias-secure-entrypoint
+
+RUN chmod 0755 /usr/local/bin/tias-secure-entrypoint && \
+    mkdir -p /workspace/tias/model-assets /workspace/tias/models-encrypted && \
+    find /workspace/tias -type d -name '__pycache__' -prune -exec rm -rf {} + && \
+    find /workspace/tias -type f \( -name '*.pt' -o -name '*.pth' -o -name '*.onnx' -o -name '*.engine' -o -name '*.key' -o -name '*.pem' -o -name '*.crt' \) -delete
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    YOLO_CONFIG_DIR=/tmp/Ultralytics \
+    CONFIG_PATH=/workspace/tias/config.toml
+
+EXPOSE 8881 8981 8982
+
+ENTRYPOINT ["/usr/local/bin/tias-secure-entrypoint"]
+CMD ["python", "-m", "uvicorn", "tias.main:app", "--host", "0.0.0.0", "--port", "8881"]

@@ -63,7 +63,7 @@ class Settings(BaseSettings):
         "Enabled": False,
         "EncryptedModelRoot": "tias/models-encrypted",
         "DecryptedTempRoot": "/dev/shm/tias-models",
-        "KeyFile": "/run/secrets/tias_model_key",
+        "KeyFile": "/dev/shm/tias_model_key",
         "CleanupAfterLoad": True
     })
 

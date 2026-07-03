@@ -207,7 +207,9 @@ WORKERS_PER_INSTANCE = 1
 tias/docker/
 ├── Dockerfile
 ├── Dockerfile.cuda113
+├── Dockerfile.runtime
 ├── docker-compose.yml
+├── docker-compose.gpu.secure.yml
 ├── env.example
 └── README.md
 ```
@@ -249,6 +251,15 @@ docker build -f tias/docker/Dockerfile \
   -t tias:6.0-protected .
 ```
 
+生产 secure runtime 镜像：
+
+```bash
+docker build -f tias/docker/Dockerfile.runtime -t tias:6.0-secure .
+python scripts/check_tias_runtime_image.py --image tias:6.0-secure
+```
+
+secure runtime 镜像只保留运行入口、必要 `__init__.py`、Cython `.so` 编译产物、DirectMHP vendor 和 secure entrypoint，不整包复制 TIAS 项目，不包含明文模型、密钥、Docker 文件、部署文档、测试目录和核心明文源码。
+
 ## 模型保护部署
 
 默认明文模型模式：
@@ -282,7 +293,7 @@ python scripts/protect_tias_models.py \
 Enabled = true
 EncryptedModelRoot = "/workspace/tias/models-encrypted"
 DecryptedTempRoot = "/dev/shm/tias-models"
-KeyFile = "/run/secrets/tias_model_key"
+KeyFile = "/dev/shm/tias_model_key"
 CleanupAfterLoad = true
 ```
 
@@ -290,12 +301,63 @@ CleanupAfterLoad = true
 
 ```bash
 -v "$PWD/tias/models-encrypted:/workspace/tias/models-encrypted:ro"
--v "$PWD/tias/docker/secrets/tias_model_key:/run/secrets/tias_model_key:ro"
+-v "$PWD/tias/docker/secrets/tias_model_key:/run/bootstrap-secrets/tias_model_key:ro"
 ```
 
 模型加密只保护静态文件，降低镜像或模型目录被直接复制后的离线使用风险。TIAS 运行时仍需要把模型解密并加载到内存，具备宿主机 root、容器调试或进程内存读取权限的人仍可能逆向。生产还需要结合私有镜像仓库、宿主机权限控制、只读挂载、密钥管理和最小权限运行。
 
 如果宿主机删除了被挂载的模型文件，已经加载到内存的运行中进程可能暂时继续工作，但服务重启、懒加载或再次读取模型时会失败。生产不得把“删除后当前进程仍可运行”作为保障。
+
+## 生产 secure runtime 部署
+
+secure runtime 部署使用加密模型和启动期密钥引导，不再挂载整个明文 `tias/models` 目录。准备密钥和加密模型：
+
+```bash
+mkdir -p tias/docker/secrets
+python scripts/protect_tias_models.py \
+  --source-dir tias/models \
+  --target-dir tias/models-encrypted \
+  --key-file tias/docker/secrets/tias_model_key \
+  --generate-key
+chmod 0400 tias/docker/secrets/tias_model_key
+```
+
+模型保护配置使用运行期密钥副本：
+
+```toml
+[ModelProtection]
+Enabled = true
+EncryptedModelRoot = "/workspace/tias/models-encrypted"
+DecryptedTempRoot = "/dev/shm/tias-models"
+KeyFile = "/dev/shm/tias_model_key"
+CleanupAfterLoad = true
+```
+
+secure entrypoint 启动时读取 `/run/bootstrap-secrets/tias_model_key`，复制到 `/dev/shm/tias_model_key`。应用第一次读取密钥后会删除 `/dev/shm` 副本，并继续使用内存中的密钥完成后续模型解密。
+
+secure GPU compose 使用外部网络 `ai-quality-net`：
+
+```bash
+docker network create ai-quality-net || true
+docker network connect ai-quality-net ai-quality-redis || true
+docker network connect ai-quality-net ai-quality-api || true
+docker compose -f tias/docker/docker-compose.gpu.secure.yml config
+docker compose -f tias/docker/docker-compose.gpu.secure.yml up -d --build
+```
+
+compose 挂载策略：
+
+```text
+tias/models-encrypted -> /workspace/tias/models-encrypted:ro
+tias/models/cmu_panoptic_coco.yaml -> /workspace/tias/model-assets/cmu_panoptic_coco.yaml:ro
+tias/docker/secrets/tias_model_key -> /run/bootstrap-secrets/tias_model_key:ro
+```
+
+为了支持 `docker restart`、容器重建、宿主机重启和故障恢复，宿主机源密钥文件必须保留在受控路径。删除源密钥后，当前进程可能暂时继续运行，但下一次 restart/recreate 会失败。生产不得把删除源密钥作为稳定保护手段。
+
+本阶段不接 KMS/Vault，不承诺防止宿主机 root、Docker socket 持有者、容器 root 或具备调试能力的高权限用户读取挂载源、内存或运行时文件。
+
+Mac 本地只验证 build、compose config、镜像内容检查和单元测试；GPU 加密模型启动、注册心跳和推理接口需要在 128 GPU 服务器验证。
 
 旧路径仍保留兼容：
 

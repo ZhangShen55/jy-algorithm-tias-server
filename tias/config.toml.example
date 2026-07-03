@@ -87,7 +87,7 @@ Enabled = false
 EncryptedModelRoot = "/workspace/tias/models-encrypted"
 # 临时明文模型目录。建议使用内存盘，权限会设置为 0700。
 DecryptedTempRoot = "/dev/shm/tias-models"
-# 模型密钥文件。生产通过 Docker secret 或宿主机只读挂载注入，不要写入真实密钥。
-KeyFile = "/run/secrets/tias_model_key"
+# 模型密钥运行期副本。secure entrypoint 会从只读挂载源复制到该路径，应用读取后删除副本。
+KeyFile = "/dev/shm/tias_model_key"
 # 模型加载成功后是否删除临时明文文件。
 CleanupAfterLoad = true

@@ -22,6 +22,8 @@ tests2/
 docs/
 openspec/
 *.key
+**/tias_model_key
+**/secrets/
 *.pem
 *.crt
 *.env
@@ -32,4 +34,5 @@ openspec/
 **/*.onnx
 **/*.engine
 **/models/
+**/models-encrypted/
 **/models-encrypted/*.key

@@ -57,6 +57,7 @@ class ModelPathResolver:
     def __init__(self, config: ModelProtectionConfig):
         self.config = config
         self._prepared_paths: list[Path] = []
+        self._cached_key: str | None = None
 
     def prepare_model_path(self, plain_model_path: str | Path) -> Path:
         plain_path = Path(plain_model_path)
@@ -64,7 +65,7 @@ class ModelPathResolver:
             return plain_path
         if self.config.encrypted_model_root is None:
             raise ModelProtectionError("模型保护已启用但未配置 EncryptedModelRoot")
-        key = read_key_file(self.config.key_file)
+        key = self._get_key()
         encrypted_path = self.config.encrypted_model_root / f"{plain_path.name}.enc"
         if not encrypted_path.exists():
             raise ModelProtectionError(f"加密模型不存在: {encrypted_path}")
@@ -84,6 +85,26 @@ class ModelPathResolver:
                     logger.info("临时明文模型已清理 temp_path=%s", path)
             finally:
                 self._prepared_paths.remove(path)
+
+    def _get_key(self) -> str:
+        if self._cached_key is None:
+            self._cached_key = read_key_file(self.config.key_file)
+            self._cleanup_runtime_key_copy(self.config.key_file)
+        return self._cached_key
+
+    @staticmethod
+    def _cleanup_runtime_key_copy(key_file: str | Path | None) -> None:
+        if key_file is None:
+            return
+        path = Path(key_file)
+        if not _is_runtime_key_copy(path):
+            return
+        try:
+            if path.exists():
+                path.unlink()
+                logger.info("运行期模型密钥副本已清理 key_path=%s", path)
+        except OSError as exc:
+            logger.warning("运行期模型密钥副本清理失败 key_path=%s reason=%s", path, exc)
 
 
 def generate_key() -> str:
@@ -182,3 +203,15 @@ def _to_bool(value) -> bool:
     if isinstance(value, (int, float)):
         return bool(value)
     return str(value).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _is_runtime_key_copy(path: Path) -> bool:
+    runtime_root = Path(os.getenv("TIAS_RUNTIME_KEY_ROOT", "/dev/shm")).expanduser()
+    try:
+        resolved_path = path.resolve()
+        resolved_root = runtime_root.resolve()
+        return resolved_path == resolved_root or resolved_root in resolved_path.parents
+    except OSError:
+        path_text = path.as_posix()
+        root_text = runtime_root.as_posix().rstrip("/")
+        return path_text == root_text or path_text.startswith(f"{root_text}/")
