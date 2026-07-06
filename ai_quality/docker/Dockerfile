@@ -15,7 +15,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 COPY ./ai_quality/requirements.txt ./ai_quality/requirements.txt
-RUN pip install --no-cache-dir -r ai_quality/requirements.txt
+RUN pip install --no-cache-dir -r ai_quality/requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 COPY ./ai_quality ./ai_quality
 COPY ./scripts/build_cython_modules.py ./scripts/build_cython_modules.py
