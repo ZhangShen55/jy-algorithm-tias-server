@@ -4,7 +4,7 @@ services:
       context: ../..
       dockerfile: tias/docker/Dockerfile.runtime
     image: tias:6.0-secure
-    container_name: tias-gpu-8981
+    container_name: tias-gpu-8981-secure
     shm_size: "2g"
     command: python -m uvicorn tias.main:app --host 0.0.0.0 --port 8981
     env_file:
@@ -38,7 +38,7 @@ services:
 
   tias-gpu-8982:
     image: tias:6.0-secure
-    container_name: tias-gpu-8982
+    container_name: tias-gpu-8982-secure
     shm_size: "2g"
     command: python -m uvicorn tias.main:app --host 0.0.0.0 --port 8982
     env_file:
