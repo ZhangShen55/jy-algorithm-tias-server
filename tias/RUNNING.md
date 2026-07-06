@@ -359,14 +359,7 @@ tias/docker/secrets/tias_model_key -> /run/bootstrap-secrets/tias_model_key:ro
 
 Mac 本地只验证 build、compose config、镜像内容检查和单元测试；GPU 加密模型启动、注册心跳和推理接口需要在 128 GPU 服务器验证。
 
-旧路径仍保留兼容：
-
-```text
-tias/Dockerfile
-tias/Dockerfile_cuda113
-```
-
-新部署优先使用 `tias/docker/` 下的文件。
+旧根目录 Dockerfile 已删除，部署统一使用 `tias/docker/` 下的文件。
 
 ## 对外接口
 

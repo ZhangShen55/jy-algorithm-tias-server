@@ -8,7 +8,7 @@
 | 普通 GPU | `Dockerfile`、`docker-compose.gpu.yml` | Cython 保护镜像，可用于可信内网测试 |
 | 生产 secure GPU | `Dockerfile.runtime`、`docker-compose.gpu.secure.yml` | 最小运行镜像、加密模型、密钥启动引导 |
 
-旧根目录文件 `tias/Dockerfile`、`tias/Dockerfile_cuda113` 仍保留兼容，新部署优先使用 `tias/docker/`。
+旧根目录 Dockerfile 已删除，所有新部署统一使用 `tias/docker/` 下的构建入口。
 
 ## 开发镜像
 

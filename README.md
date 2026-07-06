@@ -39,8 +39,7 @@ jy-algorithm-tias-server/
     ├── start.sh              # 启动脚本（单实例 / Nginx + 多实例）
     ├── requirements.txt      # PyTorch 2.6 / CUDA 11.8 主线依赖
     ├── requirements_cuda113.txt
-    ├── Dockerfile            # pytorch 2.6 + cuda11.8 运行时
-    ├── Dockerfile_cuda113    # CUDA 11.3 备选镜像
+    ├── docker/               # Dockerfile、compose、secure runtime 部署入口
     ├── core/
     │   └── settings.py       # 配置加载、设备选择、YOLO 模型全局加载
     ├── api/                  # 路由：师生行为、WorkerStatus、Health、Drain
@@ -55,7 +54,7 @@ jy-algorithm-tias-server/
     └── infrastructure/       # Kafka、MySQL、视频、TIAS 调度
 ```
 
-> **说明**：`Dockerfile` 中会 `COPY nginx/nginx.conf`；若你本地构建镜像，请在构建上下文中提供 `nginx/nginx.conf`（与 Dockerfile 中路径一致）。
+> **说明**：Docker 构建需从仓库根目录执行，`tias/docker/Dockerfile*` 会引用 `tias/docker/nginx.conf` 和 `scripts/` 下的构建脚本。
 
 ---
 
@@ -269,10 +268,13 @@ python -m ai_quality.app --config "$CONFIG_PATH" serve
 
 ## Docker 部署
 
-- **主线**：`tias/Dockerfile`（`pytorch/pytorch:2.6.0-cuda11.8-cudnn9-runtime`）。  
-- **备选**：`tias/Dockerfile_cuda113`（CUDA 11.3 + Python 3.8 + 独立 `requirements_cuda113.txt`）。
+Docker 构建入口统一放在 `tias/docker/`：
 
-构建时需保证构建上下文包含：`tias/` 以及 Dockerfile 引用的 **`nginx/nginx.conf`** 等文件。
+- **开发/普通部署**：`tias/docker/Dockerfile`（PyTorch 2.6 / CUDA 11.8）。
+- **CUDA 11.3 兼容部署**：`tias/docker/Dockerfile.cuda113`（CUDA 11.3 + Python 3.8 + `requirements_cuda113.txt`）。
+- **生产 secure runtime**：`tias/docker/Dockerfile.runtime`（最小运行镜像、Cython 编译产物、加密模型挂载）。
+
+构建时需从仓库根目录执行，保证构建上下文包含 `tias/`、`scripts/` 和 `tias/docker/nginx.conf` 等文件。
 
 容器内：
 
