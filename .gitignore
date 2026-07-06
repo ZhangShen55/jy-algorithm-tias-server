@@ -40,3 +40,5 @@ tests2/head_pose_outputs/*
 docs/
 tmp/
 mnt/
+tias/models-encrypted/
+tias/docker/secrets/
