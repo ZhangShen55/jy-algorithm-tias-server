@@ -46,7 +46,7 @@ TIAS 通过环境变量 `CONFIG_PATH` 读取配置。未设置时默认读取 `t
 
 | 配置 | 说明 |
 | --- | --- |
-| `GPU_ID` | `cpu` 表示 CPU；GPU 环境可配置为 `"0"` |
+| `GPU_ID` | `cpu` 表示 CPU；NVIDIA GPU 环境可配置为 `"0"`；Ascend 910B NPU 环境可配置为 `"npu:3"` |
 | `IMAGE_ROOT` | 相对路径图片读取根目录 |
 | `INSTANCE_COUNT` | `tias/start.sh` 多实例数量 |
 | `WORKERS_PER_INSTANCE` | 每个 Uvicorn 实例 worker 数 |
@@ -59,6 +59,69 @@ TIAS 通过环境变量 `CONFIG_PATH` 读取配置。未设置时默认读取 `t
 | `[TIAS].HeartbeatIntervalSeconds` | 向 ai_quality 上报心跳间隔 |
 | `[TIAS].HeartbeatTimeoutSeconds` | ai_quality 侧心跳租约超时时间 |
 | `[TIAS].RegisterRetryIntervalSeconds` | 注册失败后的重试间隔 |
+
+## Ascend 910B NPU 启动
+
+当前 910B 验证优先使用宿主机 conda 环境 `tias-910b`，已验证组合：
+
+| 组件 | 版本 |
+| --- | --- |
+| CANN | `8.1.RC1` |
+| Driver | `25.0.rc1.1` |
+| Python | `3.10` |
+| torch | `2.4.0` |
+| torch-npu | `2.4.0` |
+| torchvision | `0.19.0` |
+| ultralytics | `8.3.156` |
+
+准备依赖：
+
+```bash
+conda activate tias-910b
+python -m pip install -r tias/requirements_npu.txt
+```
+
+验证前只读检查 NPU 3 和端口 8882：
+
+```bash
+npu-smi info
+ss -ltnp | grep ':8882' || true
+```
+
+如果 8882 已被占用，不要停止占用进程或容器，先调整本次新增配置或向负责人确认。
+
+NPU 单实例配置建议：
+
+```toml
+GPU_ID = "npu:3"
+
+[TIAS]
+InstanceId = "tias-npu-8882"
+BaseUrl = "http://127.0.0.1:8882"
+Host = "0.0.0.0"
+Port = 8882
+MaxConcurrentBatches = 1
+MaxQueueSize = 0
+
+[Teacher_Head_Pose]
+Enabled = false
+Device = "npu:3"
+```
+
+启动：
+
+```bash
+export CONFIG_PATH="$PWD/tias/config.toml"
+python -m uvicorn tias.main:app --host 0.0.0.0 --port 8882
+```
+
+健康检查：
+
+```bash
+curl http://127.0.0.1:8882/AE/Health
+```
+
+`ai_quality` 生产模式保持 `TiasInferenceMode=remote`。910B NPU 模型只在 TIAS 进程中加载，ai_quality Worker 通过 HTTP 调度 TIAS，不直接 import TIAS 模型服务。
 
 单实例配置示例：
 

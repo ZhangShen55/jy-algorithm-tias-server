@@ -1,12 +1,25 @@
 FROM python:3.11-slim
 
+ARG BUILD_HTTP_PROXY=
+ARG BUILD_HTTPS_PROXY=
+ARG APT_MIRROR=https://mirrors.tuna.tsinghua.edu.cn/debian
+ENV HTTP_PROXY=${BUILD_HTTP_PROXY} \
+    HTTPS_PROXY=${BUILD_HTTPS_PROXY} \
+    http_proxy=${BUILD_HTTP_PROXY} \
+    https_proxy=${BUILD_HTTPS_PROXY}
+
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     CONFIG_PATH=/workspace/ai_quality/config.toml
 
 WORKDIR /workspace
 
-RUN apt-get update && \
+RUN set -e; \
+    if [ -n "$APT_MIRROR" ]; then \
+        sed -i "s#http://deb.debian.org/debian#$APT_MIRROR#g" /etc/apt/sources.list.d/debian.sources; \
+        sed -i "s#http://deb.debian.org/debian-security#$APT_MIRROR-security#g" /etc/apt/sources.list.d/debian.sources; \
+    fi; \
+    apt-get update && \
     apt-get install -y --no-install-recommends \
         build-essential \
         curl \
@@ -15,7 +28,10 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 COPY ./ai_quality/requirements.txt ./ai_quality/requirements.txt
-RUN pip install --no-cache-dir -r ai_quality/requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+RUN pip install --no-cache-dir \
+    --index-url https://pypi.tuna.tsinghua.edu.cn/simple \
+    --trusted-host pypi.tuna.tsinghua.edu.cn \
+    -r ai_quality/requirements.txt
 
 COPY ./ai_quality ./ai_quality
 COPY ./scripts/build_cython_modules.py ./scripts/build_cython_modules.py

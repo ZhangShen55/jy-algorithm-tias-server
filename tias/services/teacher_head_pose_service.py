@@ -301,6 +301,7 @@ class DirectMHPBackend:
         os.environ.setdefault("MPLCONFIGDIR", str(matplotlib_cache_dir))
 
         import torch
+        from ..core.device import resolve_torch_device
         with warnings.catch_warnings():
             warnings.filterwarnings(
                 "ignore",
@@ -309,7 +310,6 @@ class DirectMHPBackend:
             )
             from models.experimental import attempt_load
             from utils.general import check_img_size, non_max_suppression, scale_coords
-            from utils.torch_utils import select_device
             from utils.datasets import LoadImages
 
         with self.config.directmhp_data.open(encoding="utf-8") as f:
@@ -319,7 +319,7 @@ class DirectMHPBackend:
         self.non_max_suppression = non_max_suppression
         self.scale_coords = scale_coords
         self.LoadImages = LoadImages
-        self.device = select_device(self.config.device, batch_size=1)
+        self.device = resolve_torch_device(self.config.device)
         self.model = attempt_load(str(self.config.directmhp_weights), map_location=self.device)
         self._cleanup_prepared_weight()
         self.stride = int(self.model.stride.max())

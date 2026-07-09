@@ -7,6 +7,7 @@
 | 开发/联调 | `Dockerfile`、`docker-compose.yml` | 可挂载明文模型，便于本地排查 |
 | 普通 GPU | `Dockerfile`、`docker-compose.gpu.yml` | Cython 保护镜像，可用于可信内网测试 |
 | 生产 secure GPU | `Dockerfile.runtime`、`docker-compose.gpu.secure.yml` | 最小运行镜像、加密模型、密钥启动引导 |
+| Ascend NPU | `Dockerfile.npu`、`docker-compose.npu.yml` | 华为 910B / CANN 环境，使用 `torch_npu` |
 
 旧根目录 Dockerfile 已删除，所有新部署统一使用 `tias/docker/` 下的构建入口。
 
@@ -113,6 +114,41 @@ CleanupAfterLoad = true
 ## Docker 网络
 
 TIAS、ai_quality API、ai_quality Worker 和 Redis 必须在同一 Docker 网络内，才能通过容器名互相访问。
+
+## Ascend NPU Docker 部署
+
+NPU 部署使用新增容器，不得停止、重启、删除或改动本机已有运行容器。允许执行 `docker ps`、`docker images`、`docker compose config` 等只读检查；如端口、容器名、网络或设备资源冲突，调整本次新增容器配置，不处理已有容器。
+
+910B 验证默认使用：
+
+- NPU 设备：`npu:3`
+- 对外端口：`8882`
+- 容器名：`tias-npu-8882`
+
+启动前只读检查：
+
+```bash
+npu-smi info
+ss -ltnp | grep ':8882' || true
+docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
+```
+
+如果 8882 已被占用，暂停并确认替代端口，不停止占用端口的进程或容器。
+
+构建和启动 NPU 镜像：
+
+```bash
+docker build -f tias/docker/Dockerfile.npu -t tias:6.0-npu .
+docker compose -f tias/docker/docker-compose.npu.yml config
+docker compose -f tias/docker/docker-compose.npu.yml up -d --build
+```
+
+验证：
+
+```bash
+docker exec tias-npu-8882 python -c "import torch, torch_npu; print(torch.npu.is_available(), torch.npu.device_count())"
+curl http://127.0.0.1:8882/AE/Health
+```
 
 ```bash
 docker network create ai-quality-net || true

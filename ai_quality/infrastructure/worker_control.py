@@ -1,8 +1,9 @@
 import json
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
-from enum import StrEnum
 from typing import Optional, Protocol
+
+from ai_quality.infrastructure.compat import StrEnum
 
 
 class WorkerDesiredState(StrEnum):

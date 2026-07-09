@@ -6,6 +6,7 @@ from pydantic import Field
 from pydantic_settings import BaseSettings
 from typing import Any, Dict, Union
 from .config_loader import load_config
+from .device import resolve_torch_device
 from .model_protection import ModelPathResolver, ModelProtectionConfig
 
 CONFIG_PATH = os.getenv("CONFIG_PATH",os.path.abspath(os.path.join(os.path.dirname(__file__), "../config.toml")))
@@ -86,15 +87,10 @@ _cfg = {
 }
 settings = Settings(**_cfg)
 
-if str(settings.GPU_ID).lower() == "cpu":
-    os.environ["CUDA_VISIBLE_DEVICES"] = ""
-    device = torch.device("cpu")
-else:
-    os.environ["CUDA_VISIBLE_DEVICES"] = str(settings.GPU_ID)
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    # if device.type == "cuda":
-    #     torch.backends.cudnn.benchmark = True
-    #     torch.backends.cudnn.deterministic = False
+device = resolve_torch_device(settings.GPU_ID)
+# if device.type == "cuda":
+#     torch.backends.cudnn.benchmark = True
+#     torch.backends.cudnn.deterministic = False
 # use_half = device.type == "cuda"  # 仅在 CUDA 场景启用 FP16
 use_half = False  # 优先精准度，所以开启 fp32。20251205
 

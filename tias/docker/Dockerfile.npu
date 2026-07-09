@@ -1,0 +1,70 @@
+FROM python:3.10-bookworm
+
+LABEL authors="SeaCraft"
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+WORKDIR /workspace
+
+COPY ./tias/requirements.txt ./tias/requirements.txt
+COPY ./tias/requirements_npu.txt ./tias/requirements_npu.txt
+
+# torch/torch-npu wheels are environment-specific on Ascend. Use the wheel
+# source approved for the target CANN/driver release when building this image.
+ARG INSTALL_TORCH_NPU=1
+ARG PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/
+ARG BUILD_HTTP_PROXY=
+ARG BUILD_HTTPS_PROXY=
+ENV HTTP_PROXY=${BUILD_HTTP_PROXY} \
+    HTTPS_PROXY=${BUILD_HTTPS_PROXY} \
+    http_proxy=${BUILD_HTTP_PROXY} \
+    https_proxy=${BUILD_HTTPS_PROXY}
+RUN if [ "$INSTALL_TORCH_NPU" = "1" ]; then \
+        pip install --no-cache-dir \
+          --index-url "$PIP_INDEX_URL" \
+          --trusted-host mirrors.aliyun.com \
+          torch==2.4.0 torch-npu==2.4.0 torchvision==0.19.0; \
+    fi && \
+    pip install --no-cache-dir \
+      --index-url "$PIP_INDEX_URL" \
+      --timeout 300 \
+      --retries 5 \
+      --trusted-host mirrors.aliyun.com \
+      -r tias/requirements.txt
+
+COPY ./tias ./tias
+COPY ./scripts/build_cython_modules.py ./scripts/build_cython_modules.py
+
+ARG PROTECT_SOURCE=0
+RUN set -e; \
+    if [ "$PROTECT_SOURCE" = "1" ]; then \
+        python scripts/build_cython_modules.py \
+          --root /workspace \
+          --package tias/api \
+          --package tias/core \
+          --package tias/services \
+          --package tias/schemas \
+          --keep-source tias/__init__.py \
+          --keep-source tias/main.py \
+          --keep-source tias/core/__init__.py \
+          --keep-source tias/api/__init__.py \
+          --keep-source tias/services/__init__.py \
+          --keep-source tias/schemas/__init__.py \
+          --exclude-glob 'tias/vendor/**' \
+          --exclude-glob 'tias/models/**' \
+          --remove-sources; \
+        rm -rf build; \
+        find /workspace -type d -name '__pycache__' -prune -exec rm -rf {} +; \
+    fi
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    CONFIG_PATH=/workspace/tias/config.toml \
+    ASCEND_TOOLKIT_HOME=/usr/local/Ascend/ascend-toolkit/latest \
+    ASCEND_HOME_PATH=/usr/local/Ascend/ascend-toolkit/latest \
+    ASCEND_OPP_PATH=/usr/local/Ascend/ascend-toolkit/latest/opp \
+    ASCEND_AICPU_PATH=/usr/local/Ascend/ascend-toolkit/latest \
+    LD_LIBRARY_PATH=/usr/local/Ascend/ascend-toolkit/latest/lib64:/usr/local/Ascend/driver/lib64:/usr/local/Ascend/driver/lib64/common:/usr/local/Ascend/driver/lib64/driver
+
+EXPOSE 8882
+CMD ["python", "-m", "uvicorn", "tias.main:app", "--host", "0.0.0.0", "--port", "8882"]

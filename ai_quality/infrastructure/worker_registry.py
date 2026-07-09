@@ -2,9 +2,9 @@ import json
 import time
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
-from enum import StrEnum
 from typing import List, Optional, Protocol
 
+from ai_quality.infrastructure.compat import StrEnum
 from ai_quality.infrastructure.worker_control import WorkerDesiredState
 
 

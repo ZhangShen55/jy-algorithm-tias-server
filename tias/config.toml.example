@@ -9,8 +9,9 @@ SAVE_RESULT_IMAGE = 0
 INSTANCE_COUNT = 1
 WORKERS_PER_INSTANCE = 1
 
-# 主模型推理设备。CPU 环境使用 "cpu"，NVIDIA GPU 环境可配置为 "0"。
-GPU_ID = "cpu"
+# 主模型推理设备。CPU 环境使用 "cpu"，NVIDIA GPU 环境可配置为 "0"；
+# Ascend 910B NPU 环境可配置为 "npu:3"。
+GPU_ID = "npu:3"
 
 [TIAS]
 # TIAS 实例身份和对外访问地址。
@@ -21,10 +22,10 @@ BaseUrl = "http://127.0.0.1:8981"
 AiQualityBaseUrl = "http://127.0.0.1:9000"
 
 # 是否暴露旧 IAS 同步任务接口。
-TiasExposeLegacySyncTasks = false
+TiasExposeLegacySyncTasks = true
 
 # 本地推理准入控制。MaxQueueSize=0 表示不开启本地排队，满载直接返回 busy。
-MaxConcurrentBatches = 1
+MaxConcurrentBatches = 4
 MaxQueueSize = 0
 
 # 注册和心跳配置。
@@ -32,7 +33,7 @@ HeartbeatIntervalSeconds = 5
 HeartbeatTimeoutSeconds = 15
 RegisterRetryIntervalSeconds = 5
 
-# HTTP 服务配置。
+# HTTP 服务配置。910B NPU 验证建议使用 8882。
 Host = "0.0.0.0"
 Port = 8981
 
@@ -44,7 +45,7 @@ Headphones = 0.1
 Shoulder = 0.1
 
 [Face_Thresd]
-face = 0.1
+face = 0.3
 
 [Student_Thresd]
 phone = 0.7
@@ -68,11 +69,12 @@ PostureConflictDefault = "stand"
 ForcePostureWhenMissing = true
 
 [Teacher_Head_Pose]
-Enabled = false
+Enabled = true
 DirectMHPRoot = "tias/vendor/DirectMHP"
 DirectMHPWeights = "tias/models/cmu_m_1280_e200_t40_lw010_best.pt"
 DirectMHPData = "tias/models/cmu_panoptic_coco.yaml"
-Device = "cpu"
+# 教师头姿设备。默认使用 CPU；910B NPU 环境可配置为 "npu:3"。
+Device = "npu:3"
 ImageSize = 1280
 ConfThres = 0.35
 IouThres = 0.45
@@ -84,10 +86,13 @@ DownPitchThreshold = 20.0
 # 模型静态加密开关。false 时按明文模型路径加载；true 时从 EncryptedModelRoot 解密 .enc 模型。
 Enabled = false
 # 加密模型目录。容器部署建议只读挂载到该路径。
-EncryptedModelRoot = "/workspace/tias/models-encrypted"
+EncryptedModelRoot = "/workspace/tias/models-encrypted" #部署路径
+#EncryptedModelRoot = "./tias/models-encrypted"
 # 临时明文模型目录。建议使用内存盘，权限会设置为 0700。
-DecryptedTempRoot = "/dev/shm/tias-models"
+#DecryptedTempRoot = "/dev/shm/tias-models" #部署路径
+DecryptedTempRoot = "/tmp/shm/tias-models"
 # 模型密钥运行期副本。secure entrypoint 会从只读挂载源复制到该路径，应用读取后删除副本。
-KeyFile = "/dev/shm/tias_model_key"
+#KeyFile = "/dev/shm/tias_model_key" # 部署路径
+KeyFile = "/tmp/shm/tias_model_key"
 # 模型加载成功后是否删除临时明文文件。
 CleanupAfterLoad = true
