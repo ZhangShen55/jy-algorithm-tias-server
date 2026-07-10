@@ -3,15 +3,15 @@ RESULT_IMAGE_ROOT = "/data/result_images"
 SAVE_RESULT_IMAGE = 0
 INSTANCE_COUNT = 1
 WORKERS_PER_INSTANCE = 1
-GPU_ID = "npu:5"
+GPU_ID = "npu:3"
 
 [TIAS]
 InstanceId = "tias-npu-8884"
 BaseUrl = "http://tias-npu-8884:8884"
 AiQualityBaseUrl = "http://ai-quality-api:9000"
-TiasExposeLegacySyncTasks = false
-MaxConcurrentBatches = 1
-MaxQueueSize = 0
+TiasExposeLegacySyncTasks = true
+MaxConcurrentBatches = 2
+MaxQueueSize = 1
 HeartbeatIntervalSeconds = 5
 HeartbeatTimeoutSeconds = 15
 RegisterRetryIntervalSeconds = 5
@@ -26,7 +26,7 @@ Headphones = 0.1
 Shoulder = 0.1
 
 [Face_Thresd]
-face = 0.1
+face = 0.3
 
 [Student_Thresd]
 phone = 0.7
@@ -50,11 +50,11 @@ PostureConflictDefault = "stand"
 ForcePostureWhenMissing = true
 
 [Teacher_Head_Pose]
-Enabled = false
+Enabled = true
 DirectMHPRoot = "tias/vendor/DirectMHP"
 DirectMHPWeights = "tias/models/cmu_m_1280_e200_t40_lw010_best.pt"
 DirectMHPData = "/workspace/tias/model-assets/cmu_panoptic_coco.yaml"
-Device = "npu:5"
+Device = "npu:3"
 ImageSize = 1280
 ConfThres = 0.35
 IouThres = 0.45
@@ -64,7 +64,7 @@ DownPitchThreshold = 20.0
 
 [ModelProtection]
 Enabled = true
-EncryptedModelRoot = "/workspace/tias/models-encrypted"
+EncryptedModelRoot = "/run/bootstrap-models/tias"
 DecryptedTempRoot = "/dev/shm/tias-models"
 KeyFile = "/dev/shm/tias_model_key"
 CleanupAfterLoad = true

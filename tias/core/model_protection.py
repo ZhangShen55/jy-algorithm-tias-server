@@ -101,10 +101,13 @@ class ModelPathResolver:
             return
         try:
             if path.exists():
+                if path.is_mount():
+                    logger.info("The runtime model key path is a mount point, skipping cleaning. key_path=%s", path)
+                    return
                 path.unlink()
-                logger.info("运行期模型密钥副本已清理 key_path=%s", path)
+                logger.info("The runtime model key copy has been cleaned up. key_path=%s", path)
         except OSError as exc:
-            logger.warning("运行期模型密钥副本清理失败 key_path=%s reason=%s", path, exc)
+            logger.warning("Run time model key copy cleanup failed. key_path=%s reason=%s", path, exc)
 
 
 def generate_key() -> str:

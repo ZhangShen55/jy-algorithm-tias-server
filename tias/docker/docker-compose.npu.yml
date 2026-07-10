@@ -1,35 +1,48 @@
+x-ascend-devices: &ascend-devices
+  - /dev/davinci0:/dev/davinci0
+  - /dev/davinci1:/dev/davinci1
+  - /dev/davinci2:/dev/davinci2
+  - /dev/davinci3:/dev/davinci3
+  - /dev/davinci4:/dev/davinci4
+  - /dev/davinci5:/dev/davinci5
+  - /dev/davinci6:/dev/davinci6
+  - /dev/davinci7:/dev/davinci7
+  - /dev/davinci_manager:/dev/davinci_manager
+  - /dev/devmm_svm:/dev/devmm_svm
+  - /dev/hisi_hdc:/dev/hisi_hdc
+
+x-ascend-env: &ascend-env
+  ASCEND_TOOLKIT_HOME: /usr/local/Ascend/ascend-toolkit/latest
+  ASCEND_HOME_PATH: /usr/local/Ascend/ascend-toolkit/latest
+  ASCEND_OPP_PATH: /usr/local/Ascend/ascend-toolkit/latest/opp
+  ASCEND_AICPU_PATH: /usr/local/Ascend/ascend-toolkit/latest
+  TOOLCHAIN_HOME: /usr/local/Ascend/ascend-toolkit/latest/toolkit
+  PYTHONPATH: /usr/local/Ascend/ascend-toolkit/latest/python/site-packages:/usr/local/Ascend/ascend-toolkit/latest/opp/built-in/op_impl/ai_core/tbe
+  PATH: /usr/local/Ascend/ascend-toolkit/latest/bin:/usr/local/Ascend/ascend-toolkit/latest/compiler/ccec_compiler/bin:/usr/local/Ascend/ascend-toolkit/latest/tools/ccec_compiler/bin:/usr/local/python3.10.17/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+  LD_LIBRARY_PATH: /usr/local/Ascend/ascend-toolkit/latest/lib64:/usr/local/Ascend/ascend-toolkit/latest/lib64/plugin/opskernel:/usr/local/Ascend/ascend-toolkit/latest/lib64/plugin/nnengine:/usr/local/Ascend/ascend-toolkit/latest/opp/built-in/op_impl/ai_core/tbe/op_tiling/lib/linux/aarch64:/usr/local/Ascend/ascend-toolkit/latest/tools/aml/lib64:/usr/local/Ascend/ascend-toolkit/latest/tools/aml/lib64/plugin:/usr/local/Ascend/driver/lib64:/usr/local/Ascend/driver/lib64/common:/usr/local/Ascend/driver/lib64/driver
+  YOLO_CONFIG_DIR: /tmp/Ultralytics
+
 services:
   tias-npu-8882:
     image: tias_910b_npu:v6.0_260709
     container_name: tias-npu-8882
     shm_size: "2g"
-    command: python -m uvicorn tias.main:app --host 0.0.0.0 --port 8882
+    privileged: true
+    command: >
+      bash -lc "install -m 0400 /run/bootstrap-secrets/tias_model_key /dev/shm/tias_model_key &&
+      exec python -m uvicorn tias.main:app --host 0.0.0.0 --port 8882"
     environment:
+      <<: *ascend-env
       CONFIG_PATH: /workspace/tias/config.toml
-      ASCEND_TOOLKIT_HOME: /usr/local/Ascend/ascend-toolkit/latest
-      ASCEND_HOME_PATH: /usr/local/Ascend/ascend-toolkit/latest
-      ASCEND_OPP_PATH: /usr/local/Ascend/ascend-toolkit/latest/opp
-      ASCEND_AICPU_PATH: /usr/local/Ascend/ascend-toolkit/latest
-      LD_LIBRARY_PATH: /usr/local/Ascend/ascend-toolkit/latest/lib64:/usr/local/Ascend/driver/lib64:/usr/local/Ascend/driver/lib64/common:/usr/local/Ascend/driver/lib64/driver
     ports:
       - "8882:8882"
     volumes:
-      - ./examples/tias-npu-8882.secure.toml:/workspace/tias/config.toml:ro
-      - ../models-encrypted:/workspace/tias/models-encrypted:ro
-      - ../models/cmu_panoptic_coco.yaml:/workspace/tias/model-assets/cmu_panoptic_coco.yaml:ro
-      - ./secrets/tias_model_key:/dev/shm/tias_model_key:ro
+      - /root/config/tias_deploy/examples/tias-npu-8882.secure.toml:/workspace/tias/config.toml:ro
+      - /home/xjtu/model_zoo/tias/models-encrypted:/run/bootstrap-models/tias:ro
+      - /home/xjtu/model_zoo/tias/models-encrypted/cmu_panoptic_coco.yaml:/workspace/tias/model-assets/cmu_panoptic_coco.yaml:ro
+      - /tmp/shm/tias_model_key:/run/bootstrap-secrets/tias_model_key:ro
       - /usr/local/Ascend:/usr/local/Ascend:ro
-      - /dev/davinci0:/dev/davinci0
-      - /dev/davinci1:/dev/davinci1
-      - /dev/davinci2:/dev/davinci2
-      - /dev/davinci3:/dev/davinci3
-      - /dev/davinci4:/dev/davinci4
-      - /dev/davinci5:/dev/davinci5
-      - /dev/davinci6:/dev/davinci6
-      - /dev/davinci7:/dev/davinci7
-      - /dev/davinci_manager:/dev/davinci_manager
-      - /dev/devmm_svm:/dev/devmm_svm
-      - /dev/hisi_hdc:/dev/hisi_hdc
+    devices: *ascend-devices
     networks:
       default:
         aliases:
@@ -39,33 +52,22 @@ services:
     image: tias_910b_npu:v6.0_260709
     container_name: tias-npu-8883
     shm_size: "2g"
-    command: python -m uvicorn tias.main:app --host 0.0.0.0 --port 8883
+    privileged: true
+    command: >
+      bash -lc "install -m 0400 /run/bootstrap-secrets/tias_model_key /dev/shm/tias_model_key &&
+      exec python -m uvicorn tias.main:app --host 0.0.0.0 --port 8883"
     environment:
+      <<: *ascend-env
       CONFIG_PATH: /workspace/tias/config.toml
-      ASCEND_TOOLKIT_HOME: /usr/local/Ascend/ascend-toolkit/latest
-      ASCEND_HOME_PATH: /usr/local/Ascend/ascend-toolkit/latest
-      ASCEND_OPP_PATH: /usr/local/Ascend/ascend-toolkit/latest/opp
-      ASCEND_AICPU_PATH: /usr/local/Ascend/ascend-toolkit/latest
-      LD_LIBRARY_PATH: /usr/local/Ascend/ascend-toolkit/latest/lib64:/usr/local/Ascend/driver/lib64:/usr/local/Ascend/driver/lib64/common:/usr/local/Ascend/driver/lib64/driver
     ports:
       - "8883:8883"
     volumes:
-      - ./examples/tias-npu-8883.secure.toml:/workspace/tias/config.toml:ro
-      - ../models-encrypted:/workspace/tias/models-encrypted:ro
-      - ../models/cmu_panoptic_coco.yaml:/workspace/tias/model-assets/cmu_panoptic_coco.yaml:ro
-      - ./secrets/tias_model_key:/dev/shm/tias_model_key:ro
+      - /root/config/tias_deploy/examples/tias-npu-8883.secure.toml:/workspace/tias/config.toml:ro
+      - /home/xjtu/model_zoo/tias/models-encrypted:/run/bootstrap-models/tias:ro
+      - /home/xjtu/model_zoo/tias/models-encrypted/cmu_panoptic_coco.yaml:/workspace/tias/model-assets/cmu_panoptic_coco.yaml:ro
+      - /tmp/shm/tias_model_key:/run/bootstrap-secrets/tias_model_key:ro
       - /usr/local/Ascend:/usr/local/Ascend:ro
-      - /dev/davinci0:/dev/davinci0
-      - /dev/davinci1:/dev/davinci1
-      - /dev/davinci2:/dev/davinci2
-      - /dev/davinci3:/dev/davinci3
-      - /dev/davinci4:/dev/davinci4
-      - /dev/davinci5:/dev/davinci5
-      - /dev/davinci6:/dev/davinci6
-      - /dev/davinci7:/dev/davinci7
-      - /dev/davinci_manager:/dev/davinci_manager
-      - /dev/devmm_svm:/dev/devmm_svm
-      - /dev/hisi_hdc:/dev/hisi_hdc
+    devices: *ascend-devices
     networks:
       default:
         aliases:
@@ -75,33 +77,22 @@ services:
     image: tias_910b_npu:v6.0_260709
     container_name: tias-npu-8884
     shm_size: "2g"
-    command: python -m uvicorn tias.main:app --host 0.0.0.0 --port 8884
+    privileged: true
+    command: >
+      bash -lc "install -m 0400 /run/bootstrap-secrets/tias_model_key /dev/shm/tias_model_key &&
+      exec python -m uvicorn tias.main:app --host 0.0.0.0 --port 8884"
     environment:
+      <<: *ascend-env
       CONFIG_PATH: /workspace/tias/config.toml
-      ASCEND_TOOLKIT_HOME: /usr/local/Ascend/ascend-toolkit/latest
-      ASCEND_HOME_PATH: /usr/local/Ascend/ascend-toolkit/latest
-      ASCEND_OPP_PATH: /usr/local/Ascend/ascend-toolkit/latest/opp
-      ASCEND_AICPU_PATH: /usr/local/Ascend/ascend-toolkit/latest
-      LD_LIBRARY_PATH: /usr/local/Ascend/ascend-toolkit/latest/lib64:/usr/local/Ascend/driver/lib64:/usr/local/Ascend/driver/lib64/common:/usr/local/Ascend/driver/lib64/driver
     ports:
       - "8884:8884"
     volumes:
-      - ./examples/tias-npu-8884.secure.toml:/workspace/tias/config.toml:ro
-      - ../models-encrypted:/workspace/tias/models-encrypted:ro
-      - ../models/cmu_panoptic_coco.yaml:/workspace/tias/model-assets/cmu_panoptic_coco.yaml:ro
-      - ./secrets/tias_model_key:/dev/shm/tias_model_key:ro
+      - /root/config/tias_deploy/examples/tias-npu-8884.secure.toml:/workspace/tias/config.toml:ro
+      - /home/xjtu/model_zoo/tias/models-encrypted:/run/bootstrap-models/tias:ro
+      - /home/xjtu/model_zoo/tias/models-encrypted/cmu_panoptic_coco.yaml:/workspace/tias/model-assets/cmu_panoptic_coco.yaml:ro
+      - /tmp/shm/tias_model_key:/run/bootstrap-secrets/tias_model_key:ro
       - /usr/local/Ascend:/usr/local/Ascend:ro
-      - /dev/davinci0:/dev/davinci0
-      - /dev/davinci1:/dev/davinci1
-      - /dev/davinci2:/dev/davinci2
-      - /dev/davinci3:/dev/davinci3
-      - /dev/davinci4:/dev/davinci4
-      - /dev/davinci5:/dev/davinci5
-      - /dev/davinci6:/dev/davinci6
-      - /dev/davinci7:/dev/davinci7
-      - /dev/davinci_manager:/dev/davinci_manager
-      - /dev/devmm_svm:/dev/devmm_svm
-      - /dev/hisi_hdc:/dev/hisi_hdc
+    devices: *ascend-devices
     networks:
       default:
         aliases:
@@ -111,33 +102,22 @@ services:
     image: tias_910b_npu:v6.0_260709
     container_name: tias-npu-8885
     shm_size: "2g"
-    command: python -m uvicorn tias.main:app --host 0.0.0.0 --port 8885
+    privileged: true
+    command: >
+      bash -lc "install -m 0400 /run/bootstrap-secrets/tias_model_key /dev/shm/tias_model_key &&
+      exec python -m uvicorn tias.main:app --host 0.0.0.0 --port 8885"
     environment:
+      <<: *ascend-env
       CONFIG_PATH: /workspace/tias/config.toml
-      ASCEND_TOOLKIT_HOME: /usr/local/Ascend/ascend-toolkit/latest
-      ASCEND_HOME_PATH: /usr/local/Ascend/ascend-toolkit/latest
-      ASCEND_OPP_PATH: /usr/local/Ascend/ascend-toolkit/latest/opp
-      ASCEND_AICPU_PATH: /usr/local/Ascend/ascend-toolkit/latest
-      LD_LIBRARY_PATH: /usr/local/Ascend/ascend-toolkit/latest/lib64:/usr/local/Ascend/driver/lib64:/usr/local/Ascend/driver/lib64/common:/usr/local/Ascend/driver/lib64/driver
     ports:
       - "8885:8885"
     volumes:
-      - ./examples/tias-npu-8885.secure.toml:/workspace/tias/config.toml:ro
-      - ../models-encrypted:/workspace/tias/models-encrypted:ro
-      - ../models/cmu_panoptic_coco.yaml:/workspace/tias/model-assets/cmu_panoptic_coco.yaml:ro
-      - ./secrets/tias_model_key:/dev/shm/tias_model_key:ro
+      - /root/config/tias_deploy/examples/tias-npu-8885.secure.toml:/workspace/tias/config.toml:ro
+      - /home/xjtu/model_zoo/tias/models-encrypted:/run/bootstrap-models/tias:ro
+      - /home/xjtu/model_zoo/tias/models-encrypted/cmu_panoptic_coco.yaml:/workspace/tias/model-assets/cmu_panoptic_coco.yaml:ro
+      - /tmp/shm/tias_model_key:/run/bootstrap-secrets/tias_model_key:ro
       - /usr/local/Ascend:/usr/local/Ascend:ro
-      - /dev/davinci0:/dev/davinci0
-      - /dev/davinci1:/dev/davinci1
-      - /dev/davinci2:/dev/davinci2
-      - /dev/davinci3:/dev/davinci3
-      - /dev/davinci4:/dev/davinci4
-      - /dev/davinci5:/dev/davinci5
-      - /dev/davinci6:/dev/davinci6
-      - /dev/davinci7:/dev/davinci7
-      - /dev/davinci_manager:/dev/davinci_manager
-      - /dev/devmm_svm:/dev/devmm_svm
-      - /dev/hisi_hdc:/dev/hisi_hdc
+    devices: *ascend-devices
     networks:
       default:
         aliases:
@@ -147,33 +127,22 @@ services:
     image: tias_910b_npu:v6.0_260709
     container_name: tias-npu-8886
     shm_size: "2g"
-    command: python -m uvicorn tias.main:app --host 0.0.0.0 --port 8886
+    privileged: true
+    command: >
+      bash -lc "install -m 0400 /run/bootstrap-secrets/tias_model_key /dev/shm/tias_model_key &&
+      exec python -m uvicorn tias.main:app --host 0.0.0.0 --port 8886"
     environment:
+      <<: *ascend-env
       CONFIG_PATH: /workspace/tias/config.toml
-      ASCEND_TOOLKIT_HOME: /usr/local/Ascend/ascend-toolkit/latest
-      ASCEND_HOME_PATH: /usr/local/Ascend/ascend-toolkit/latest
-      ASCEND_OPP_PATH: /usr/local/Ascend/ascend-toolkit/latest/opp
-      ASCEND_AICPU_PATH: /usr/local/Ascend/ascend-toolkit/latest
-      LD_LIBRARY_PATH: /usr/local/Ascend/ascend-toolkit/latest/lib64:/usr/local/Ascend/driver/lib64:/usr/local/Ascend/driver/lib64/common:/usr/local/Ascend/driver/lib64/driver
     ports:
       - "8886:8886"
     volumes:
-      - ./examples/tias-npu-8886.secure.toml:/workspace/tias/config.toml:ro
-      - ../models-encrypted:/workspace/tias/models-encrypted:ro
-      - ../models/cmu_panoptic_coco.yaml:/workspace/tias/model-assets/cmu_panoptic_coco.yaml:ro
-      - ./secrets/tias_model_key:/dev/shm/tias_model_key:ro
+      - /root/config/tias_deploy/examples/tias-npu-8886.secure.toml:/workspace/tias/config.toml:ro
+      - /home/xjtu/model_zoo/tias/models-encrypted:/run/bootstrap-models/tias:ro
+      - /home/xjtu/model_zoo/tias/models-encrypted/cmu_panoptic_coco.yaml:/workspace/tias/model-assets/cmu_panoptic_coco.yaml:ro
+      - /tmp/shm/tias_model_key:/run/bootstrap-secrets/tias_model_key:ro
       - /usr/local/Ascend:/usr/local/Ascend:ro
-      - /dev/davinci0:/dev/davinci0
-      - /dev/davinci1:/dev/davinci1
-      - /dev/davinci2:/dev/davinci2
-      - /dev/davinci3:/dev/davinci3
-      - /dev/davinci4:/dev/davinci4
-      - /dev/davinci5:/dev/davinci5
-      - /dev/davinci6:/dev/davinci6
-      - /dev/davinci7:/dev/davinci7
-      - /dev/davinci_manager:/dev/davinci_manager
-      - /dev/devmm_svm:/dev/devmm_svm
-      - /dev/hisi_hdc:/dev/hisi_hdc
+    devices: *ascend-devices
     networks:
       default:
         aliases:

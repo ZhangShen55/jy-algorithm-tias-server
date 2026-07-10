@@ -142,6 +142,20 @@ docker build -f tias/docker/Dockerfile.npu -t tias:6.0-npu .
 docker compose -f tias/docker/docker-compose.npu.yml config
 docker compose -f tias/docker/docker-compose.npu.yml up -d --build
 ```
+构建镜像 西交大-910b-npu
+```bash
+docker build -f tias/docker/Dockerfile.npu \
+  --build-arg BUILD_HTTP_PROXY=http://127.0.0.1:18080 \
+  --build-arg BUILD_HTTPS_PROXY=http://127.0.0.1:18080 \
+  --build-arg PROTECT_SOURCE=1 \
+  --network=host \
+  -t tias_910b_npu:v6.0_260709 \
+  .
+```
+拉起 西交大-910b-npu
+```bash
+docker compose -f tias/docker/docker-compose.npu.yml up -d --force-recreate
+```
 
 验证：
 

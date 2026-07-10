@@ -77,6 +77,15 @@ def get_teacher_head_pose_raw_config(key: str, default_value):
     return head_pose_config.get(key, default_value)
 
 
+def get_teacher_head_pose_bool_config(key: str, default_value: bool) -> bool:
+    value = get_teacher_head_pose_raw_config(key, default_value)
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        return value.strip().lower() in {"1", "true", "yes", "on"}
+    return bool(value)
+
+
 def get_teacher_head_pose_float_config(key: str, default_value: float) -> float:
     try:
         return float(get_teacher_head_pose_raw_config(key, default_value))
@@ -374,10 +383,15 @@ _directmhp_backend: Optional[DirectMHPBackend] = None
 
 def get_directmhp_backend() -> DirectMHPBackend:
     global _directmhp_backend
-    config = get_teacher_head_pose_config()
-    if _directmhp_backend is None or _directmhp_backend.config != config:
-        _directmhp_backend = DirectMHPBackend(config)
+    if _directmhp_backend is None:
+        _directmhp_backend = DirectMHPBackend(get_teacher_head_pose_config())
     return _directmhp_backend
+
+
+def preload_teacher_head_pose_model() -> None:
+    if not get_teacher_head_pose_bool_config("Enabled", False):
+        return
+    get_directmhp_backend().load()
 
 
 def predict_teacher_head_pose(
