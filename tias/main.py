@@ -6,6 +6,7 @@ from .api.worker_ops import build_worker_ops_router
 from .core.settings import settings
 from .services.registration import TiasRegistrationClient
 from .services.teacher_head_pose_service import preload_teacher_head_pose_model
+from .services.model_warmup import run_model_inference_warmup
 from .services.worker_state import BatchAdmissionController
 import logging
 import asyncio
@@ -41,6 +42,7 @@ async def startup_event():
         status["max_queue_size"],
     )
     preload_teacher_head_pose_model()
+    run_model_inference_warmup()
     registration_client.start_background()
 
 

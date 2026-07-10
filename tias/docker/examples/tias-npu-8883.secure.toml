@@ -68,3 +68,11 @@ EncryptedModelRoot = "/run/bootstrap-models/tias"
 DecryptedTempRoot = "/dev/shm/tias-models"
 KeyFile = "/dev/shm/tias_model_key"
 CleanupAfterLoad = true
+
+[Warmup]
+Enabled = true
+Runs = 1
+ImageWidth = 640
+ImageHeight = 640
+IncludeTeacherHeadPose = true
+FailOnError = true

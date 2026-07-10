@@ -407,7 +407,8 @@ def analyze_teacher_head_pose(
         img_bgr: np.ndarray,
         teacher_position: ObjectPosition,
         backend: Optional[DirectMHPBackend] = None) -> HeadPoseResult:
-    config = get_teacher_head_pose_config()
+    selected_backend = backend or get_directmhp_backend()
+    config = selected_backend.config
     teacher_box = object_position_to_box(teacher_position)
     crop_box = expand_box(
         teacher_box,
@@ -417,7 +418,7 @@ def analyze_teacher_head_pose(
     )
     left, top, right, bottom = crop_box
     crop = img_bgr[top:bottom, left:right]
-    predictions = predict_teacher_head_pose(crop, backend)
+    predictions = predict_teacher_head_pose(crop, selected_backend)
     prediction = select_head_prediction(predictions)
     teacher_confidence = teacher_position.Confidence
     if prediction is None:

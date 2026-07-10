@@ -67,6 +67,14 @@ class Settings(BaseSettings):
         "KeyFile": "/dev/shm/tias_model_key",
         "CleanupAfterLoad": True
     })
+    Warmup: Dict[str, Any] = Field(default_factory=lambda: {
+        "Enabled": True,
+        "Runs": 1,
+        "ImageWidth": 640,
+        "ImageHeight": 640,
+        "IncludeTeacherHeadPose": True,
+        "FailOnError": True
+    })
 
     model_config = {"env_file": None, "extra": "ignore"}
 
