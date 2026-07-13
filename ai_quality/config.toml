@@ -1,7 +1,7 @@
 [AI_Quality]
 # Kafka 任务消费配置。课堂视觉链路固定消费 classroom_cv_task。
 KafkaBootstrapServers = "10.67.65.8:9092"
-KafkaTopic = "classroom_asr_task"
+KafkaTopic = "classroom_cv_task"
 KafkaGroupId = "cv-analysis-service"
 # 默认兼容旧行为从 earliest 开始；全量联调使用新 group 时建议临时设为 latest，避免消费历史消息。
 KafkaAutoOffsetReset = "latest"
