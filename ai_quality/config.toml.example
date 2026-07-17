@@ -79,6 +79,8 @@ BehaviorStatPeakMaxSegments = 5
 
 # Worker 运行配置。
 TempRoot = "/tmp/ai-quality"
+# 本地视频相对路径基准目录。为空时按 ai_quality 进程当前工作目录解析。
+LocalVideoBaseRoot = ""
 FrameIntervalSeconds = 30
 MaxTaskRetries = 3
 WorkerConcurrency = 1

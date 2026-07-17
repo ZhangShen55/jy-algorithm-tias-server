@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 from dataclasses import dataclass
 from typing import Dict, Iterable, Mapping, Optional
 
@@ -25,6 +26,25 @@ class AiQualityRepository:
     def __init__(self, connection):
         self.connection = connection
 
+    @contextmanager
+    def _cursor(self):
+        self.connection.ping(reconnect=True)
+        with self.connection.cursor() as cursor:
+            yield cursor
+
+    @contextmanager
+    def _transaction_cursor(self):
+        try:
+            with self._cursor() as cursor:
+                yield cursor
+            self.connection.commit()
+        except Exception:
+            try:
+                self.connection.rollback()
+            except Exception:
+                pass
+            raise
+
     def mark_workflow_running(self, task_id: str) -> None:
         sql = """
             INSERT INTO lesson_ai_workflow
@@ -48,9 +68,8 @@ class AiQualityRepository:
             "progress": 0,
             "note": "视觉分析处理中",
         }
-        with self.connection.cursor() as cursor:
+        with self._transaction_cursor() as cursor:
             cursor.execute(sql, params)
-        self.connection.commit()
 
     def mark_workflow_success(self, task_id: str, note: str = "视觉分析完成") -> None:
         self._update_workflow_final(task_id, STATUS_SUCCESS, 100, note, None)
@@ -78,7 +97,7 @@ class AiQualityRepository:
                 completed_at = NOW(),
                 update_by = 'cv-worker'
         """
-        with self.connection.cursor() as cursor:
+        with self._transaction_cursor() as cursor:
             cursor.execute(sql, {
                 "workflow_node_id": stable_id("workflow", task_id, VISUAL_STAGE_NODE),
                 "task_id": task_id,
@@ -88,14 +107,12 @@ class AiQualityRepository:
                 "note": note,
                 "error_msg": error_msg,
             })
-        self.connection.commit()
 
     def clear_previous_results(self, task_id: str) -> None:
-        with self.connection.cursor() as cursor:
+        with self._transaction_cursor() as cursor:
             cursor.execute("DELETE FROM lesson_behavior_timeline WHERE task_id = %(task_id)s", {"task_id": task_id})
             cursor.execute("DELETE FROM lesson_snapshot_event WHERE task_id = %(task_id)s", {"task_id": task_id})
             cursor.execute("DELETE FROM lesson_student_behavior_stat WHERE task_id = %(task_id)s", {"task_id": task_id})
-        self.connection.commit()
 
     def insert_timeline_rows(self, task_id: str, rows: Iterable[Mapping[str, object]]) -> None:
         params = []
@@ -120,9 +137,8 @@ class AiQualityRepository:
                 metric_value = VALUES(metric_value),
                 update_by = 'cv-worker'
         """
-        with self.connection.cursor() as cursor:
+        with self._transaction_cursor() as cursor:
             cursor.executemany(sql, params)
-        self.connection.commit()
 
     def insert_snapshot_events(self, task_id: str, rows: Iterable[Mapping[str, object]]) -> None:
         params = []
@@ -150,9 +166,8 @@ class AiQualityRepository:
                 image_url = VALUES(image_url),
                 update_by = 'cv-worker'
         """
-        with self.connection.cursor() as cursor:
+        with self._transaction_cursor() as cursor:
             cursor.executemany(sql, params)
-        self.connection.commit()
 
     def upsert_student_behavior_stats(self, task_id: str, rows: Iterable[StudentBehaviorStat]) -> None:
         params = []
@@ -178,9 +193,8 @@ class AiQualityRepository:
                 confidence_level = VALUES(confidence_level),
                 update_by = 'cv-worker'
         """
-        with self.connection.cursor() as cursor:
+        with self._transaction_cursor() as cursor:
             cursor.executemany(sql, params)
-        self.connection.commit()
 
     def load_indicator_definitions(self, indicator_codes: Iterable[str]) -> Dict[str, IndicatorDefinition]:
         codes = list(indicator_codes)
@@ -192,7 +206,7 @@ class AiQualityRepository:
             FROM indicator
             WHERE indicator_code IN ({placeholders})
         """
-        with self.connection.cursor() as cursor:
+        with self._cursor() as cursor:
             cursor.execute(sql, codes)
             rows = cursor.fetchall()
         definitions = {}
@@ -244,6 +258,5 @@ class AiQualityRepository:
                 reason = VALUES(reason),
                 update_by = 'cv-worker'
         """
-        with self.connection.cursor() as cursor:
+        with self._transaction_cursor() as cursor:
             cursor.executemany(sql, params)
-        self.connection.commit()

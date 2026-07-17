@@ -1,7 +1,7 @@
 [AI_Quality]
 # Kafka 任务消费配置。课堂视觉链路固定消费 classroom_cv_task。
 KafkaBootstrapServers = "10.67.65.8:9092"
-KafkaTopic = "classroom_cv_task"
+KafkaTopic = "classroom_cv_task" 
 KafkaGroupId = "cv-analysis-service"
 # 默认兼容旧行为从 earliest 开始；全量联调使用新 group 时建议临时设为 latest，避免消费历史消息。
 KafkaAutoOffsetReset = "latest"
@@ -79,6 +79,10 @@ BehaviorStatPeakMaxSegments = 5
 
 # Worker 运行配置。
 TempRoot = "/tmp/ai-quality"
+# 本地视频相对路径基准目录。为空时按 ai_quality 进程当前工作目录解析。
+# 如果kafka中的投递path是全路径，保持为""
+LocalVideoBaseRoot = ""
+# 取帧间隔秒
 FrameIntervalSeconds = 30
 MaxTaskRetries = 3
 WorkerConcurrency = 1

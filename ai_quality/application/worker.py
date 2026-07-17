@@ -1,4 +1,5 @@
 import inspect
+import logging
 import shutil
 from pathlib import Path
 from typing import List, Optional
@@ -16,7 +17,10 @@ from ai_quality.domain.snapshots import (
 from ai_quality.infrastructure.db.repositories import AiQualityRepository
 from ai_quality.infrastructure.kafka.message import VisualTaskMessage
 from ai_quality.infrastructure.media.snapshot_storage import SnapshotStorage
-from ai_quality.infrastructure.media.video import download_video, extract_frames
+from ai_quality.infrastructure.media.video import extract_frames, prepare_video_source, validate_video_source
+
+
+logger = logging.getLogger(__name__)
 
 
 class VisualAnalysisWorker:
@@ -49,23 +53,45 @@ class VisualAnalysisWorker:
             task_dir.mkdir(parents=True, exist_ok=True)
             self._heartbeat(heartbeat)
 
-            student_video = download_video(
-                message.student_video_url,
+            if message.slides_video_path:
+                slides_source = validate_video_source(
+                    message.slides_video_path,
+                    local_base_root=self.config.local_video_base_root,
+                )
+                logger.info(
+                    "课件视频来源校验完成 task_id=%s source_type=%s source=%s",
+                    message.task_id,
+                    slides_source.source_type,
+                    slides_source.path or slides_source.source,
+                )
+
+            student_video = prepare_video_source(
+                message.student_video_path,
                 task_dir / "student.mp4",
+                local_base_root=self.config.local_video_base_root,
                 progress_callback=lambda: self._heartbeat(heartbeat),
             )
-            teacher_video = download_video(
-                message.teacher_video_url,
+            teacher_video = prepare_video_source(
+                message.teacher_video_path,
                 task_dir / "teacher.mp4",
+                local_base_root=self.config.local_video_base_root,
                 progress_callback=lambda: self._heartbeat(heartbeat),
+            )
+            logger.info(
+                "视频资源准备完成 task_id=%s student_source_type=%s student_path=%s teacher_source_type=%s teacher_path=%s",
+                message.task_id,
+                student_video.source_type,
+                student_video.path,
+                teacher_video.source_type,
+                teacher_video.path,
             )
             student_frames = extract_frames(
-                student_video,
+                student_video.path,
                 self.config.frame_interval_seconds,
                 progress_callback=lambda: self._heartbeat(heartbeat),
             )
             teacher_frames = extract_frames(
-                teacher_video,
+                teacher_video.path,
                 self.config.frame_interval_seconds,
                 progress_callback=lambda: self._heartbeat(heartbeat),
             )
@@ -179,7 +205,17 @@ class VisualAnalysisWorker:
             self.repository.mark_workflow_success(message.task_id)
             self._heartbeat(heartbeat)
         except Exception as exc:
-            self.repository.mark_workflow_failed(message.task_id, str(exc))
+            try:
+                self.repository.mark_workflow_failed(message.task_id, str(exc))
+            except Exception as status_exc:
+                logger.exception(
+                    "任务失败状态写入失败 task_id=%s original_error_type=%s original_reason=%s status_error_type=%s status_reason=%s",
+                    message.task_id,
+                    type(exc).__name__,
+                    exc,
+                    type(status_exc).__name__,
+                    status_exc,
+                )
             raise
         finally:
             shutil.rmtree(task_dir, ignore_errors=True)

@@ -15,24 +15,41 @@ def _first_present(payload: Mapping[str, Any], *keys: str) -> Optional[Any]:
     return None
 
 
-def _require_http_url(value: Any, field_name: str) -> str:
-    if not isinstance(value, str):
-        raise InvalidTaskMessage(f"{field_name} must be a string URL")
-    parsed = urlparse(value)
-    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
-        raise InvalidTaskMessage(f"{field_name} must be a complete HTTP URL")
-    return value
+def _require_video_path(value: Any, field_name: str) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise InvalidTaskMessage(f"{field_name} must be a non-empty string")
+    source = value.strip()
+    parsed = urlparse(source)
+    if parsed.scheme in {"http", "https"}:
+        if not parsed.netloc:
+            raise InvalidTaskMessage(f"{field_name} must be a complete HTTP URL")
+        return source
+    if parsed.scheme:
+        raise InvalidTaskMessage(f"{field_name} uses unsupported video path scheme: {parsed.scheme}")
+    return source
 
 
 @dataclass(frozen=True)
 class VisualTaskMessage:
     task_id: str
-    teacher_video_url: str
-    student_video_url: str
-    slides_video_url: Optional[str]
+    teacher_video_path: str
+    student_video_path: str
+    slides_video_path: Optional[str]
     course_id: Optional[str]
     student_count: int
     raw_payload: Dict[str, Any]
+
+    @property
+    def teacher_video_url(self) -> str:
+        return self.teacher_video_path
+
+    @property
+    def student_video_url(self) -> str:
+        return self.student_video_path
+
+    @property
+    def slides_video_url(self) -> Optional[str]:
+        return self.slides_video_path
 
     @classmethod
     def from_payload(cls, payload: Mapping[str, Any]) -> "VisualTaskMessage":
@@ -69,7 +86,7 @@ class VisualTaskMessage:
 
         parsed_slides_url = None
         if slides_url is not None:
-            parsed_slides_url = _require_http_url(slides_url, "slides_video")
+            parsed_slides_url = _require_video_path(slides_url, "slides_video")
 
         raw_student_count = _first_present(payload, "student_count", "studentCount")
         try:
@@ -79,11 +96,10 @@ class VisualTaskMessage:
 
         return cls(
             task_id=task_id.strip(),
-            teacher_video_url=_require_http_url(teacher_url, "teacher_video"),
-            student_video_url=_require_http_url(student_url, "student_video"),
-            slides_video_url=parsed_slides_url,
+            teacher_video_path=_require_video_path(teacher_url, "teacher_video"),
+            student_video_path=_require_video_path(student_url, "student_video"),
+            slides_video_path=parsed_slides_url,
             course_id=_first_present(payload, "course_id", "courseId"),
             student_count=student_count,
             raw_payload=dict(payload),
         )
-

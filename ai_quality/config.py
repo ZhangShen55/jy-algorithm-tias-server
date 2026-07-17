@@ -70,6 +70,7 @@ class AiQualityConfig:
     behavior_stat_start_minute: int = 3
     behavior_stat_peak_max_segments: int = 5
     temp_root: Path = Path("/tmp/ai-quality")
+    local_video_base_root: Path | None = None
     frame_interval_seconds: int = 30
     max_task_retries: int = 3
     worker_concurrency: int = 1
@@ -247,6 +248,11 @@ def load_ai_quality_config(config_path: str) -> AiQualityConfig:
             AiQualityConfig.behavior_stat_peak_max_segments,
         )),
         temp_root=Path(str(_get_value(section, "TempRoot", AiQualityConfig.temp_root))),
+        local_video_base_root=_optional_path(_get_value(
+            section,
+            "LocalVideoBaseRoot",
+            AiQualityConfig.local_video_base_root,
+        )),
         frame_interval_seconds=int(_get_value(section, "FrameIntervalSeconds", AiQualityConfig.frame_interval_seconds)),
         max_task_retries=int(_get_value(section, "MaxTaskRetries", AiQualityConfig.max_task_retries)),
         worker_concurrency=int(_get_value(section, "WorkerConcurrency", AiQualityConfig.worker_concurrency)),
@@ -267,3 +273,12 @@ def _to_bool(value) -> bool:
     if isinstance(value, str):
         return value.strip().lower() in {"1", "true", "yes", "on"}
     return bool(value)
+
+
+def _optional_path(value) -> Path | None:
+    if value is None:
+        return None
+    text = str(value).strip()
+    if not text:
+        return None
+    return Path(text)

@@ -1,6 +1,8 @@
 from dataclasses import dataclass
+import os
 from pathlib import Path
 from typing import Callable, List, Optional
+from urllib.parse import urlparse
 
 import cv2
 import requests
@@ -8,6 +10,21 @@ import requests
 
 class VideoProcessingError(RuntimeError):
     """视频下载、读取或抽帧失败。"""
+
+
+@dataclass(frozen=True)
+class VideoSourceInfo:
+    source: str
+    source_type: str
+    path: Optional[Path] = None
+
+
+@dataclass(frozen=True)
+class PreparedVideoSource:
+    source: str
+    source_type: str
+    path: Path
+    owned_by_task: bool
 
 
 @dataclass(frozen=True)
@@ -59,6 +76,60 @@ def download_video(
     if destination.stat().st_size <= 0:
         raise VideoProcessingError(f"下载视频为空: {url}")
     return destination
+
+
+def validate_video_source(source: str, local_base_root: Optional[Path] = None) -> VideoSourceInfo:
+    if not isinstance(source, str) or not source.strip():
+        raise VideoProcessingError("视频 path 不能为空")
+    source = source.strip()
+    parsed = urlparse(source)
+    if parsed.scheme in {"http", "https"}:
+        if not parsed.netloc:
+            raise VideoProcessingError(f"视频 URL 不完整: {source}")
+        return VideoSourceInfo(source=source, source_type="url")
+    if parsed.scheme:
+        raise VideoProcessingError(f"不支持的视频 path 类型: {parsed.scheme}: {source}")
+
+    path = Path(source).expanduser()
+    if not path.is_absolute() and local_base_root is not None:
+        path = local_base_root / path
+    path = path.resolve()
+    if not path.exists():
+        raise VideoProcessingError(f"本地视频文件不存在: {path}")
+    if not path.is_file():
+        raise VideoProcessingError(f"本地视频路径不是文件: {path}")
+    if not os.access(path, os.R_OK):
+        raise VideoProcessingError(f"本地视频文件不可读: {path}")
+    return VideoSourceInfo(source=source, source_type="local_file", path=path)
+
+
+def prepare_video_source(
+        source: str,
+        destination: Path,
+        local_base_root: Optional[Path] = None,
+        timeout_seconds: int = 60,
+        progress_callback: Optional[Callable[[], None]] = None) -> PreparedVideoSource:
+    source_info = validate_video_source(source, local_base_root=local_base_root)
+    if source_info.source_type == "url":
+        return PreparedVideoSource(
+            source=source_info.source,
+            source_type=source_info.source_type,
+            path=download_video(
+                source_info.source,
+                destination,
+                timeout_seconds=timeout_seconds,
+                progress_callback=progress_callback,
+            ),
+            owned_by_task=True,
+        )
+    if source_info.path is None:
+        raise VideoProcessingError(f"本地视频路径解析失败: {source}")
+    return PreparedVideoSource(
+        source=source_info.source,
+        source_type=source_info.source_type,
+        path=source_info.path,
+        owned_by_task=False,
+    )
 
 
 def get_video_duration_seconds(video_path: Path) -> float:
