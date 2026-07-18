@@ -53,6 +53,7 @@ cp ai_quality/config.toml.example ai_quality/config.toml
 | `SnapshotScale` | 快照缩放比例，默认 `0.25` |
 | `FrameIntervalSeconds` | 视频抽帧间隔 |
 | `MaxFramesPerVideo` | `0` 表示全量；本地冒烟测试可临时设为 `1` |
+| `LocalVideoBaseRoot` | 本地视频相对路径基准目录；为空时按 ai_quality 进程当前工作目录解析 |
 
 ## Docker 部署 Redis
 
@@ -248,7 +249,7 @@ curl http://127.0.0.1:9000/api/workers
 Worker 处于 `RUNNING` 后，消费到消息会：
 
 1. 标记 `lesson_ai_workflow` 为处理中。
-2. 下载学生视频和教师视频。
+2. 准备学生视频和教师视频；URL 会先下载，本地文件路径会直接读取。
 3. 按 `FrameIntervalSeconds` 抽帧。
 4. 按 `TiasBatchSize` 切小批次。
 5. 从 Redis 注册表选择 TIAS 实例。
@@ -327,6 +328,26 @@ docker run -d \
   python -m ai_quality.app --config /workspace/ai_quality/config.toml worker
 ```
 
+如果 Kafka 消息中的 `teacher_video_path`、`student_video_path`、`slides_video_path` 使用本地文件路径，Worker 容器必须能访问这些路径。生产建议使用共享挂载目录，并在 `docker run` 中挂载到容器内一致路径：
+
+```bash
+docker run -d \
+  --name ai-quality-worker-1 \
+  -e CONFIG_PATH=/workspace/ai_quality/config.toml \
+  -e AI_QUALITY_WORKER_ID=worker-1 \
+  -v "$PWD/ai_quality/config.toml:/workspace/ai_quality/config.toml:ro" \
+  -v "$PWD/mnt:/mnt" \
+  -v "/data/course-videos:/data/course-videos:ro" \
+  ai-quality:6.0 \
+  python -m ai_quality.app --config /workspace/ai_quality/config.toml worker
+```
+
+如果 Kafka 中传的是相对路径，可配置：
+
+```toml
+LocalVideoBaseRoot = "/data/course-videos"
+```
+
 如果部署 2 个 API 实例做高可用，可参考：
 
 ```text
@@ -372,6 +393,21 @@ python scripts/produce_ai_quality_kafka_message.py \
   --student-count 38 \
   --no-unique-task-id
 ```
+
+本地视频路径样例：
+
+```bash
+python scripts/produce_ai_quality_kafka_message.py \
+  --bootstrap-servers 10.67.65.8:9092 \
+  --topic classroom_cv_task \
+  --message tests/fixtures/ai_qualitu_lesson_local_path.json
+```
+
+本地路径要求：
+
+- `teacher_video_path` 和 `student_video_path` 必须存在、是普通文件、当前 ai_quality Worker 进程可读。
+- `slides_video_path` 仍不参与主流程抽帧，但如果传入本地路径，也必须存在且可读。
+- URL 输入仍会下载到任务临时目录；本地文件输入直接读取源文件，任务结束后不会删除源文件。
 
 ## 本地视频文件服务
 
