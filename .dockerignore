@@ -34,5 +34,7 @@ openspec/
 **/*.onnx
 **/*.engine
 **/models/
+!tias/vendor/DirectMHP/models/
+!tias/vendor/DirectMHP/models/**
 **/models-encrypted/
 **/models-encrypted/*.key
