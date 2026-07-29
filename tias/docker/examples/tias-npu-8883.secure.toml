@@ -7,8 +7,9 @@ GPU_ID = "npu:3"
 
 [TIAS]
 InstanceId = "tias-npu-8883"
-BaseUrl = "http://tias-npu-8883:8883"
-AiQualityBaseUrl = "http://ai-quality-api:9000"
+BaseUrl = "http://10.236.2.52:8883"
+AiQualityBaseUrl = "http://202.117.51.3:8880"
+Port = 8883
 TiasExposeLegacySyncTasks = true
 MaxConcurrentBatches = 2
 MaxQueueSize = 1
@@ -16,7 +17,7 @@ HeartbeatIntervalSeconds = 5
 HeartbeatTimeoutSeconds = 15
 RegisterRetryIntervalSeconds = 5
 Host = "0.0.0.0"
-Port = 8883
+
 
 [Person_Thresd]
 Head = 0.25

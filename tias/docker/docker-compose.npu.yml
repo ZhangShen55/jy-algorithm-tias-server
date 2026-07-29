@@ -123,32 +123,32 @@ services:
         aliases:
           - tias-npu-8885
 
-  tias-npu-8886:
-    image: tias_910b_npu:v6.0_260709
-    container_name: tias-npu-8886
-    shm_size: "2g"
-    privileged: true
-    command: >
-      bash -lc "install -m 0400 /run/bootstrap-secrets/tias_model_key /dev/shm/tias_model_key &&
-      exec python -m uvicorn tias.main:app --host 0.0.0.0 --port 8886"
-    environment:
-      <<: *ascend-env
-      CONFIG_PATH: /workspace/tias/config.toml
-    ports:
-      - "8886:8886"
-    volumes:
-      - /root/config/tias_deploy/examples/tias-npu-8886.secure.toml:/workspace/tias/config.toml:ro
-      - /home/xjtu/model_zoo/tias/models-encrypted:/run/bootstrap-models/tias:ro
-      - /home/xjtu/model_zoo/tias/models-encrypted/cmu_panoptic_coco.yaml:/workspace/tias/model-assets/cmu_panoptic_coco.yaml:ro
-      - /tmp/shm/tias_model_key:/run/bootstrap-secrets/tias_model_key:ro
-      - /usr/local/Ascend:/usr/local/Ascend:ro
-    devices: *ascend-devices
-    networks:
-      default:
-        aliases:
-          - tias-npu-8886
+  # tias-npu-8886:
+  #   image: tias_910b_npu:v6.0_260709
+  #   container_name: tias-npu-8886
+  #   shm_size: "2g"
+  #   privileged: true
+  #   command: >
+  #     bash -lc "install -m 0400 /run/bootstrap-secrets/tias_model_key /dev/shm/tias_model_key &&
+  #     exec python -m uvicorn tias.main:app --host 0.0.0.0 --port 8886"
+  #   environment:
+  #     <<: *ascend-env
+  #     CONFIG_PATH: /workspace/tias/config.toml
+  #   ports:
+  #     - "8886:8886"
+  #   volumes:
+  #     - /root/config/tias_deploy/examples/tias-npu-8886.secure.toml:/workspace/tias/config.toml:ro
+  #     - /home/xjtu/model_zoo/tias/models-encrypted:/run/bootstrap-models/tias:ro
+  #     - /home/xjtu/model_zoo/tias/models-encrypted/cmu_panoptic_coco.yaml:/workspace/tias/model-assets/cmu_panoptic_coco.yaml:ro
+  #     - /tmp/shm/tias_model_key:/run/bootstrap-secrets/tias_model_key:ro
+  #     - /usr/local/Ascend:/usr/local/Ascend:ro
+  #   devices: *ascend-devices
+  #   networks:
+  #     default:
+  #       aliases:
+  #         - tias-npu-8886
 
-networks:
-  default:
-    external: true
-    name: ai-quality-net
+# networks:
+#   default:
+#     external: true
+#     name: ai-quality-net
