@@ -9,7 +9,7 @@ GPU_ID = "npu:3"
 [TIAS]
 InstanceId = "tias-npu-8882"
 BaseUrl = "http://127.0.0.1:8882"
-AiQualityBaseUrl = "http://127.0.0.1:9000"
+VisionOrchestratorBaseUrl = "http://127.0.0.1:9000"
 TiasExposeLegacySyncTasks = false
 MaxConcurrentBatches = 1
 MaxQueueSize = 0

@@ -151,4 +151,4 @@ services:
 # networks:
 #   default:
 #     external: true
-#     name: ai-quality-net
+#     name: vision-orchestrator-net

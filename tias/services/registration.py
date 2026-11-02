@@ -14,7 +14,9 @@ logger = logging.getLogger(__name__)
 class TiasRegistrationClient:
     def __init__(self, controller: BatchAdmissionController):
         self.controller = controller
-        self.ai_quality_base_url = str(getattr(settings, "AiQualityBaseUrl", "") or "").rstrip("/")
+        self.vision_orchestrator_base_url = str(
+            getattr(settings, "VisionOrchestratorBaseUrl", "") or ""
+        ).rstrip("/")
         self.heartbeat_interval_seconds = int(getattr(settings, "HeartbeatIntervalSeconds", 5))
         self.heartbeat_timeout_seconds = int(getattr(settings, "HeartbeatTimeoutSeconds", 15))
         self.register_retry_interval_seconds = int(getattr(settings, "RegisterRetryIntervalSeconds", 5))
@@ -22,8 +24,8 @@ class TiasRegistrationClient:
         self._task: Optional[asyncio.Task] = None
 
     def start_background(self) -> None:
-        if not self.ai_quality_base_url:
-            logger.info("TIAS 注册跳过，未配置 AiQualityBaseUrl")
+        if not self.vision_orchestrator_base_url:
+            logger.info("TIAS 注册跳过，未配置 VisionOrchestratorBaseUrl")
             return
         self._stop_event = asyncio.Event()
         self._task = asyncio.create_task(self._run_loop())
@@ -85,7 +87,7 @@ class TiasRegistrationClient:
         )
 
     async def unregister(self) -> None:
-        if not self.ai_quality_base_url:
+        if not self.vision_orchestrator_base_url:
             return
         payload = {
             "instance_id": self.controller.instance_id,
@@ -107,6 +109,6 @@ class TiasRegistrationClient:
         return payload
 
     def _post(self, path: str, payload: dict) -> None:
-        url = f"{self.ai_quality_base_url}{path}"
+        url = f"{self.vision_orchestrator_base_url}{path}"
         response = requests.post(url, json=payload, timeout=5)
         response.raise_for_status()

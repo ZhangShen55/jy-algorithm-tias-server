@@ -2,9 +2,9 @@
 
 ## 服务定位
 
-`tias` 是视觉推理服务，只负责模型加载、学生/教师帧推理、本地准入控制、实例状态和向 `ai_quality` 注册心跳。
+`tias` 是视觉推理服务，只负责模型加载、学生/教师帧推理、本地准入控制、实例状态和向 `vision_orchestrator` 注册心跳。
 
-`ai_quality` 负责 Kafka 消费、课程任务编排、TIAS 调度、指标聚合和入库。TIAS 不消费 Kafka，也不写课堂质量结果表。
+`vision_orchestrator` 负责 Kafka 消费、课程任务编排、TIAS 调度、指标聚合和入库。TIAS 不消费 Kafka，也不写课堂质量结果表。
 
 ## 运行前准备
 
@@ -51,13 +51,13 @@ TIAS 通过环境变量 `CONFIG_PATH` 读取配置。未设置时默认读取 `t
 | `INSTANCE_COUNT` | `tias/start.sh` 多实例数量 |
 | `WORKERS_PER_INSTANCE` | 每个 Uvicorn 实例 worker 数 |
 | `[TIAS].InstanceId` | 当前 TIAS 实例 ID，必须唯一 |
-| `[TIAS].BaseUrl` | 当前 TIAS 实例对 ai_quality 可访问的 HTTP 根地址 |
-| `[TIAS].AiQualityBaseUrl` | ai_quality HTTP 注册服务地址 |
+| `[TIAS].BaseUrl` | 当前 TIAS 实例对 vision_orchestrator 可访问的 HTTP 根地址 |
+| `[TIAS].VisionOrchestratorBaseUrl` | vision_orchestrator HTTP 注册服务地址 |
 | `[TIAS].TiasExposeLegacySyncTasks` | 是否暴露旧 `/AE/SyncTasks` 和 `/AE/SyncTasks2` |
 | `[TIAS].MaxConcurrentBatches` | 当前实例最大并发批次数 |
 | `[TIAS].MaxQueueSize` | 本地等待队列长度；`0` 表示不排队，满载直接拒绝 |
-| `[TIAS].HeartbeatIntervalSeconds` | 向 ai_quality 上报心跳间隔 |
-| `[TIAS].HeartbeatTimeoutSeconds` | ai_quality 侧心跳租约超时时间 |
+| `[TIAS].HeartbeatIntervalSeconds` | 向 vision_orchestrator 上报心跳间隔 |
+| `[TIAS].HeartbeatTimeoutSeconds` | vision_orchestrator 侧心跳租约超时时间 |
 | `[TIAS].RegisterRetryIntervalSeconds` | 注册失败后的重试间隔 |
 
 ## Ascend 910B NPU 启动
@@ -121,7 +121,7 @@ python -m uvicorn tias.main:app --host 0.0.0.0 --port 8882
 curl http://127.0.0.1:8882/AE/Health
 ```
 
-`ai_quality` 生产模式保持 `TiasInferenceMode=remote`。910B NPU 模型只在 TIAS 进程中加载，ai_quality Worker 通过 HTTP 调度 TIAS，不直接 import TIAS 模型服务。
+`vision_orchestrator` 生产模式保持 `TiasInferenceMode=remote`。910B NPU 模型只在 TIAS 进程中加载，vision_orchestrator Worker 通过 HTTP 调度 TIAS，不直接 import TIAS 模型服务。
 
 单实例配置示例：
 
@@ -129,7 +129,7 @@ curl http://127.0.0.1:8882/AE/Health
 [TIAS]
 InstanceId = "tias-8981"
 BaseUrl = "http://127.0.0.1:8981"
-AiQualityBaseUrl = "http://127.0.0.1:9000"
+VisionOrchestratorBaseUrl = "http://127.0.0.1:9000"
 TiasExposeLegacySyncTasks = false
 MaxConcurrentBatches = 1
 MaxQueueSize = 0
@@ -142,19 +142,20 @@ Port = 8981
 
 ## 启动前依赖
 
-如果需要让 TIAS 被 `ai_quality` 调度，先启动：
+如果需要让 TIAS 被 `vision_orchestrator` 调度，先启动：
 
 1. Redis。
-2. `ai_quality` HTTP 注册服务。
+2. `vision_orchestrator` HTTP 注册服务。
 
 示例：
 
 ```bash
-docker run -d --name ai-quality-redis -p 6379:6379 redis:7-alpine
-python -m ai_quality.app --config ai_quality/config.toml serve
+docker run -d --name vision-orchestrator-redis -p 6379:6379 redis:7-alpine
+cd /path/to/jy-vision-orchestrator-server
+python -m app.main --config app/config.toml serve
 ```
 
-TIAS 启动后会读取 `AiQualityBaseUrl` 并自动调用：
+TIAS 启动后会读取 `VisionOrchestratorBaseUrl` 并自动调用：
 
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
@@ -162,7 +163,7 @@ TIAS 启动后会读取 `AiQualityBaseUrl` 并自动调用：
 | POST | `/api/tias/instances/heartbeat` | 周期心跳 |
 | POST | `/api/tias/instances/unregister` | 关闭注销 |
 
-如果只想单独调试 TIAS 推理接口，可以不启动 ai_quality；此时注册和心跳会失败重试，但本地推理接口仍可用于调试。
+如果只想单独调试 TIAS 推理接口，可以不启动 vision_orchestrator；此时注册和心跳会失败重试，但本地推理接口仍可用于调试。
 
 ## 本地单实例启动
 
@@ -398,12 +399,12 @@ CleanupAfterLoad = true
 
 secure entrypoint 启动时读取 `/run/bootstrap-secrets/tias_model_key`，复制到 `/dev/shm/tias_model_key`。应用第一次读取密钥后会删除 `/dev/shm` 副本，并继续使用内存中的密钥完成后续模型解密。
 
-secure GPU compose 使用外部网络 `ai-quality-net`：
+secure GPU compose 使用外部网络 `vision-orchestrator-net`：
 
 ```bash
-docker network create ai-quality-net || true
-docker network connect ai-quality-net ai-quality-redis || true
-docker network connect ai-quality-net ai-quality-api || true
+docker network create vision-orchestrator-net || true
+docker network connect vision-orchestrator-net vision-orchestrator-redis || true
+docker network connect vision-orchestrator-net vision-orchestrator-api || true
 docker compose -f tias/docker/docker-compose.gpu.secure.yml config
 docker compose -f tias/docker/docker-compose.gpu.secure.yml up -d --build
 ```
@@ -489,31 +490,31 @@ curl -X PUT http://127.0.0.1:8981/AE/Drain
 TIAS 启动 instance_id=<实例ID> base_url=<地址> max_concurrent_batches=<并发> max_queue_size=<队列>
 ```
 
-被 ai_quality 调用时应看到：
+被 vision_orchestrator 调用时应看到：
 
 ```text
 收到推理批次
 批次完成
 ```
 
-如果实例满载且 `MaxQueueSize=0`，推理接口会返回可重试 busy，ai_quality 会换实例或按配置重试。
+如果实例满载且 `MaxQueueSize=0`，推理接口会返回可重试 busy，vision_orchestrator 会换实例或按配置重试。
 
 ## 常见问题
 
-### TIAS 没有注册到 ai_quality
+### TIAS 没有注册到 vision_orchestrator
 
 检查顺序：
 
-1. `AiQualityBaseUrl` 是否正确。
-2. ai_quality HTTP 服务是否启动。
+1. `VisionOrchestratorBaseUrl` 是否正确。
+2. vision_orchestrator HTTP 服务是否启动。
 3. Redis 是否可用。
 4. TIAS 日志中是否有注册失败或心跳失败。
 
-### ai_quality 不能访问 TIAS
+### vision_orchestrator 不能访问 TIAS
 
 检查顺序：
 
-1. `BaseUrl` 是否是 ai_quality 所在机器可访问的地址。
+1. `BaseUrl` 是否是 vision_orchestrator 所在机器可访问的地址。
 2. 端口是否监听。
 3. 防火墙或容器网络是否放通。
 4. `/AE/Health` 是否返回 `ok`。
@@ -534,4 +535,4 @@ TIAS 启动 instance_id=<实例ID> base_url=<地址> max_concurrent_batches=<并
 1. 增加 TIAS 实例数量。
 2. 适当提高 `MaxConcurrentBatches`。
 3. 开启小队列，设置 `MaxQueueSize > 0`。
-4. 降低 ai_quality 的并发或批大小。
+4. 降低 vision_orchestrator 的并发或批大小。

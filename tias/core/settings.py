@@ -54,7 +54,7 @@ class Settings(BaseSettings):
     TiasExposeLegacySyncTasks: bool = False
     InstanceId: str = "tias-8981"
     BaseUrl: str = "http://127.0.0.1:8981"
-    AiQualityBaseUrl: str = "http://127.0.0.1:9000"
+    VisionOrchestratorBaseUrl: str = "http://127.0.0.1:9000"
     MaxConcurrentBatches: int = 1
     MaxQueueSize: int = 0
     HeartbeatIntervalSeconds: int = 5
@@ -86,7 +86,9 @@ _cfg = {
     "TiasExposeLegacySyncTasks": bool(_tias_config.get("TiasExposeLegacySyncTasks", False)),
     "InstanceId": str(_tias_config.get("InstanceId", "tias-8981")),
     "BaseUrl": str(_tias_config.get("BaseUrl", "http://127.0.0.1:8981")),
-    "AiQualityBaseUrl": str(_tias_config.get("AiQualityBaseUrl", "http://127.0.0.1:9000")),
+    "VisionOrchestratorBaseUrl": str(
+        _tias_config.get("VisionOrchestratorBaseUrl", "http://127.0.0.1:9000")
+    ),
     "MaxConcurrentBatches": int(_tias_config.get("MaxConcurrentBatches", 1)),
     "MaxQueueSize": int(_tias_config.get("MaxQueueSize", 0)),
     "HeartbeatIntervalSeconds": int(_tias_config.get("HeartbeatIntervalSeconds", 5)),

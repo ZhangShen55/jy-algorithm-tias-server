@@ -113,7 +113,7 @@ CleanupAfterLoad = true
 
 ## Docker 网络
 
-TIAS、ai_quality API、ai_quality Worker 和 Redis 必须在同一 Docker 网络内，才能通过容器名互相访问。
+同一宿主机上使用容器名互相访问时，TIAS、vision_orchestrator API、vision_orchestrator Worker 和 Redis 必须加入同一 Docker 网络。
 
 ## Ascend NPU Docker 部署
 
@@ -164,20 +164,24 @@ docker exec tias-npu-8882 python -c "import torch, torch_npu; print(torch.npu.is
 curl http://127.0.0.1:8882/AE/Health
 ```
 
+同一宿主机上使用容器名互相访问时，TIAS、vision_orchestrator API、vision_orchestrator Worker 和 Redis 必须加入同一 Docker 网络：
+
 ```bash
-docker network create ai-quality-net || true
-docker network connect ai-quality-net ai-quality-redis || true
-docker network connect ai-quality-net ai-quality-api || true
+docker network create vision-orchestrator-net || true
+docker network connect vision-orchestrator-net vision-orchestrator-redis || true
+docker network connect vision-orchestrator-net vision-orchestrator-api || true
 ```
 
-如果 ai_quality Worker 是独立容器，也需要加入该网络。`docker-compose.gpu.secure.yml` 使用外部网络 `ai-quality-net`，不会自动创建网络。
+如果 vision_orchestrator Worker 是独立容器，也需要加入该网络。`docker-compose.gpu.secure.yml` 使用外部网络 `vision-orchestrator-net`，不会自动创建网络。
+
+跨服务器部署时不使用 Docker 网络互通。此时 `[TIAS].VisionOrchestratorBaseUrl` 和 `[TIAS].BaseUrl` 必须配置为对端服务器可访问的真实地址，并放通对应端口。
 
 ## 生产 secure GPU compose
 
 启动前确认：
 
-- `ai-quality-net` 已存在。
-- `ai-quality-api`、Redis、ai_quality Worker 已在同一网络。
+- `vision-orchestrator-net` 已存在。
+- `vision-orchestrator-api`、Redis、vision_orchestrator Worker 已在同一网络。
 - `tias/docker/secrets/tias_model_key` 存在且非空。
 - `tias/models-encrypted/*.enc` 已生成。
 - `tias/models/cmu_panoptic_coco.yaml` 存在。
@@ -230,18 +234,18 @@ TIAS 启动 instance_id=<实例ID> base_url=<地址> max_concurrent_batches=<并
 
 ## 常见问题
 
-### TIAS 容器解析不到 ai-quality-api
+### TIAS 容器解析不到 vision-orchestrator-api
 
-检查 TIAS 和 ai_quality API 是否在同一网络：
+检查 TIAS 和 vision_orchestrator API 是否在同一网络：
 
 ```bash
-docker network inspect ai-quality-net
+docker network inspect vision-orchestrator-net
 ```
 
 必要时执行：
 
 ```bash
-docker network connect ai-quality-net ai-quality-api
+docker network connect vision-orchestrator-net vision-orchestrator-api
 ```
 
 ### secure 容器启动后提示密钥源文件不存在
@@ -272,8 +276,8 @@ ls -l tias/docker/secrets/tias_model_key
 
 用户在 128 服务器验证时建议按以下顺序执行：
 
-1. `docker network create ai-quality-net || true`
-2. 启动 Redis、ai_quality API、ai_quality Worker 并加入 `ai-quality-net`。
+1. `docker network create vision-orchestrator-net || true`
+2. 启动 Redis、vision_orchestrator API、vision_orchestrator Worker 并加入 `vision-orchestrator-net`。
 3. `docker compose -f tias/docker/docker-compose.gpu.secure.yml up -d --build`
 4. 查看 TIAS 日志确认加密模型加载和注册心跳正常。
 5. 调用 `/AE/Health`、`/AE/WorkerStatus` 和推理接口。

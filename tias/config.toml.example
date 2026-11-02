@@ -18,8 +18,8 @@ GPU_ID = "npu:3"
 InstanceId = "tias-8981"
 BaseUrl = "http://127.0.0.1:8981"
 
-# ai_quality 统一入口。多 ai_quality 实例时配置负载均衡地址或服务名。
-AiQualityBaseUrl = "http://127.0.0.1:9000"
+# vision_orchestrator 统一入口。多 vision_orchestrator 实例时配置负载均衡地址或服务名。
+VisionOrchestratorBaseUrl = "http://127.0.0.1:9000"
 
 # 是否暴露旧 IAS 同步任务接口。
 TiasExposeLegacySyncTasks = true
