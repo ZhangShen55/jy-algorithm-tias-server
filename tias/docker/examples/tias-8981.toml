@@ -8,7 +8,7 @@ GPU_ID = "cpu"
 [TIAS]
 InstanceId = "tias-8981"
 BaseUrl = "http://tias-8981:8981"
-AiQualityBaseUrl = "http://ai-quality-api:9000"
+VisionOrchestratorBaseUrl = "http://vision-orchestrator-api:9000"
 TiasExposeLegacySyncTasks = false
 MaxConcurrentBatches = 1
 MaxQueueSize = 0

@@ -46,12 +46,6 @@ jy-algorithm-tias-server/
     ├── services/             # 师生行为推理、本地准入、注册心跳
     ├── schemas/              # Pydantic 请求/响应模型
     └── models/               # 权重文件目录（需自行放置，见下文）
-└── ai_quality/
-    ├── app.py                # CLI 入口：serve / consume / run-json
-    ├── config.toml.example   # ai_quality 6.0 配置样例
-    ├── application/          # 课堂质量任务编排
-    ├── domain/               # 指标、快照、学生行为统计
-    └── infrastructure/       # Kafka、MySQL、视频、TIAS 调度
 ```
 
 > **说明**：Docker 构建需从仓库根目录执行，`tias/docker/Dockerfile*` 会引用 `tias/docker/nginx.conf` 和 `scripts/` 下的构建脚本。
@@ -187,82 +181,11 @@ jy-algorithm-tias-server/
 
 服务启动后不再向 IAS 执行注册、注销或保活请求，推理接口可直接在本地或容器内使用。
 
-### AI 课堂视觉分析 Worker
+### 视觉任务编排服务
 
-`ai_quality` 与 TIAS 是两个独立服务。`ai_quality serve` 只负责接收 TIAS 注册、心跳和注销；`ai_quality consume` 负责消费 Kafka 并把抽帧小批次调度到 TIAS。
+Kafka 消费、课程任务编排、TIAS 调度、指标聚合和结果入库由独立仓库 `jy-vision-orchestrator-server` 负责。本仓库不再包含编排服务源码、Kafka 生产脚本或课次任务夹具。
 
-代码位于仓库顶层 `ai_quality/`，当前按职责分层：
-
-- `app.py` / `config.py`：保留稳定 CLI 入口和配置入口。
-- `application/`：课次任务编排、Worker、依赖组装和应用级常量。
-- `domain/`：指标聚合、快照策略、学生异常行为统计、评分和稳定 ID。
-- `infrastructure/`：Kafka、MySQL、视频下载抽帧、抓拍存储、TIAS 注册表、调度器和远程 HTTP 调用。
-
-运行环境建议使用已有 conda 环境：
-
-```bash
-conda activate jy-tias
-pip install -r tias/requirements.txt
-export CONFIG_PATH="/Users/zhangshen/Documents/workspace/jy-algorithm-tias-server/tias/config.toml"
-```
-
-抓拍目录使用 `tias/config.toml` 的 `AI_Quality.SnapshotMountRoot`。当前本地默认使用项目内 `mnt` 作为挂载目录；生产或测试环境 NFS 恢复后，可改为实际挂载目录，示例：
-
-```bash
-mount -t nfs -o nolock,vers=3,tcp 10.80.5.131:/image /Users/zhangshen/Documents/workspace/jy-algorithm-tias-server/mnt
-```
-
-用测试 JSON 模拟一条 Kafka 消息：
-
-```bash
-python -m ai_quality.app --config "$CONFIG_PATH" run-json tests/fixtures/ai_quality_lesson_message.json
-```
-
-本地课程视频可用 Docker Nginx 起一个只读文件服务器，避免从公网重新下载大视频：
-
-```bash
-docker run -d --name ai-quality-course-nginx \
-  -p 18080:80 \
-  -v "/Users/zhangshen/Documents/course/0912空中交通管理与签派_1223121_1223122_90020060,徐月芳,__2025年9月12号17时10分:/usr/share/nginx/html:ro" \
-  -v "/Users/zhangshen/Documents/workspace/jy-algorithm-tias-server/deploy/local-course-nginx.conf:/etc/nginx/nginx.conf:ro" \
-  nginx:1.27-alpine
-```
-
-本地 Nginx 消息文件：
-
-```bash
-python -m ai_quality.app --config "$CONFIG_PATH" run-json tests/fixtures/ai_quality_lesson_message_local_nginx.json
-```
-
-停止本地文件服务器：
-
-```bash
-docker rm -f ai-quality-course-nginx
-```
-
-从 Kafka 持续消费：
-
-```bash
-python -m ai_quality.app --config "$CONFIG_PATH" consume
-```
-
-启动 ai_quality HTTP 注册服务：
-
-```bash
-python -m ai_quality.app --config "$CONFIG_PATH" serve
-```
-
-可配置参数位于 `tias/config.toml` 的 `[AI_Quality]`：
-
-- `KafkaBootstrapServers`：Kafka 地址，本地 Docker 或测试环境 `10.67.65.8:9092`。
-- `KafkaTopic` / `KafkaGroupId`：消费 topic 和 consumer group；课堂视觉链路固定使用 `classroom_cv_task`。
-- `HttpHost` / `HttpPort`：ai_quality 注册心跳 HTTP 服务地址。
-- `RedisUrl` / `RedisKeyPrefix`：多 ai_quality 实例共享 TIAS 注册表。
-- `TiasInferenceMode` / `TiasBatchSize`：远程推理模式和小批次大小。
-- `DBHost` / `DBPort` / `DBUser` / `DBPassword` / `DBName`：`ai_quality` 数据库。
-- `SnapshotMountRoot` / `SnapshotRelativePrefix` / `SnapshotScale`：抓拍根目录、落库相对路径前缀、图片缩放比例；本地默认写入项目内 `mnt`。
-- `FrameIntervalSeconds` / `MaxTaskRetries` / `WorkerConcurrency` / `DefaultStudentCount`：抽帧间隔、失败重试、并发和默认应到人数。
-- `MaxFramesPerVideo`：本地联调大视频时可设为 `1`，每路视频只处理第一帧；生产建议设为 `0` 或删除该项。
+TIAS 只通过 `[TIAS].VisionOrchestratorBaseUrl` 向编排服务注册并上报心跳。编排服务的部署和测试方式请查看独立仓库的 `README.md` 和 `app/RUNNING.md`。
 
 ---
 
@@ -287,7 +210,7 @@ Docker 构建入口统一放在 `tias/docker/`：
 
 ## 版本与算法说明
 
-应用版本、适配器版本与算法版本字符串定义在 **`tias/core/settings.py`**（如 `APP_VER`、`ALG_VER`）。6.0 默认不再暴露 `/AE/Version`，版本和模型信息通过注册/心跳字段上报给 ai_quality。
+应用版本、适配器版本与算法版本字符串定义在 **`tias/core/settings.py`**（如 `APP_VER`、`ALG_VER`）。6.0 默认不再暴露 `/AE/Version`，版本和模型信息通过注册/心跳字段上报给 vision_orchestrator。
 
 ---
 
