@@ -28,7 +28,7 @@ def npu_device(monkeypatch):
     torch = types.SimpleNamespace(device=lambda value: value, npu=npu)
     monkeypatch.setitem(sys.modules, "torch", torch)
     monkeypatch.setitem(sys.modules, "torch_npu", types.ModuleType("torch_npu"))
-    module = load_module(monkeypatch, "vbas.core._device_test", "vbas/core/device.py")
+    module = load_module(monkeypatch, "core._device_test", "core/device.py")
     return module, npu, selected
 
 
@@ -72,18 +72,18 @@ def warmup(monkeypatch):
             calls.append((name, image.shape, offset, size))
         return infer
 
-    monkeypatch.setitem(sys.modules, "vbas.core.settings", types.SimpleNamespace(settings=settings))
-    monkeypatch.setitem(sys.modules, "vbas.services.student_behavior_service", types.SimpleNamespace(
+    monkeypatch.setitem(sys.modules, "core.settings", types.SimpleNamespace(settings=settings))
+    monkeypatch.setitem(sys.modules, "services.student_behavior_service", types.SimpleNamespace(
         process_person_detection=callback("person"),
         process_face_detection=callback("face"),
         process_student_behavior=callback("student"),
     ))
-    monkeypatch.setitem(sys.modules, "vbas.services.teacher_behavior_service", types.SimpleNamespace(
+    monkeypatch.setitem(sys.modules, "services.teacher_behavior_service", types.SimpleNamespace(
         process_teacher_behavior_model_detection=callback("teacher"),
     ))
     # A removed module must not be needed to import or execute startup warmup.
-    monkeypatch.setitem(sys.modules, "vbas.services.teacher_head_pose_service", None)
-    module = load_module(monkeypatch, "vbas.services._warmup_test", "vbas/services/model_warmup.py")
+    monkeypatch.setitem(sys.modules, "services.teacher_head_pose_service", None)
+    module = load_module(monkeypatch, "services._warmup_test", "services/model_warmup.py")
     return module, settings, calls
 
 

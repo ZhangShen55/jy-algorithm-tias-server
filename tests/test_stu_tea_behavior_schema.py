@@ -1,6 +1,6 @@
 import unittest
 
-from vbas.schemas.stu_tea_behavior import (
+from schemas.stu_tea_behavior import (
     StudentBehaviorRequest,
     Stu_Tea_BehaviorRequest,
     TeacherBehaviorImageResult,

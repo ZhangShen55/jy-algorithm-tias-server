@@ -7,7 +7,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from vbas.core.model_protection import encrypt_model_file, generate_key
+from core.model_protection import encrypt_model_file, generate_key
 
 
 DEFAULT_MODEL_NAMES = [
@@ -34,8 +34,8 @@ def protect_models(source_dir: Path, target_dir: Path, key: str, model_names=Non
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="将 VBAS 明文模型加密为 .enc 文件。")
-    parser.add_argument("--source-dir", default="vbas/models", help="明文模型目录")
-    parser.add_argument("--target-dir", default="vbas/models-encrypted", help="加密模型输出目录")
+    parser.add_argument("--source-dir", default="models", help="明文模型目录")
+    parser.add_argument("--target-dir", default="models-encrypted", help="加密模型输出目录")
     parser.add_argument("--key-file", required=True, help="模型密钥文件；不存在时可配合 --generate-key 生成")
     parser.add_argument("--generate-key", action="store_true", help="如果密钥文件不存在则生成新密钥")
     parser.add_argument("--model", action="append", help="指定模型文件名，可重复；默认处理内置模型清单")

@@ -4,7 +4,7 @@ import types
 
 
 def _install_lightweight_vbas_settings():
-    sys.modules["vbas.core.settings"] = types.SimpleNamespace(
+    sys.modules["core.settings"] = types.SimpleNamespace(
         settings=types.SimpleNamespace(
             VbasExposeLegacySyncTasks=False,
             InstanceId="vbas-test",
@@ -33,7 +33,7 @@ def _install_lightweight_vbas_settings():
 
 def test_vbas_default_api_surface_excludes_removed_routes(monkeypatch):
     for module_name in list(sys.modules):
-        if module_name.startswith("vbas.") and module_name != "vbas":
+        if module_name.startswith(("api.", "core.", "services.", "schemas.")):
             sys.modules.pop(module_name, None)
 
     _install_lightweight_vbas_settings()
@@ -44,16 +44,16 @@ def test_vbas_default_api_surface_excludes_removed_routes(monkeypatch):
     async def analyze_teacher_behavior_by_model(request):
         return "teacher"
 
-    sys.modules["vbas.services.student_behavior_service"] = types.SimpleNamespace(
+    sys.modules["services.student_behavior_service"] = types.SimpleNamespace(
         analyze_student_behavior_parallel=analyze_student_behavior_parallel,
     )
-    sys.modules["vbas.services.teacher_behavior_service"] = types.SimpleNamespace(
+    sys.modules["services.teacher_behavior_service"] = types.SimpleNamespace(
         analyze_teacher_behavior_by_model=analyze_teacher_behavior_by_model,
     )
 
-    sys.modules["vbas.services.model_warmup"] = types.SimpleNamespace(run_model_inference_warmup=lambda: None)
+    sys.modules["services.model_warmup"] = types.SimpleNamespace(run_model_inference_warmup=lambda: None)
 
-    module = importlib.import_module("vbas.main")
+    module = importlib.import_module("main")
     paths = {route.path for route in module.app.routes}
 
     assert "/ImageDetect/student/v1.0.0" in paths

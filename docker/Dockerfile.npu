@@ -1,0 +1,119 @@
+ARG BASE_IMAGE=cann:8.1.rc1-910b-ubuntu22.04-py3.10
+FROM ${BASE_IMAGE}
+
+LABEL authors="SeaCraft"
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+WORKDIR /workspace/vbas
+
+COPY ./requirements.txt ./requirements.txt
+COPY ./requirements_npu.txt ./requirements_npu.txt
+
+# torch/torch-npu wheels are environment-specific on Ascend. Use the wheel
+# source approved for the target CANN/driver release when building this image.
+ARG INSTALL_TORCH_NPU=1
+ARG PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/
+ARG BUILD_HTTP_PROXY=
+ARG BUILD_HTTPS_PROXY=
+ARG APT_MIRROR=http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports
+ENV HTTP_PROXY=${BUILD_HTTP_PROXY} \
+    HTTPS_PROXY=${BUILD_HTTPS_PROXY} \
+    http_proxy=${BUILD_HTTP_PROXY} \
+    https_proxy=${BUILD_HTTPS_PROXY}
+
+RUN set -e; \
+    rm -f /etc/apt/apt.conf.d/01proxy; \
+    if [ -n "$BUILD_HTTP_PROXY" ]; then \
+        printf 'Acquire::http::Proxy "%s";\n' "$BUILD_HTTP_PROXY" > /etc/apt/apt.conf.d/01proxy; \
+    fi; \
+    if [ -n "$BUILD_HTTPS_PROXY" ]; then \
+        printf 'Acquire::https::Proxy "%s";\n' "$BUILD_HTTPS_PROXY" >> /etc/apt/apt.conf.d/01proxy; \
+    fi; \
+    if [ -n "$APT_MIRROR" ] && [ -f /etc/apt/sources.list.d/debian.sources ]; then \
+        sed -i "s#http://deb.debian.org/debian#$APT_MIRROR#g" /etc/apt/sources.list.d/debian.sources; \
+        sed -i "s#http://deb.debian.org/debian-security#$APT_MIRROR-security#g" /etc/apt/sources.list.d/debian.sources; \
+    elif [ -n "$APT_MIRROR" ] && [ -f /etc/apt/sources.list ]; then \
+        sed -i "s#http://ports.ubuntu.com/ubuntu-ports#$APT_MIRROR#g" /etc/apt/sources.list; \
+        sed -i "s#http://archive.ubuntu.com/ubuntu#$APT_MIRROR#g" /etc/apt/sources.list; \
+        sed -i "s#http://security.ubuntu.com/ubuntu#$APT_MIRROR#g" /etc/apt/sources.list; \
+    fi; \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        libgl1 \
+        libglib2.0-0 && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN if [ "$INSTALL_TORCH_NPU" = "1" ]; then \
+        pip install --no-cache-dir \
+          --index-url "$PIP_INDEX_URL" \
+          --trusted-host mirrors.aliyun.com \
+          torch==2.4.0 torch-npu==2.4.0 torchvision==0.19.0; \
+    fi && \
+    pip install --no-cache-dir \
+      --index-url "$PIP_INDEX_URL" \
+      --timeout 300 \
+      --retries 5 \
+      --trusted-host mirrors.aliyun.com \
+      -r requirements.txt && \
+    pip install --no-cache-dir \
+      --index-url "$PIP_INDEX_URL" \
+      --timeout 300 \
+      --retries 5 \
+      --trusted-host mirrors.aliyun.com \
+      'numpy<2' \
+      decorator \
+      attrs \
+      protobuf
+
+COPY . .
+
+ARG PROTECT_SOURCE=0
+RUN set -e; \
+    if [ "$PROTECT_SOURCE" = "1" ]; then \
+        python scripts/build_cython_modules.py \
+          --root /workspace/vbas \
+          --package api \
+          --package core \
+          --package services \
+          --package schemas \
+          --keep-source __init__.py \
+          --keep-source main.py \
+          --keep-source core/__init__.py \
+          --keep-source api/__init__.py \
+          --keep-source services/__init__.py \
+          --keep-source schemas/__init__.py \
+          --exclude-glob 'models/**' \
+          --remove-sources; \
+        rm -rf build; \
+        find /workspace -type d -name '__pycache__' -prune -exec rm -rf {} +; \
+    fi; \
+    rm -rf \
+      /workspace/vbas/scripts \
+      /workspace/vbas/docker \
+      /workspace/vbas/RUNNING.md \
+      /workspace/vbas/.gitignore \
+      /workspace/vbas/config.toml.example \
+      /workspace/vbas/requirements*.txt \
+      /workspace/vbas/start.sh
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    HTTP_PROXY= \
+    HTTPS_PROXY= \
+    http_proxy= \
+    https_proxy= \
+    NO_PROXY=localhost,127.0.0.1,vision-orchestrator-api,vision-orchestrator-redis,vbas-npu-8882,vbas-npu-8883,vbas-npu-8884,vbas-npu-8885,vbas-npu-8886 \
+    no_proxy=localhost,127.0.0.1,vision-orchestrator-api,vision-orchestrator-redis,vbas-npu-8882,vbas-npu-8883,vbas-npu-8884,vbas-npu-8885,vbas-npu-8886 \
+    CONFIG_PATH=/workspace/vbas/config.toml \
+    ASCEND_TOOLKIT_HOME=/usr/local/Ascend/ascend-toolkit/latest \
+    ASCEND_HOME_PATH=/usr/local/Ascend/ascend-toolkit/latest \
+    ASCEND_OPP_PATH=/usr/local/Ascend/ascend-toolkit/latest/opp \
+    ASCEND_AICPU_PATH=/usr/local/Ascend/ascend-toolkit/latest \
+    TOOLCHAIN_HOME=/usr/local/Ascend/ascend-toolkit/latest/toolkit \
+    PYTHONPATH=/usr/local/Ascend/ascend-toolkit/latest/python/site-packages:/usr/local/Ascend/ascend-toolkit/latest/opp/built-in/op_impl/ai_core/tbe \
+    LD_LIBRARY_PATH=/usr/local/Ascend/ascend-toolkit/latest/lib64:/usr/local/Ascend/ascend-toolkit/latest/lib64/plugin/opskernel:/usr/local/Ascend/ascend-toolkit/latest/lib64/plugin/nnengine:/usr/local/Ascend/ascend-toolkit/latest/opp/built-in/op_impl/ai_core/tbe/op_tiling/lib/linux/aarch64:/usr/local/Ascend/ascend-toolkit/latest/tools/aml/lib64:/usr/local/Ascend/ascend-toolkit/latest/tools/aml/lib64/plugin:/usr/local/Ascend/driver/lib64:/usr/local/Ascend/driver/lib64/common:/usr/local/Ascend/driver/lib64/driver \
+    PATH=/usr/local/Ascend/ascend-toolkit/latest/bin:/usr/local/Ascend/ascend-toolkit/latest/compiler/ccec_compiler/bin:/usr/local/Ascend/ascend-toolkit/latest/tools/ccec_compiler/bin:/usr/local/python3.10.17/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+EXPOSE 8882
+CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8882"]

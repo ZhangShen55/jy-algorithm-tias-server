@@ -11,12 +11,12 @@ class TeacherBehaviorServiceTest(unittest.IsolatedAsyncioTestCase):
         self._original_modules = {
             name: sys.modules.get(name)
             for name in (
-                "vbas.core.settings",
-                "vbas.services.teacher_behavior_service",
-                "vbas.services.capacity_service",
+                "core.settings",
+                "services.teacher_behavior_service",
+                "services.capacity_service",
             )
         }
-        sys.modules.pop("vbas.services.teacher_behavior_service", None)
+        sys.modules.pop("services.teacher_behavior_service", None)
         settings_stub = types.SimpleNamespace(
             Teacher_Behavior_Thresd={
                 "MergeIoU": 0.8,
@@ -33,19 +33,19 @@ class TeacherBehaviorServiceTest(unittest.IsolatedAsyncioTestCase):
                 "ForcePostureWhenMissing": True,
             },
         )
-        sys.modules["vbas.core.settings"] = types.SimpleNamespace(
+        sys.modules["core.settings"] = types.SimpleNamespace(
             yolo_teacher_behavior_model=types.SimpleNamespace(),
             settings=settings_stub,
             use_half=False,
         )
-        sys.modules["vbas.services.capacity_service"] = types.SimpleNamespace(
+        sys.modules["services.capacity_service"] = types.SimpleNamespace(
             increment_connection=lambda: None,
             increment_processed_images=lambda count: None,
         )
-        self.service = importlib.import_module("vbas.services.teacher_behavior_service")
+        self.service = importlib.import_module("services.teacher_behavior_service")
 
     def tearDown(self):
-        sys.modules.pop("vbas.services.teacher_behavior_service", None)
+        sys.modules.pop("services.teacher_behavior_service", None)
         for name, module in self._original_modules.items():
             if module is None:
                 sys.modules.pop(name, None)
@@ -53,7 +53,7 @@ class TeacherBehaviorServiceTest(unittest.IsolatedAsyncioTestCase):
                 sys.modules[name] = module
 
     async def test_teacher_v1_returns_behavior_without_head_pose(self):
-        from vbas.schemas.stu_tea_behavior import ImageItem, TeacherBehaviorRequest
+        from schemas.stu_tea_behavior import ImageItem, TeacherBehaviorRequest
 
         teacher_position = self.service.ObjectPosition(
             LeftTopX=10,
