@@ -118,6 +118,8 @@ CleanupAfterLoad = true
 
 NPU 部署使用新增容器，不得停止、重启、删除或改动本机已有运行容器。允许执行 `docker ps`、`docker images`、`docker compose config` 等只读检查；如端口、容器名、网络或设备资源冲突，调整本次新增容器配置，不处理已有容器。
 
+宿主机现有路径保持不变：`/root/config/tias_deploy/`、`/home/xjtu/model_zoo/tias/` 和 `/tmp/shm/tias_model_key` 仍作为挂载源。部署新版时，将 `examples/vbas-npu-<端口>.secure.toml` 内容更新到既有挂载配置文件（原文件名 `tias-npu-<端口>.secure.toml`）；配置节已统一为 `[VBAS]`。镜像内包路径和启动入口使用 `vbas`。CANN、驱动、torch/torch-npu 版本、NPU 编号、端口及设备映射保持原有设置。
+
 910B 验证默认使用：
 
 - NPU 设备：`npu:3`

@@ -101,9 +101,6 @@ Port = 8882
 MaxConcurrentBatches = 1
 MaxQueueSize = 0
 
-[Teacher_Head_Pose]
-Enabled = false
-Device = "npu:3"
 ```
 
 启动：
