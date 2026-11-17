@@ -2,10 +2,10 @@
 
 `ai_quality` 当前已经具备两个基础能力：
 
-- FastAPI HTTP 入口：接收 TIAS 注册、心跳、注销。
-- Kafka Worker 入口：通过 `consume` 命令直接消费 `classroom_cv_task`，处理视频、调度 TIAS、写业务表并提交 offset。
+- FastAPI HTTP 入口：接收 VBAS 注册、心跳、注销。
+- Kafka Worker 入口：通过 `consume` 命令直接消费 `classroom_cv_task`，处理视频、调度 VBAS、写业务表并提交 offset。
 
-现在的问题不在于 `ai_quality` 能不能作为后端项目，而在于后续部署时，API 和 Worker 的运行职责不能混在同一个本地进程中。第一版 `ai_quality-api` 没有必要默认多实例，因为 API 只做 TIAS 注册心跳、状态查询和 Redis 控制状态写入，吞吐压力很小。真正需要横向扩容的是 `ai_quality-worker` 和 TIAS 实例池。
+现在的问题不在于 `ai_quality` 能不能作为后端项目，而在于后续部署时，API 和 Worker 的运行职责不能混在同一个本地进程中。第一版 `ai_quality-api` 没有必要默认多实例，因为 API 只做 VBAS 注册心跳、状态查询和 Redis 控制状态写入，吞吐压力很小。真正需要横向扩容的是 `ai_quality-worker` 和 VBAS 实例池。
 
 但是 API 即使先单实例部署，也应该从第一版开始按“无本地 consumer 状态”的控制面设计。这样后续如果需要双 API 高可用，或者上层通过 Nginx/LB 暴露统一入口，控制接口请求命中任意 API 实例时，都只读写 Redis 共享状态，不会退化成控制某个本地进程。
 
@@ -16,7 +16,7 @@
 | `ai_quality-api` | 控制面，提供 FastAPI 接口，查询和修改 Redis 共享状态 | 否 | 是 |
 | `ai_quality-worker` | 执行面，独立进程或容器，注册心跳并按 Redis 控制状态消费 Kafka | 是 | 否 |
 
-API 默认可以单实例部署；如需高可用可部署两个 API 实例。Worker 多实例负责真正消费 Kafka。两者通过 Redis 共享控制状态、Worker 注册表和 TIAS 注册表。
+API 默认可以单实例部署；如需高可用可部署两个 API 实例。Worker 多实例负责真正消费 Kafka。两者通过 Redis 共享控制状态、Worker 注册表和 VBAS 注册表。
 
 ## Goals / Non-Goals
 
@@ -29,7 +29,7 @@ API 默认可以单实例部署；如需高可用可部署两个 API 实例。Wo
 - 使用 Redis 保存 Worker 集群期望状态 `desired_state`，由 API 写、Worker 读。
 - 使用 Redis 保存 Worker 运行状态 `actual_state` 和心跳，由 Worker 写、API 查。
 - 新增 `resume`、`pause`、`drain`、`state`、`workers` 等控制和查询接口。
-- 新增 TIAS 注册表查询接口，便于 API 侧直接查看当前可调度 TIAS 实例。
+- 新增 VBAS 注册表查询接口，便于 API 侧直接查看当前可调度 VBAS 实例。
 - 控制接口使用配置化 key 鉴权，默认不开启无鉴权控制。
 - 保留现有 `consume` 入口行为兼容；新增推荐入口 `worker`。
 
@@ -39,13 +39,13 @@ API 默认可以单实例部署；如需高可用可部署两个 API 实例。Wo
 - 不在本阶段改造 Kafka topic partition 数量；只在设计和文档中明确并发上限与 partition 的关系。
 - 不在本阶段实现任务取消、课程级抢占、跨 Worker 任务迁移。
 - 不在本阶段引入除 Redis 之外的新协调组件。
-- 不在本阶段改变课堂质量指标算法、快照策略、数据库表口径和 TIAS 调度算法。
+- 不在本阶段改变课堂质量指标算法、快照策略、数据库表口径和 VBAS 调度算法。
 
 ## Decisions
 
 ### 决策 1：API 是控制面，Worker 是执行面
 
-`ai_quality-api` 不直接在 FastAPI startup 中启动 Kafka consumer。API 只暴露 HTTP 接口，负责修改 Redis 中的 Worker 集群期望状态，并查询 Worker/TIAS 注册表。
+`ai_quality-api` 不直接在 FastAPI startup 中启动 Kafka consumer。API 只暴露 HTTP 接口，负责修改 Redis 中的 Worker 集群期望状态，并查询 Worker/VBAS 注册表。
 
 `ai_quality-worker` 是独立进程或容器。Worker 启动后注册自身、周期性心跳、读取 Redis 控制状态，并在 `desired_state=RUNNING` 时 poll Kafka。
 
@@ -154,7 +154,7 @@ ai_quality-worker-2  python -m ai_quality.app worker
 理由：
 
 - API 是轻量控制面，主要是 Redis 读写，单实例通常足够。
-- 真正重的是视频处理、Kafka 消费、TIAS 调度和数据库写入，这些都在 `ai_quality-worker`。
+- 真正重的是视频处理、Kafka 消费、VBAS 调度和数据库写入，这些都在 `ai_quality-worker`。
 - `uvicorn --workers > 1` 时本地内存状态不可共享；虽然本方案关键状态都在 Redis，但单 worker 更容易排查和发布。
 - 需要 API 高可用时，用 2 个 API 实例 + Nginx/LB，不建议在单实例里开多个 Uvicorn worker。
 
@@ -162,10 +162,10 @@ ai_quality-worker-2  python -m ai_quality.app worker
 
 | 组件 | 建议数量 | 是否暴露给 Nginx | 主要职责 |
 | --- | --- | --- | --- |
-| `ai_quality-api` | 默认 1 个；高可用 2 个 | 单实例时否；多实例时是 | 控制接口、查询 Redis 状态、TIAS 注册心跳入口 |
-| `ai_quality-worker` | 按 Kafka partition 和 TIAS 吞吐配置 | 否 | 消费 Kafka、调度 TIAS、写业务表、上报 Worker 心跳 |
-| Redis | 1 套高可用 Redis | 否 | 保存控制状态、Worker 注册表、TIAS 注册表 |
-| TIAS | 按推理吞吐配置 | 否或内网访问 | 接收 ai_quality-worker 的小批次推理请求 |
+| `ai_quality-api` | 默认 1 个；高可用 2 个 | 单实例时否；多实例时是 | 控制接口、查询 Redis 状态、VBAS 注册心跳入口 |
+| `ai_quality-worker` | 按 Kafka partition 和 VBAS 吞吐配置 | 否 | 消费 Kafka、调度 VBAS、写业务表、上报 Worker 心跳 |
+| Redis | 1 套高可用 Redis | 否 | 保存控制状态、Worker 注册表、VBAS 注册表 |
+| VBAS | 按推理吞吐配置 | 否或内网访问 | 接收 ai_quality-worker 的小批次推理请求 |
 | Nginx/LB | 可选；多 API 时 1 套入口 | 是 | 将 API 请求转发到多个 `ai_quality-api` 实例 |
 
 Nginx 只负责转发 API 请求，不参与 Kafka 消费，也不直接代理 `ai_quality-worker`。单 API 部署时可以不需要 Nginx；多 API 高可用时，`/api/worker-control/resume`、`pause`、`drain` 请求无论命中哪个 API 实例，都只修改 Redis 共享控制状态。
@@ -175,20 +175,20 @@ Nginx 只负责转发 API 请求，不参与 Kafka 消费，也不直接代理 `
 Kafka Worker 数量由以下因素决定：
 
 ```text
-有效并发上限 ≈ min(Kafka partition 数, ai_quality-worker 数, TIAS 可用吞吐)
+有效并发上限 ≈ min(Kafka partition 数, ai_quality-worker 数, VBAS 可用吞吐)
 ```
 
-如果 `classroom_cv_task` 只有 1 个 partition，同 consumer group 启动 4 个 Worker，通常也只有 1 个 Worker 被分配 partition，其余空闲。因此后续要多节课并行，必须同时评估 topic partition、Worker 数、TIAS 实例容量和数据库写入能力。
+如果 `classroom_cv_task` 只有 1 个 partition，同 consumer group 启动 4 个 Worker，通常也只有 1 个 Worker 被分配 partition，其余空闲。因此后续要多节课并行，必须同时评估 topic partition、Worker 数、VBAS 实例容量和数据库写入能力。
 
 示例：
 
 | API 实例数 | 单 API Uvicorn workers | ai_quality-worker 数 | Kafka partition 数 | 预期说明 |
 | --- | --- | --- | --- | --- |
 | 1 | 1 | 1 | 1 | 第一版最小生产形态，API 单实例，Kafka 单任务消费 |
-| 1 | 1 | 4 | 4 | API 不扩容，Worker 可并行消费，前提是 TIAS 容量足够 |
+| 1 | 1 | 4 | 4 | API 不扩容，Worker 可并行消费，前提是 VBAS 容量足够 |
 | 2 | 1 | 1 | 1 | API 高可用，Kafka 仍单任务消费 |
 | 2 | 1 | 4 | 1 | 只有 1 个 Worker 真正消费，其余空闲 |
-| 2 | 1 | 4 | 4 | 最多 4 个 Worker 并行消费，仍受 TIAS 容量约束 |
+| 2 | 1 | 4 | 4 | 最多 4 个 Worker 并行消费，仍受 VBAS 容量约束 |
 
 ### 决策 7：控制接口必须鉴权
 
@@ -250,15 +250,14 @@ ai_quality/docker/
 ├── nginx.conf.example
 └── README.md
 
-tias/docker/
+vbas/docker/
 ├── Dockerfile
-├── Dockerfile.cuda113
 ├── docker-compose.yml
 ├── env.example
 └── README.md
 ```
 
-`ai_quality/docker/` 负责 ai_quality 服务自身部署，不放 TIAS 模型文件，不放测试视频，不放数据库脚本。建议同一个镜像通过启动命令区分 API 和 Worker：
+`ai_quality/docker/` 负责 ai_quality 服务自身部署，不放 VBAS 模型文件，不放测试视频，不放数据库脚本。建议同一个镜像通过启动命令区分 API 和 Worker：
 
 | 文件 | 中文说明 |
 | --- | --- |
@@ -266,17 +265,16 @@ tias/docker/
 | `docker-compose.yml` | 本地或测试环境启动 Redis、ai_quality-api、ai_quality-worker 的示例 |
 | `env.example` | Kafka、Redis、DB、Worker 控制 key、日志级别、挂载路径等环境变量示例 |
 | `nginx.conf.example` | 可选双 API 高可用时的 Nginx upstream 示例 |
-| `README.md` | 说明 API 单实例、Worker 多实例、Redis、Kafka、TIAS 地址等启动方式 |
+| `README.md` | 说明 API 单实例、Worker 多实例、Redis、Kafka、VBAS 地址等启动方式 |
 
-`tias/docker/` 负责 TIAS 推理服务部署，保留 CPU 和 CUDA 镜像构建入口。当前 `tias/Dockerfile`、`tias/Dockerfile_cuda113` 已存在，实施时可以迁移到 `tias/docker/`，也可以先复制并在旧位置保留兼容说明，避免已有脚本立即失效。
+`vbas/docker/` 负责 VBAS 推理服务部署，保留 CPU 和 CUDA 镜像构建入口。旧 `vbas/Dockerfile` 的迁移路径应在运行文档中明确，避免已有脚本无提示失效。
 
 | 文件 | 中文说明 |
 | --- | --- |
-| `Dockerfile` | 构建 TIAS CPU 或默认运行镜像 |
-| `Dockerfile.cuda113` | 构建 CUDA 11.3 运行镜像，承接现有 `Dockerfile_cuda113` |
-| `docker-compose.yml` | 本地或测试环境多开 TIAS 实例示例，配置不同端口和 `InstanceId` |
-| `env.example` | ai_quality 注册地址、TIAS 监听端口、并发、队列、心跳间隔等环境变量示例 |
-| `README.md` | 说明 TIAS 单实例和多实例启动、注册 ai_quality、模型挂载和日志查看 |
+| `Dockerfile` | 构建 VBAS CPU 或默认运行镜像 |
+| `docker-compose.yml` | 本地或测试环境多开 VBAS 实例示例，配置不同端口和 `InstanceId` |
+| `env.example` | ai_quality 注册地址、VBAS 监听端口、并发、队列、心跳间隔等环境变量示例 |
+| `README.md` | 说明 VBAS 单实例和多实例启动、注册 ai_quality、模型挂载和日志查看 |
 
 部署目录只承载部署资产，不改变 Python 包导入路径；实施时要同步更新运行文档中的命令路径。
 
@@ -288,7 +286,7 @@ tias/docker/
 flowchart TB
     U["运维人员或管理系统"] --> API["ai_quality-api\nuvicorn workers=1\n默认单实例"]
 
-    API --> R["Redis\n控制状态/Worker注册表/TIAS注册表"]
+    API --> R["Redis\n控制状态/Worker注册表/VBAS注册表"]
 
     W1["ai_quality-worker-1"] --> R
     W2["ai_quality-worker-2"] --> R
@@ -298,7 +296,7 @@ flowchart TB
     K --> W2
     K --> W3
 
-    W1 --> T["TIAS实例池"]
+    W1 --> T["VBAS实例池"]
     W2 --> T
     W3 --> T
 
@@ -324,7 +322,7 @@ flowchart LR
     subgraph REDIS["Redis共享状态"]
         CTRL["worker_control:state\n是否允许消费"]
         WR["worker注册表\nactual_state/heartbeat"]
-        TR["TIAS注册表\nrunning/queued/capacity"]
+        TR["VBAS注册表\nrunning/queued/capacity"]
     end
 
     API1 --> CTRL
@@ -351,9 +349,9 @@ flowchart LR
     K --> W2
     K --> W3
 
-    W1 --> TIAS["TIAS实例池"]
-    W2 --> TIAS
-    W3 --> TIAS
+    W1 --> VBAS["VBAS实例池"]
+    W2 --> VBAS
+    W3 --> VBAS
     W1 --> DB["ai_quality数据库"]
     W2 --> DB
     W3 --> DB
@@ -464,7 +462,7 @@ sequenceDiagram
     participant W as ai_quality-worker
     participant R as Redis
     participant K as Kafka
-    participant T as TIAS实例池
+    participant T as VBAS实例池
     participant DB as 数据库
 
     loop Worker主循环
@@ -506,12 +504,12 @@ sequenceDiagram
 
 1. 新增 FastAPI 结构，不移除 `ai_quality/http_app.py`，让旧入口继续可用。
 2. 新增 Redis Worker 控制状态和注册表模块，先覆盖单元测试。
-3. 新增 API 路由：健康检查、TIAS 注册表查询、Worker 控制、Worker 查询。
+3. 新增 API 路由：健康检查、VBAS 注册表查询、Worker 控制、Worker 查询。
 4. 将 Kafka 消费循环封装为可暂停/恢复/排空的 Worker 服务。
 5. 新增 `worker` CLI 命令，保留 `consume` 兼容。
-6. 新增 `ai_quality/docker/` 和 `tias/docker/` 部署目录，集中 Dockerfile、compose、env 示例和 README。
-7. 更新 `ai_quality/RUNNING.md`、`tias/RUNNING.md` 和部署文档，说明 API 单实例、可选高可用、Worker 集群和 TIAS 多实例启动方式。
-8. 本地用 1 个 API、2 个 Worker、4 个 TIAS 验证控制状态切换。
+6. 新增 `ai_quality/docker/` 和 `vbas/docker/` 部署目录，集中 Dockerfile、compose、env 示例和 README。
+7. 更新 `ai_quality/RUNNING.md`、`vbas/RUNNING.md` 和部署文档，说明 API 单实例、可选高可用、Worker 集群和 VBAS 多实例启动方式。
+8. 本地用 1 个 API、2 个 Worker、4 个 VBAS 验证控制状态切换。
 9. 如需要验证高可用，再用 2 个 API 实例通过 Nginx 入口验证请求随机落点下的控制一致性。
 
 回滚策略：

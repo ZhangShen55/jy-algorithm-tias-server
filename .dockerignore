@@ -22,7 +22,7 @@ tests2/
 docs/
 openspec/
 *.key
-**/tias_model_key
+**/vbas_model_key
 **/secrets/
 *.pem
 *.crt
@@ -34,7 +34,7 @@ openspec/
 **/*.onnx
 **/*.engine
 **/models/
-!tias/vendor/DirectMHP/models/
-!tias/vendor/DirectMHP/models/**
+!vbas/vendor/DirectMHP/models/
+!vbas/vendor/DirectMHP/models/**
 **/models-encrypted/
 **/models-encrypted/*.key
