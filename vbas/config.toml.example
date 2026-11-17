@@ -67,18 +67,6 @@ PostureConflictRatio = 0.10
 PostureConflictDefault = "stand"
 ForcePostureWhenMissing = true
 
-[Teacher_Head_Pose]
-Enabled = false
-DirectMHPRoot = "vbas/vendor/DirectMHP"
-DirectMHPWeights = "vbas/models/cmu_m_1280_e200_t40_lw010_best.pt"
-DirectMHPData = "vbas/models/cmu_panoptic_coco.yaml"
-Device = "cpu"
-ImageSize = 1280
-ConfThres = 0.35
-IouThres = 0.45
-CropScale = 1.35
-SideYawThreshold = 20.0
-DownPitchThreshold = 20.0
 
 [ModelProtection]
 # 模型静态加密开关。false 时按明文模型路径加载；true 时从 EncryptedModelRoot 解密 .enc 模型。

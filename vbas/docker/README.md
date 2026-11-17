@@ -61,7 +61,7 @@ GPU 宿主机前置条件：
 
 ## 生产 secure runtime 镜像
 
-secure runtime 镜像使用多阶段构建，最终镜像只保留运行入口、必要 `__init__.py`、Cython `.so` 编译产物、DirectMHP vendor 和 secure entrypoint，不整包复制 `vbas` 项目。
+secure runtime 镜像使用多阶段构建，最终镜像只保留运行入口、必要 `__init__.py`、Cython `.so` 编译产物和 secure entrypoint，不整包复制 `vbas` 项目。
 
 构建：
 
@@ -94,7 +94,6 @@ chmod 0400 vbas/docker/secrets/vbas_model_key
 生产 secure compose 不挂载整个 `vbas/models` 明文目录，只挂载：
 
 - `vbas/models-encrypted` 到 `/workspace/vbas/models-encrypted:ro`
-- `vbas/models/cmu_panoptic_coco.yaml` 到 `/workspace/vbas/model-assets/cmu_panoptic_coco.yaml:ro`
 - `vbas/docker/secrets/vbas_model_key` 到 `/run/bootstrap-secrets/vbas_model_key:ro`
 
 secure entrypoint 启动时会把 `/run/bootstrap-secrets/vbas_model_key` 复制到 `/dev/shm/vbas_model_key`，应用读取后删除 `/dev/shm` 副本。
@@ -132,7 +131,6 @@ docker network connect vision-orchestrator-net vision-orchestrator-api || true
 - `vision-orchestrator-api`、Redis、vision_orchestrator Worker 已在同一网络。
 - `vbas/docker/secrets/vbas_model_key` 存在且非空。
 - `vbas/models-encrypted/*.enc` 已生成。
-- `vbas/models/cmu_panoptic_coco.yaml` 存在。
 
 静态检查：
 
@@ -217,8 +215,7 @@ ls -l vbas/docker/secrets/vbas_model_key
 1. `vbas/models-encrypted/` 下是否存在全部 `*.pt.enc`。
 2. 密钥是否和加密模型匹配。
 3. `/dev/shm` 是否足够，默认 secure compose 配置为 `2g`。
-4. `Teacher_Head_Pose.DirectMHPData` 是否指向 `/workspace/vbas/model-assets/cmu_panoptic_coco.yaml`。
-5. GPU 环境中 `GPU_ID` 和 `Teacher_Head_Pose.Device` 是否为可用设备编号，例如 `"0"`。
+4. GPU 环境中 `GPU_ID` 是否为可用设备编号，例如 `"0"`。
 
 ### 128 GPU 服务器验证清单
 

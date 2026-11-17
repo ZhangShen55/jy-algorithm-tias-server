@@ -37,7 +37,6 @@ class StudentBehaviorRequest(BaseModel):
     stream_type: Optional[str] = None
 
 class TeacherBehaviorRequest(Stu_Tea_BehaviorRequest):
-    ReturnHeadPose: bool = False
     task_id: Optional[str] = None
     batch_id: Optional[str] = None
     stream_type: Optional[str] = None
@@ -56,27 +55,6 @@ class ResultItem(BaseModel):
     ObjectCount: int
     ObjectPostList: Optional[List[ObjectPosition]] = None
 
-class BoxPosition(BaseModel):
-    LeftTopX: int
-    LeftTopY: int
-    RightBtmX: int
-    RightBtmY: int
-
-class HeadPoseResultModel(BaseModel):
-    Enabled: bool
-    Status: str
-    FaceDirection: str = "unknown"
-    Yaw: Optional[float] = None
-    Pitch: Optional[float] = None
-    Roll: Optional[float] = None
-    Angle: Optional[float] = None
-    IsLookingDown: Optional[bool] = None
-    HeadPoseConfidence: Optional[float] = None
-    TeacherConfidence: Optional[float] = None
-    TeacherSubjectBox: Optional[BoxPosition] = None
-    HeadBox: Optional[BoxPosition] = None
-    Message: Optional[str] = None
-
 class ImageResult(BaseModel):
     StatusObject: dict
     ResultList: List[ResultItem]
@@ -86,10 +64,8 @@ class Stu_Tea_BehaviorResponse(BaseModel):
     DataList: List[ImageResult]
 
 class TeacherBehaviorImageResult(ImageResult):
-    HeadPoseResult: Optional[HeadPoseResultModel] = None
+    pass
 
 class TeacherBehaviorResponse(BaseModel):
     StatusObject: dict
     DataList: List[TeacherBehaviorImageResult]
-
-HeadPoseResult = HeadPoseResultModel

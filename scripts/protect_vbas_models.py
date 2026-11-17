@@ -15,7 +15,6 @@ DEFAULT_MODEL_NAMES = [
     "face_count.pt",
     "student.pt",
     "teacher_behavior.pt",
-    "cmu_m_1280_e200_t40_lw010_best.pt",
 ]
 
 

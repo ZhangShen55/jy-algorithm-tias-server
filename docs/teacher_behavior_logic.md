@@ -17,7 +17,7 @@
 
 ## 配置项
 
-相关配置位于 `app/config.toml` 的 `[Teacher_Behavior_Thresd]`：
+相关配置位于 `vbas/config.toml` 的 `[Teacher_Behavior_Thresd]`：
 
 | 配置项 | 默认值 | 作用 |
 | --- | --- | --- |
@@ -35,26 +35,6 @@
 | `ForcePostureWhenMissing` | `true` | 主体存在但姿态未过阈值时是否强制输出默认姿态 |
 
 请求体中的 `Teacher_Behavior_Thresd` 可以临时覆盖 `sit`、`stand`、`bbwriting`、`teach` 四个类别阈值。未传的类别继续使用 `config.toml` 默认值。
-
-## 头部姿态开关
-
-`/ImageDetect/teacher/v1.0.0` 请求体支持 `ReturnHeadPose`，但它只在系统总开关开启时生效。总开关位于 `app/config.toml`：
-
-```toml
-[Teacher_Head_Pose]
-Enabled = false
-```
-
-优先级如下：
-
-| `Teacher_Head_Pose.Enabled` | `ReturnHeadPose` | 行为 |
-| --- | --- | --- |
-| `false` | `false` | 不加载 DirectMHP，不返回 `HeadPoseResult` |
-| `false` | `true` | 不加载 DirectMHP，不返回 `HeadPoseResult`，只记录日志 |
-| `true` | `false` | 不执行头部姿态检测，不返回 `HeadPoseResult` |
-| `true` | `true` | 执行头部姿态检测，返回 `HeadPoseResult` |
-
-默认 `Enabled=false`，用于保持接口默认行为、避免额外模型加载和算力开销。
 
 ## 主体判断流程
 

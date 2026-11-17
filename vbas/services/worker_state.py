@@ -24,7 +24,7 @@ class BatchAdmissionController:
         self.base_url = base_url
         self.max_concurrent_batches = max(1, int(max_concurrent_batches))
         self.max_queue_size = max(0, int(max_queue_size))
-        self.capabilities = capabilities or ["student_behavior", "teacher_behavior", "teacher_head_pose"]
+        self.capabilities = capabilities or ["student_behavior", "teacher_behavior"]
         self.running_batches = 0
         self.queued_batches = 0
         self.success_count = 0
