@@ -28,4 +28,4 @@
 - 影响 `ai_quality.infrastructure.media.video`：增加视频输入准备能力，区分下载文件和外部本地文件。
 - 影响 `ai_quality.application.worker`：处理任务时改为调用统一的视频资源准备逻辑，并只清理任务临时目录，不删除外部本地源文件。
 - 影响 ai_quality 运行文档、配置示例和测试脚本：补充 Kafka 本地路径示例和验证方式。
-- 不影响 TIAS 推理接口、NPU 适配、数据库表结构和 Kafka topic。
+- 不影响 VBAS 推理接口、NPU 适配、数据库表结构和 Kafka topic。

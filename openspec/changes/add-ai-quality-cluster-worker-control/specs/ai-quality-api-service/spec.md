@@ -5,7 +5,7 @@ ai_quality MUST 将 HTTP 后端组织为可扩展的 FastAPI API 结构，并保
 
 #### Scenario: FastAPI app 可创建
 - **WHEN** 调用 ai_quality API app 工厂
-- **THEN** 系统必须返回包含健康检查、TIAS 查询、Worker 控制和 Worker 查询路由的 FastAPI app
+- **THEN** 系统必须返回包含健康检查、VBAS 查询、Worker 控制和 Worker 查询路由的 FastAPI app
 
 #### Scenario: 旧 HTTP app 入口兼容
 - **WHEN** 现有代码调用 `create_app_from_config`
@@ -26,19 +26,19 @@ ai_quality API MUST 暴露自身健康检查接口，用于 Nginx、部署系统
 - **WHEN** Redis 连接不可用且健康检查配置为检查 Redis
 - **THEN** 系统必须返回非健康状态，并包含简洁错误原因
 
-### Requirement: ai_quality API 必须提供 TIAS 注册表查询接口
-ai_quality API MUST 允许查询 Redis 中已注册的 TIAS 实例状态。
+### Requirement: ai_quality API 必须提供 VBAS 注册表查询接口
+ai_quality API MUST 允许查询 Redis 中已注册的 VBAS 实例状态。
 
-#### Scenario: 查询所有 TIAS 实例
-- **WHEN** 调用 `GET /api/tias/instances`
-- **THEN** 系统必须返回所有心跳未过期的 TIAS 实例列表，包含 instance_id、base_url、status、capabilities、running_batches、queued_batches、max_concurrent_batches、max_queue_size、latency、failure_count 和 last_error
+#### Scenario: 查询所有 VBAS 实例
+- **WHEN** 调用 `GET /api/vbas/instances`
+- **THEN** 系统必须返回所有心跳未过期的 VBAS 实例列表，包含 instance_id、base_url、status、capabilities、running_batches、queued_batches、max_concurrent_batches、max_queue_size、latency、failure_count 和 last_error
 
-#### Scenario: 查询单个 TIAS 实例
-- **WHEN** 调用 `GET /api/tias/instances/{instance_id}` 且实例存在
+#### Scenario: 查询单个 VBAS 实例
+- **WHEN** 调用 `GET /api/vbas/instances/{instance_id}` 且实例存在
 - **THEN** 系统必须返回该实例的完整注册和心跳状态
 
-#### Scenario: 查询不存在的 TIAS 实例
-- **WHEN** 调用 `GET /api/tias/instances/{instance_id}` 且实例不存在或心跳已过期
+#### Scenario: 查询不存在的 VBAS 实例
+- **WHEN** 调用 `GET /api/vbas/instances/{instance_id}` 且实例不存在或心跳已过期
 - **THEN** 系统必须返回 404
 
 ### Requirement: ai_quality API 推荐单实例部署并支持可选高可用

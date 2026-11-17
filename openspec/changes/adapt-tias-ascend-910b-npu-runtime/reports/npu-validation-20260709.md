@@ -4,7 +4,7 @@
 
 - 分支：`dev_6.0_ai_quality_910b_npu`
 - NPU：使用 `npu:3`
-- TIAS 验证端口：`8882`
+- VBAS 验证端口：`8882`
 - CANN：`8.1.RC1`
 - Driver：`25.0.rc1.1`
 - Python：`3.10.19`
@@ -17,7 +17,7 @@
 
 - `npu-smi info` 可见 8 张 `910B3`。
 - 验证前 `8882` 未被监听占用。
-- `tias-910b` 环境已补齐 `tias/requirements.txt` 依赖。
+- `vbas-910b` 环境已补齐 `vbas/requirements.txt` 依赖。
 - NPU 张量测试通过：
   - `torch.npu.is_available() == True`
   - `torch.npu.device_count() == 8`
@@ -29,13 +29,13 @@
 - 推理期间出现警告：`torchvision::nms` 不支持 NPU backend，回退 CPU。功能通过，性能影响需后续评估。
 - DirectMHP `cmu_m_1280_e200_t40_lw010_best.pt` 在 `npu:3` 加载和最小推理通过。
 
-## TIAS 源码服务验证
+## VBAS 源码服务验证
 
 临时配置：
 
 - `GPU_ID = "npu:3"`
-- `[TIAS].InstanceId = "tias-npu-8882"`
-- `[TIAS].BaseUrl = "http://127.0.0.1:8882"`
+- `[VBAS].InstanceId = "vbas-npu-8882"`
+- `[VBAS].BaseUrl = "http://127.0.0.1:8882"`
 - Uvicorn 监听端口：`8882`
 - `[Teacher_Head_Pose].Device = "npu:3"`
 
@@ -44,9 +44,9 @@
 - `GET http://127.0.0.1:8882/AE/Health` 返回 `model_ready=true`。
 - `POST /ImageDetect/student/v1.0.0` 使用 `test/00000001-ddna.jpg` 返回 200，`StatusString=success`，包含人数、人脸、睡觉、手机、阅读等计数字段。
 - `POST /ImageDetect/teacher/v1.0.0` 使用 `test/00000001-ddna.jpg` 返回 200，`StatusString=success`，包含教师行为字段。
-- 并发调用时曾因 `MaxConcurrentBatches=1` 返回 429 `TIAS 当前满载`，符合准入控制预期；串行重试成功。
+- 并发调用时曾因 `MaxConcurrentBatches=1` 返回 429 `VBAS 当前满载`，符合准入控制预期；串行重试成功。
 - `GET /AE/WorkerStatus` 显示 `success_count=2`、`failure_count=0`。
-- 推理后 `npu-smi info` 显示 TIAS 进程使用 NPU 3。
+- 推理后 `npu-smi info` 显示 VBAS 进程使用 NPU 3。
 
 ## 教师头姿 HTTP 验证
 
@@ -67,24 +67,24 @@
 
 结果：
 
-- TIAS 启动后成功注册到 ai_quality 临时 API。
-- `GET /api/tias/instances` 返回 `tias-npu-8882`，状态 `UP`，能力包含 `student_behavior`、`teacher_behavior`、`teacher_head_pose`。
-- 使用 `TiasScheduler` 从注册表选择 `tias-npu-8882`。
-- 使用 `TiasHttpClient.infer_student()` 远程调用 TIAS，返回 `StatusString=success`，`DataList` 数量为 1。
-- ai_quality 保持远程 TIAS 调度路径，未直接加载 TIAS 模型。
+- VBAS 启动后成功注册到 ai_quality 临时 API。
+- `GET /api/vbas/instances` 返回 `vbas-npu-8882`，状态 `UP`，能力包含 `student_behavior`、`teacher_behavior`、`teacher_head_pose`。
+- 使用 `VbasScheduler` 从注册表选择 `vbas-npu-8882`。
+- 使用 `VbasHttpClient.infer_student()` 远程调用 VBAS，返回 `StatusString=success`，`DataList` 数量为 1。
+- ai_quality 保持远程 VBAS 调度路径，未直接加载 VBAS 模型。
 
 ## Docker 验证
 
 已新增：
 
-- `tias/docker/Dockerfile.npu`
-- `tias/docker/docker-compose.npu.yml`
-- `tias/docker/examples/tias-npu-8882.toml`
+- `vbas/docker/Dockerfile.npu`
+- `vbas/docker/docker-compose.npu.yml`
+- `vbas/docker/examples/vbas-npu-8882.toml`
 
 静态验证：
 
-- `docker compose -f tias/docker/docker-compose.npu.yml config` 通过。
-- Compose 使用唯一容器名 `tias-npu-8882` 和端口 `8882:8882`。
+- `docker compose -f vbas/docker/docker-compose.npu.yml config` 通过。
+- Compose 使用唯一容器名 `vbas-npu-8882` 和端口 `8882:8882`。
 - 现有 NVIDIA Dockerfile、compose、secure runtime 文件无 diff。
 
 构建验证：
@@ -100,11 +100,11 @@ Docker 操作边界：
 - 未重启本机已有 Docker 容器。
 - 未删除本机已有 Docker 容器。
 - 未改动本机已有 Docker 容器。
-- 未创建 `tias-npu-8882` 容器。
+- 未创建 `vbas-npu-8882` 容器。
 
 ## 回归
 
-- `conda run -n tias-910b python -m compileall -q tias ai_quality` 通过。
+- `conda run -n vbas-910b python -m compileall -q vbas ai_quality` 通过。
 - 未发现仓库内 Python 测试文件。
 
 ## 风险和后续

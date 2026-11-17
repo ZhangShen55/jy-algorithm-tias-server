@@ -1,0 +1,78 @@
+IMAGE_ROOT = "/mnt/ias-images"
+RESULT_IMAGE_ROOT = "/data/result_images"
+SAVE_RESULT_IMAGE = 0
+INSTANCE_COUNT = 1
+WORKERS_PER_INSTANCE = 1
+GPU_ID = "npu:3"
+
+[VBAS]
+InstanceId = "vbas-npu-8886"
+BaseUrl = "http://vbas-npu-8886:8886"
+VisionOrchestratorBaseUrl = "http://vision-orchestrator-api:9000"
+VbasExposeLegacySyncTasks = true
+MaxConcurrentBatches = 2
+MaxQueueSize = 1
+HeartbeatIntervalSeconds = 5
+HeartbeatTimeoutSeconds = 15
+RegisterRetryIntervalSeconds = 5
+Host = "0.0.0.0"
+Port = 8886
+
+[Person_Thresd]
+Head = 0.25
+Top_Head = 0.1
+Hat = 0.1
+Headphones = 0.1
+Shoulder = 0.1
+
+[Face_Thresd]
+face = 0.3
+
+[Student_Thresd]
+phone = 0.7
+hand = 0.99
+sleep = 0.5
+stand = 0.99
+read = 0.5
+
+[Teacher_Behavior_Thresd]
+MergeIoU = 0.8
+SubjectClusterIoU = 0.45
+ImageSize = 640
+sit = 0.4
+stand = 0.4
+bbwriting = 0.25
+teach = 0.25
+KeepOnlyMainSubject = true
+MainSubjectStrategy = "posture_confidence"
+PostureConflictRatio = 0.10
+PostureConflictDefault = "stand"
+ForcePostureWhenMissing = true
+
+[Teacher_Head_Pose]
+Enabled = true
+DirectMHPRoot = "vbas/vendor/DirectMHP"
+DirectMHPWeights = "vbas/models/cmu_m_1280_e200_t40_lw010_best.pt"
+DirectMHPData = "/workspace/vbas/model-assets/cmu_panoptic_coco.yaml"
+Device = "npu:3"
+ImageSize = 1280
+ConfThres = 0.35
+IouThres = 0.45
+CropScale = 1.35
+SideYawThreshold = 20.0
+DownPitchThreshold = 20.0
+
+[ModelProtection]
+Enabled = true
+EncryptedModelRoot = "/run/bootstrap-models/vbas"
+DecryptedTempRoot = "/dev/shm/vbas-models"
+KeyFile = "/dev/shm/vbas_model_key"
+CleanupAfterLoad = true
+
+[Warmup]
+Enabled = true
+Runs = 1
+ImageWidth = 640
+ImageHeight = 640
+IncludeTeacherHeadPose = true
+FailOnError = true

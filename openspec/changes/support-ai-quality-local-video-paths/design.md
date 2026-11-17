@@ -1,6 +1,6 @@
 ## Context
 
-ai_quality 当前从 Kafka 消费课堂视觉分析任务，`VisualTaskMessage.from_payload` 会从 `teacher_video_path`、`student_video_path`、`slides_video_path` 等字段中取值，并通过 `_require_http_url` 强制校验为完整 HTTP/HTTPS URL。`VisualAnalysisWorker.process_task` 随后调用 `download_video` 将学生端和教师端视频下载到 `TempRoot/task_id` 临时目录，再抽帧、调用 TIAS、落库，最后删除整个任务临时目录。
+ai_quality 当前从 Kafka 消费课堂视觉分析任务，`VisualTaskMessage.from_payload` 会从 `teacher_video_path`、`student_video_path`、`slides_video_path` 等字段中取值，并通过 `_require_http_url` 强制校验为完整 HTTP/HTTPS URL。`VisualAnalysisWorker.process_task` 随后调用 `download_video` 将学生端和教师端视频下载到 `TempRoot/task_id` 临时目录，再抽帧、调用 VBAS、落库，最后删除整个任务临时目录。
 
 新的输入口径是：Kafka JSON 中的视频 path 字段可能已经是本地下载好的视频文件路径。ai_quality 作为消费方需要判断 path 是 URL 还是本地文件，并在两种模式下都产出可抽帧的本地 `Path`。
 
@@ -19,7 +19,7 @@ ai_quality 当前从 Kafka 消费课堂视觉分析任务，`VisualTaskMessage.f
 **Non-Goals:**
 
 - 不改变 Kafka topic、消费组、offset 提交策略和重试策略。
-- 不改变 TIAS 推理接口、NPU/GPU 设备选择和批次调度策略。
+- 不改变 VBAS 推理接口、NPU/GPU 设备选择和批次调度策略。
 - 不实现 slides 视频抽帧或课件指标分析。
 - 不新增数据库字段。
 - 不在本阶段实现远程路径白名单、路径沙箱或跨机器文件同步。
