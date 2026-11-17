@@ -1,4 +1,4 @@
-# jy-algorithm-vbas-server
+# vbas
 
 基于 **Ultralytics YOLO** 的课堂智能分析算法服务（SeaCraft / 教育 IAS 场景）。对外提供 **FastAPI** HTTP 接口，支持 **能力查询、人数统计、抬头（人脸）检测、学生行为、老师行为** 等多路推理。
 
@@ -23,46 +23,46 @@
 - **Python 3** + **FastAPI** + **Uvicorn**（可选 **uvloop**）
 - **Ultralytics YOLO**（`ultralytics`）
 - **OpenCV**、**NumPy**、**PyTorch**
-- 生产环境可通过 **Nginx** 对多 Uvicorn 实例做负载均衡（见 `vbas/start.sh`）
+- 生产环境可通过 **Nginx** 对多 Uvicorn 实例做负载均衡（见 `start.sh`）
 
 ---
 
 ## 仓库结构
 
 ```
-jy-algorithm-vbas-server/
-├── README.md                 # 本说明
-├── vbas/
-    ├── main.py               # FastAPI 入口、IAS 客户端生命周期
-    ├── config.toml           # 默认配置示例（部署时常挂载或复制）
-    ├── config.toml.example   # VBAS 6.0 配置样例
-    ├── start.sh              # 启动脚本（单实例 / Nginx + 多实例）
-    ├── requirements.txt      # PyTorch 2.6 / CUDA 11.8 主线依赖
-    ├── docker/               # Dockerfile、compose、secure runtime 部署入口
-    ├── core/
-    │   └── settings.py       # 配置加载、设备选择、YOLO 模型全局加载
-    ├── api/                  # 路由：师生行为、WorkerStatus、Health、Drain
-    ├── services/             # 师生行为推理、本地准入、注册心跳
-    ├── schemas/              # Pydantic 请求/响应模型
-    └── models/               # 权重文件目录（需自行放置，见下文）
+vbas/
+├── README.md
+├── main.py                 # FastAPI 启动入口：main:app
+├── config.toml
+├── config.toml.example
+├── start.sh
+├── requirements.txt
+├── docker/                 # Dockerfile、compose 和部署配置
+├── core/                   # 配置、设备和模型加载
+├── api/                    # HTTP 路由
+├── services/               # 推理、准入和注册心跳
+├── schemas/                # 请求与响应模型
+├── models/                 # 本地模型权重
+├── scripts/                # 构建和模型保护工具
+└── openspec/
 ```
 
-> **说明**：Docker 构建需从仓库根目录执行，`vbas/docker/Dockerfile*` 会引用 `vbas/docker/nginx.conf` 和 `scripts/` 下的构建脚本。
+> **说明**：Docker 构建需从仓库根目录执行，`docker/Dockerfile*` 会引用 `docker/nginx.conf` 和 `scripts/` 下的构建脚本。
 
 ---
 
 ## 模型文件
 
-请将训练好的权重放到 **`vbas/models/`**（与 `settings.py` 中路径一致）。当前代码中约定的文件名包括：
+请将训练好的权重放到 **`models/`**（与 `settings.py` 中路径一致）。当前代码中约定的文件名包括：
 
-| 变量 | 路径（相对 `vbas/core/settings.py`） |
+| 变量 | 路径（相对 `core/settings.py`） |
 |------|--------------------------------------|
-| 人数 | `vbas/models/person_count_20251222_1920p.pt` |
-| 人脸 | `vbas/models/face_count_20251212.pt` |
-| 学生行为 | `vbas/models/student_20250819.pt`（若与仓库实际文件名不一致，请同步修改 `STUDENT_MODEL_PATH`） |
-| 老师行为 | `vbas/models/teacher_behavior.pt` |
+| 人数 | `models/person_count_20251222_1920p.pt` |
+| 人脸 | `models/face_count_20251212.pt` |
+| 学生行为 | `models/student_20250819.pt`（若与仓库实际文件名不一致，请同步修改 `STUDENT_MODEL_PATH`） |
+| 老师行为 | `models/teacher_behavior.pt` |
 
-`vbas/models/READEME.md` 中说明该目录用于存放模型。
+`models/READEME.md` 中说明该目录用于存放模型。
 
 ---
 
@@ -70,9 +70,9 @@ jy-algorithm-vbas-server/
 
 ### `config.toml`（或 `CONFIG_PATH` 指向的文件）
 
-应用通过环境变量 **`CONFIG_PATH`** 指定配置文件，默认在 `settings.py` 中解析为 `vbas/config.toml`；Docker 内 `start.sh` 默认读取 **`/workspace/vbas/config.toml`**。
+应用通过环境变量 **`CONFIG_PATH`** 指定配置文件，默认在 `settings.py` 中解析为 `config.toml`；Docker 内 `start.sh` 默认读取 **`/workspace/vbas/config.toml`**。
 
-服务包和部署命名统一使用 `vbas`。外部配置使用 `[VBAS]` 和 `VbasExposeLegacySyncTasks`，密钥引导环境变量使用 `VBAS_*`；启动入口为 `vbas.main:app`。注册、心跳和注销请求分别发送到编排服务的 `/api/vbas/instances/register`、`/api/vbas/instances/heartbeat`、`/api/vbas/instances/unregister`，编排服务需同步提供这些接口。
+服务包和部署命名统一使用 `vbas`。外部配置使用 `[VBAS]` 和 `VbasExposeLegacySyncTasks`，密钥引导环境变量使用 `VBAS_*`；启动入口为 `main:app`。注册、心跳和注销请求分别发送到编排服务的 `/api/instances/register`、`/api/instances/heartbeat`、`/api/instances/unregister`，编排服务需同步提供这些接口。
 
 常用字段：
 
@@ -155,7 +155,7 @@ jy-algorithm-vbas-server/
 }
 ```
 
-未传的类别继续使用 `vbas/config.toml` 中的默认阈值。
+未传的类别继续使用 `config.toml` 中的默认阈值。
 
 请求体见 `schemas/stu_tea_behavior.py`：`ImageList` 中每项含 `StoragePath`、`ImageId`、可选 `Points`（多边形）。
 
@@ -171,15 +171,15 @@ jy-algorithm-vbas-server/
 2. 安装依赖：
 
    ```bash
-   pip install -r vbas/requirements.txt
+   pip install -r requirements.txt
    ```
 
-3. 将模型放入 `vbas/models/`，并按需修改 `vbas/core/settings.py` 中的路径或 `config.toml`。
+3. 将模型放入 `models/`，并按需修改 `core/settings.py` 中的路径或 `config.toml`。
 4. 从仓库根目录启动：
 
    ```bash
-   export CONFIG_PATH="/绝对路径/vbas/config.toml"
-   uvicorn vbas.main:app --host 0.0.0.0 --port 8881 --reload
+   export CONFIG_PATH="/绝对路径/config.toml"
+   uvicorn main:app --host 0.0.0.0 --port 8881 --reload
    ```
 
 服务启动后不再向 IAS 执行注册、注销或保活请求，推理接口可直接在本地或容器内使用。
@@ -194,12 +194,12 @@ VBAS 只通过 `[VBAS].VisionOrchestratorBaseUrl` 向编排服务注册并上报
 
 ## Docker 部署
 
-Docker 构建入口统一放在 `vbas/docker/`：
+Docker 构建入口统一放在 `docker/`：
 
-- **开发/普通部署**：`vbas/docker/Dockerfile`（PyTorch 2.6 / CUDA 11.8）。
-- **生产 secure runtime**：`vbas/docker/Dockerfile.runtime`（最小运行镜像、Cython 编译产物、加密模型挂载）。
+- **开发/普通部署**：`docker/Dockerfile`（PyTorch 2.6 / CUDA 11.8）。
+- **生产 secure runtime**：`docker/Dockerfile.runtime`（最小运行镜像、Cython 编译产物、加密模型挂载）。
 
-构建时需从仓库根目录执行，保证构建上下文包含 `vbas/`、`scripts/` 和 `vbas/docker/nginx.conf` 等文件。
+构建时需从仓库根目录执行，保证构建上下文包含 ``、`scripts/` 和 `docker/nginx.conf` 等文件。
 
 容器内：
 
@@ -212,7 +212,7 @@ Docker 构建入口统一放在 `vbas/docker/`：
 
 ## 版本与算法说明
 
-应用版本、适配器版本与算法版本字符串定义在 **`vbas/core/settings.py`**（如 `APP_VER`、`ALG_VER`）。6.0 默认不再暴露 `/AE/Version`，版本和模型信息通过注册/心跳字段上报给 vision_orchestrator。
+应用版本、适配器版本与算法版本字符串定义在 **`core/settings.py`**（如 `APP_VER`、`ALG_VER`）。6.0 默认不再暴露 `/AE/Version`，版本和模型信息通过注册/心跳字段上报给 vision_orchestrator。
 
 ---
 
@@ -222,4 +222,4 @@ Docker 镜像中 `LABEL authors="SeaCraft"`。具体开源协议以仓库内授�
 
 ---
 
-如有接口字段或 IAS 协议变更，请以 `vbas/schemas/` 与 `vbas/services/` 中的实现为准。
+如有接口字段或 IAS 协议变更，请以 `schemas/` 与 `services/` 中的实现为准。

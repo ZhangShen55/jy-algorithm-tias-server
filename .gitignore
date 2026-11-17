@@ -40,5 +40,22 @@ tests2/head_pose_outputs/*
 docs/
 tmp/
 mnt/
-vbas/models-encrypted/
-vbas/docker/secrets/
+models-encrypted/
+docker/secrets/
+
+# Service assets (moved to repository root)
+# app 目录特有忽略（通用 Python 规则见根目录 .gitignore）
+
+*.egg-info/
+*.pt
+*.json
+*.log
+
+# 测试文件和文档
+*.pdf
+*.doc
+*.docx
+*.ppt
+*.pptx
+*.xls
+*.xlsx

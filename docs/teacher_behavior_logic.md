@@ -17,7 +17,7 @@
 
 ## 配置项
 
-相关配置位于 `vbas/config.toml` 的 `[Teacher_Behavior_Thresd]`：
+相关配置位于 `config.toml` 的 `[Teacher_Behavior_Thresd]`：
 
 | 配置项 | 默认值 | 作用 |
 | --- | --- | --- |
