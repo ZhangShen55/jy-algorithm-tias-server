@@ -39,7 +39,6 @@ services:
     volumes:
       - /root/config/tias_deploy/examples/tias-npu-8882.secure.toml:/workspace/vbas/config.toml:ro
       - /home/xjtu/model_zoo/tias/models-encrypted:/run/bootstrap-models/vbas:ro
-      - /home/xjtu/model_zoo/tias/models-encrypted/cmu_panoptic_coco.yaml:/workspace/vbas/model-assets/cmu_panoptic_coco.yaml:ro
       - /tmp/shm/tias_model_key:/run/bootstrap-secrets/vbas_model_key:ro
       - /usr/local/Ascend:/usr/local/Ascend:ro
     devices: *ascend-devices
@@ -64,7 +63,6 @@ services:
     volumes:
       - /root/config/tias_deploy/examples/tias-npu-8883.secure.toml:/workspace/vbas/config.toml:ro
       - /home/xjtu/model_zoo/tias/models-encrypted:/run/bootstrap-models/vbas:ro
-      - /home/xjtu/model_zoo/tias/models-encrypted/cmu_panoptic_coco.yaml:/workspace/vbas/model-assets/cmu_panoptic_coco.yaml:ro
       - /tmp/shm/tias_model_key:/run/bootstrap-secrets/vbas_model_key:ro
       - /usr/local/Ascend:/usr/local/Ascend:ro
     devices: *ascend-devices
@@ -89,7 +87,6 @@ services:
     volumes:
       - /root/config/tias_deploy/examples/tias-npu-8884.secure.toml:/workspace/vbas/config.toml:ro
       - /home/xjtu/model_zoo/tias/models-encrypted:/run/bootstrap-models/vbas:ro
-      - /home/xjtu/model_zoo/tias/models-encrypted/cmu_panoptic_coco.yaml:/workspace/vbas/model-assets/cmu_panoptic_coco.yaml:ro
       - /tmp/shm/tias_model_key:/run/bootstrap-secrets/vbas_model_key:ro
       - /usr/local/Ascend:/usr/local/Ascend:ro
     devices: *ascend-devices
@@ -114,7 +111,6 @@ services:
     volumes:
       - /root/config/tias_deploy/examples/tias-npu-8885.secure.toml:/workspace/vbas/config.toml:ro
       - /home/xjtu/model_zoo/tias/models-encrypted:/run/bootstrap-models/vbas:ro
-      - /home/xjtu/model_zoo/tias/models-encrypted/cmu_panoptic_coco.yaml:/workspace/vbas/model-assets/cmu_panoptic_coco.yaml:ro
       - /tmp/shm/tias_model_key:/run/bootstrap-secrets/vbas_model_key:ro
       - /usr/local/Ascend:/usr/local/Ascend:ro
     devices: *ascend-devices
@@ -139,7 +135,6 @@ services:
   #   volumes:
   #     - /root/config/tias_deploy/examples/tias-npu-8886.secure.toml:/workspace/vbas/config.toml:ro
   #     - /home/xjtu/model_zoo/tias/models-encrypted:/run/bootstrap-models/vbas:ro
-  #     - /home/xjtu/model_zoo/tias/models-encrypted/cmu_panoptic_coco.yaml:/workspace/vbas/model-assets/cmu_panoptic_coco.yaml:ro
   #     - /tmp/shm/tias_model_key:/run/bootstrap-secrets/vbas_model_key:ro
   #     - /usr/local/Ascend:/usr/local/Ascend:ro
   #   devices: *ascend-devices

@@ -84,7 +84,6 @@ RUN set -e; \
           --keep-source vbas/api/__init__.py \
           --keep-source vbas/services/__init__.py \
           --keep-source vbas/schemas/__init__.py \
-          --exclude-glob 'vbas/vendor/**' \
           --exclude-glob 'vbas/models/**' \
           --remove-sources; \
         rm -rf build; \

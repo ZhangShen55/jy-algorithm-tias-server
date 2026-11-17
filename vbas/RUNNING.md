@@ -35,8 +35,6 @@ cp vbas/config.toml.example vbas/config.toml
 | `face_count.pt` | 人脸/抬头检测 |
 | `student.pt` | 学生行为 |
 | `teacher_behavior.pt` | 教师行为 |
-| `cmu_m_1280_e200_t40_lw010_best.pt` | 教师头姿，可选 |
-| `cmu_panoptic_coco.yaml` | 教师头姿数据配置，可选 |
 
 ## 配置说明
 
@@ -321,7 +319,7 @@ docker build -f vbas/docker/Dockerfile.runtime -t vbas:6.0-secure .
 python scripts/check_vbas_runtime_image.py --image vbas:6.0-secure
 ```
 
-secure runtime 镜像只保留运行入口、必要 `__init__.py`、Cython `.so` 编译产物、DirectMHP vendor 和 secure entrypoint，不整包复制 VBAS 项目，不包含明文模型、密钥、Docker 文件、部署文档、测试目录和核心明文源码。
+secure runtime 镜像只保留运行入口、必要 `__init__.py`、Cython `.so` 编译产物和 secure entrypoint，不整包复制 VBAS 项目，不包含明文模型、密钥、Docker 文件、部署文档、测试目录和核心明文源码。
 
 ## 模型保护部署
 
@@ -412,7 +410,6 @@ compose 挂载策略：
 
 ```text
 vbas/models-encrypted -> /workspace/vbas/models-encrypted:ro
-vbas/models/cmu_panoptic_coco.yaml -> /workspace/vbas/model-assets/cmu_panoptic_coco.yaml:ro
 vbas/docker/secrets/vbas_model_key -> /run/bootstrap-secrets/vbas_model_key:ro
 ```
 
@@ -431,7 +428,7 @@ Mac 本地只验证 build、compose config、镜像内容检查和单元测试�
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
 | POST | `/ImageDetect/student/v1.0.0` | 学生人数、人脸、睡觉、玩手机、阅读等推理 |
-| POST | `/ImageDetect/teacher/v1.0.0` | 教师行为和可选头姿推理 |
+| POST | `/ImageDetect/teacher/v1.0.0` | 教师主体、站立、坐着、板书和讲授推理 |
 | GET | `/AE/WorkerStatus` | 实例状态、并发、队列、耗时和失败指标 |
 | GET | `/AE/Health` | 健康检查 |
 | PUT | `/AE/Drain` | 进入排空状态 |

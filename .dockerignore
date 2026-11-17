@@ -34,7 +34,5 @@ openspec/
 **/*.onnx
 **/*.engine
 **/models/
-!vbas/vendor/DirectMHP/models/
-!vbas/vendor/DirectMHP/models/**
 **/models-encrypted/
 **/models-encrypted/*.key

@@ -139,6 +139,8 @@ jy-algorithm-vbas-server/
 - `203`：板书（`bbwriting`）
 - `204`：讲授（`teach`）
 
+老师接口仅提供主体、站立、坐着、板书和讲授检测。头部姿态检测已移除，响应不再包含 `HeadPoseResult`；旧请求中的 `ReturnHeadPose` 参数会被忽略。
+
 老师接口会按 `SubjectClusterIoU` 把同一老师的姿态框和授课行为框聚合为一个主体。默认只保留一个主主体，选择规则为优先按 `sit` / `stand` 姿态置信度确认主体，再保留 `bbwriting` / `teach` 等授课行为。`sit` / `stand` 最终互斥；当两者置信度差值比例小于等于 `PostureConflictRatio` 时默认输出 `stand` 并标记 `SuspectedSitting=true`，主体存在但姿态都没过阈值时按 `PostureConflictDefault` 兜底输出并标记 `PostureFallback=true`。
 
 老师接口请求体可选传 `Teacher_Behavior_Thresd` 覆盖单次请求阈值，例如只覆盖 `sit` 和 `teach`：

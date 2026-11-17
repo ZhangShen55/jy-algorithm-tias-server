@@ -39,7 +39,6 @@ RUN python scripts/build_cython_modules.py \
       --keep-source vbas/api/__init__.py \
       --keep-source vbas/services/__init__.py \
       --keep-source vbas/schemas/__init__.py \
-      --exclude-glob 'vbas/vendor/**' \
       --exclude-glob 'vbas/models/**' \
       --remove-sources && \
     rm -rf build /workspace/vbas/models /workspace/vbas/models-encrypted && \
@@ -74,11 +73,10 @@ COPY --from=builder /workspace/vbas/api ./vbas/api
 COPY --from=builder /workspace/vbas/core ./vbas/core
 COPY --from=builder /workspace/vbas/services ./vbas/services
 COPY --from=builder /workspace/vbas/schemas ./vbas/schemas
-COPY --from=builder /workspace/vbas/vendor/DirectMHP ./vbas/vendor/DirectMHP
 COPY ./vbas/docker/secure-entrypoint.sh /usr/local/bin/vbas-secure-entrypoint
 
 RUN chmod 0755 /usr/local/bin/vbas-secure-entrypoint && \
-    mkdir -p /workspace/vbas/model-assets /workspace/vbas/models-encrypted && \
+    mkdir -p /workspace/vbas/models-encrypted && \
     find /workspace/vbas -type d -name '__pycache__' -prune -exec rm -rf {} + && \
     find /workspace/vbas -type f \( -name '*.pt' -o -name '*.pth' -o -name '*.onnx' -o -name '*.engine' -o -name '*.key' -o -name '*.pem' -o -name '*.crt' \) -delete
 

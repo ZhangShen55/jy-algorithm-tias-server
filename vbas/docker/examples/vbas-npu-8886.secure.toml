@@ -49,18 +49,6 @@ PostureConflictRatio = 0.10
 PostureConflictDefault = "stand"
 ForcePostureWhenMissing = true
 
-[Teacher_Head_Pose]
-Enabled = true
-DirectMHPRoot = "vbas/vendor/DirectMHP"
-DirectMHPWeights = "vbas/models/cmu_m_1280_e200_t40_lw010_best.pt"
-DirectMHPData = "/workspace/vbas/model-assets/cmu_panoptic_coco.yaml"
-Device = "npu:3"
-ImageSize = 1280
-ConfThres = 0.35
-IouThres = 0.45
-CropScale = 1.35
-SideYawThreshold = 20.0
-DownPitchThreshold = 20.0
 
 [ModelProtection]
 Enabled = true
@@ -74,5 +62,4 @@ Enabled = true
 Runs = 1
 ImageWidth = 640
 ImageHeight = 640
-IncludeTeacherHeadPose = true
 FailOnError = true

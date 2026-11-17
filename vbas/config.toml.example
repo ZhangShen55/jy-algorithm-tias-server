@@ -68,19 +68,6 @@ PostureConflictRatio = 0.10
 PostureConflictDefault = "stand"
 ForcePostureWhenMissing = true
 
-[Teacher_Head_Pose]
-Enabled = true
-Device = "npu:3"
-DirectMHPRoot = "vbas/vendor/DirectMHP"
-DirectMHPWeights = "vbas/models/cmu_m_1280_e200_t40_lw010_best.pt"
-DirectMHPData = "vbas/models/cmu_panoptic_coco.yaml"
-# 教师头姿设备。默认使用 CPU；910B NPU 环境可配置为 "npu:3"。
-ImageSize = 1280
-ConfThres = 0.35
-IouThres = 0.45
-CropScale = 1.35
-SideYawThreshold = 20.0
-DownPitchThreshold = 20.0
 
 [ModelProtection]
 # 模型静态加密开关。false 时按明文模型路径加载；true 时从 EncryptedModelRoot 解密 .enc 模型。
@@ -105,7 +92,5 @@ Runs = 1
 # dummy 图尺寸。会向上对齐到 32 的倍数。
 ImageWidth = 640
 ImageHeight = 640
-# Teacher_Head_Pose.Enabled=true 时，是否同时预热 DirectMHP 头姿模型。
-IncludeTeacherHeadPose = true
 # true 表示预热失败时服务启动失败，避免半初始化实例接流量。
 FailOnError = true

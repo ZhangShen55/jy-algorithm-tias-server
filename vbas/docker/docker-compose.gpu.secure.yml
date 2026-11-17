@@ -22,7 +22,6 @@ services:
     volumes:
       - ./examples/vbas-8981.secure.toml:/workspace/vbas/config.toml:ro
       - ../models-encrypted:/workspace/vbas/models-encrypted:ro
-      - ../models/cmu_panoptic_coco.yaml:/workspace/vbas/model-assets/cmu_panoptic_coco.yaml:ro
       - ./secrets/vbas_model_key:/run/bootstrap-secrets/vbas_model_key:ro
     networks:
       default:
@@ -56,7 +55,6 @@ services:
     volumes:
       - ./examples/vbas-8982.secure.toml:/workspace/vbas/config.toml:ro
       - ../models-encrypted:/workspace/vbas/models-encrypted:ro
-      - ../models/cmu_panoptic_coco.yaml:/workspace/vbas/model-assets/cmu_panoptic_coco.yaml:ro
       - ./secrets/vbas_model_key:/run/bootstrap-secrets/vbas_model_key:ro
     networks:
       default:

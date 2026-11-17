@@ -20,32 +20,6 @@ logger = logging.getLogger(__name__)
 verbose=True
 
 
-def analyze_teacher_head_pose(img, position):
-    from .teacher_head_pose_service import analyze_teacher_head_pose as analyze_teacher_head_pose_impl
-
-    return analyze_teacher_head_pose_impl(img, position)
-
-
-def failed_head_pose_result(message: str):
-    from .teacher_head_pose_service import failed_head_pose_result as failed_head_pose_result_impl
-
-    return failed_head_pose_result_impl(message)
-
-
-def no_teacher_head_pose_result():
-    from .teacher_head_pose_service import no_teacher_head_pose_result as no_teacher_head_pose_result_impl
-
-    return no_teacher_head_pose_result_impl()
-
-
-def get_teacher_head_pose_enabled() -> bool:
-    head_pose_config = getattr(settings, "Teacher_Head_Pose", {})
-    value = head_pose_config.get("Enabled", False)
-    if isinstance(value, bool):
-        return value
-    if isinstance(value, str):
-        return value.strip().lower() in {"1", "true", "yes", "on"}
-    return bool(value)
 # 教师行为模型目标类别码定义：teacher_behavior.pt
 TEACHER_BEHAVIOR_OBJECT_TYPES = {
     'platform_person': 100,  # 讲台是否有人
@@ -656,7 +630,6 @@ def build_teacher_result_list(behavior_results: Dict[str, List[ObjectPosition]],
 async def analyze_teacher_behavior_by_model(request: TeacherBehaviorRequest) -> TeacherBehaviorResponse:
     """
     老师行为分析主函数：使用 teacher_behavior.pt 输出站/坐/板书/讲授。
-    当 Teacher_Head_Pose.Enabled=true 且 ReturnHeadPose=true 时，追加头部方向检测。
     """
     start_time = time.time()
     timestamp = int(time.time())
@@ -691,7 +664,7 @@ async def analyze_teacher_behavior_by_model(request: TeacherBehaviorRequest) -> 
             else:
                 processed_img, offset = img, (0, 0)
 
-            behavior_results, behavior_details = process_teacher_behavior_model_detection_with_details(
+            behavior_results, _ = process_teacher_behavior_model_detection_with_details(
                 processed_img,
                 offset,
                 img_size,
@@ -700,29 +673,6 @@ async def analyze_teacher_behavior_by_model(request: TeacherBehaviorRequest) -> 
             result_list = build_teacher_result_list(behavior_results, TEACHER_BEHAVIOR_OBJECT_TYPES)
             for stat_key in total_stats:
                 total_stats[stat_key] += len(behavior_results[stat_key])
-
-            head_pose_result = None
-            return_head_pose = getattr(request, "ReturnHeadPose", False)
-            head_pose_enabled = get_teacher_head_pose_enabled()
-            if return_head_pose and not head_pose_enabled:
-                logger.info(
-                    "[老师行为模型] ReturnHeadPose=true，但 Teacher_Head_Pose.Enabled=false，跳过头部姿态检测"
-                )
-            if return_head_pose and head_pose_enabled:
-                if behavior_details:
-                    try:
-                        head_pose_result = analyze_teacher_head_pose(
-                            img,
-                            behavior_details[0]["position"],
-                        )
-                    except Exception as head_pose_error:
-                        logger.error(
-                            f"[老师行为模型] 头部方向检测失败 {image_item.ImageId}: {str(head_pose_error)}",
-                            exc_info=True,
-                        )
-                        head_pose_result = failed_head_pose_result(str(head_pose_error))
-                else:
-                    head_pose_result = no_teacher_head_pose_result()
 
             image_use_time_ms = int((time.time() - image_start_time) * 1000)
             data_list.append(TeacherBehaviorImageResult(
@@ -733,8 +683,7 @@ async def analyze_teacher_behavior_by_model(request: TeacherBehaviorRequest) -> 
                     "UseTimeMs": image_use_time_ms,
                     "StatusCode": 0
                 },
-                ResultList=result_list,
-                HeadPoseResult=head_pose_result
+                ResultList=result_list
             ))
             processed_image_ids.append(image_item.ImageId)
             logger.info(f"Successfully processed teacher behavior image {image_item.ImageId}")
@@ -762,7 +711,5 @@ async def analyze_teacher_behavior_by_model(request: TeacherBehaviorRequest) -> 
         f"[老师行为模型最终统计] 主体:{total_stats['platform_person']} "
         f"站立:{total_stats['standing']} 坐着:{total_stats['sitting']} "
         f"板书:{total_stats['writing']} 讲授:{total_stats['teaching']} | "
-        f"耗时:{use_time_ms}ms 图片:{len(processed_image_ids)}张 "
-        f"ReturnHeadPose:{getattr(request, 'ReturnHeadPose', False)} "
-        f"HeadPoseEnabled:{get_teacher_head_pose_enabled()}")
+        f"耗时:{use_time_ms}ms 图片:{len(processed_image_ids)}张")
     return response
