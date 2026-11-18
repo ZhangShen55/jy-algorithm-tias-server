@@ -30,11 +30,16 @@ def main():
     parser.add_argument('--max-batches', type=int, default=1)
     parser.add_argument('--warmup-seconds', type=int, default=30)
     args = parser.parse_args()
-    if args.instances < 1 or args.concurrency < 1:
+    if args.instances < 1 or args.concurrency < 1 or args.max_batches < 1 or args.queue_size < 0:
         parser.error('实例数与并发必须大于零')
     root = Path(__file__).resolve().parents[2]
     args.output = args.output.resolve()
     args.output.mkdir(parents=True, exist_ok=False)
+    started = time.perf_counter()
+    def event(name, **details):
+        with (args.output/'events.jsonl').open('a') as stream:
+            stream.write(json.dumps({'event': name, 'unix_time': time.time(), 'elapsed_s': time.perf_counter()-started, **details})+'\n')
+    event('run_start', instances=args.instances, concurrency=args.concurrency, max_batches=args.max_batches, backend=args.backend)
     gpu = 'GPU-8c6b7efd-2b4f-04f3-db71-b50d2482fc49'
     processes, handles, urls = [], [], []
     done = threading.Event()
@@ -71,6 +76,7 @@ def main():
             handles.append(log)
             process = subprocess.Popen([sys.executable, '-m', 'uvicorn', 'main:app', '--host', '127.0.0.1', '--port', str(port), '--workers', '1'], cwd=root, env=env, stdout=log, stderr=subprocess.STDOUT)
             processes.append(process)
+            event('instance_spawned', port=port, pid=process.pid)
             url = f'http://127.0.0.1:{port}'
             deadline = time.monotonic()+180
             while True:
@@ -85,20 +91,27 @@ def main():
                         raise TimeoutError(f'Instance startup timeout: {port}')
                     time.sleep(1)
             urls.append(url)
+            event('instance_ready', port=port)
         (args.output / 'instances.json').write_text(json.dumps({'pids': [p.pid for p in processes], 'urls': urls, 'queue_size': args.queue_size, 'max_batches': args.max_batches, 'gpu_uuid': gpu, 'python': sys.executable}, indent=2))
         # 每个实例单独持续调用预热，故意不将此阶段算入正式采样。
         payload = (sorted(args.payload.glob('*.json'))[0] if args.payload.is_dir() else args.payload).read_bytes()
         for url in urls:
+            event('warmup_start', url=url)
             deadline = time.monotonic()+args.warmup_seconds
             while time.monotonic() < deadline:
                 req = urllib.request.Request(url+args.endpoint, data=payload, headers={'Content-Type': 'application/json'})
                 with urllib.request.urlopen(req, timeout=120) as response:
                     if response.status != 200:
                         raise RuntimeError(f'Warmup failed: {url}')
+        event('load_start')
         subprocess.run([sys.executable, str(root/'scripts/benchmark/load.py'), '--urls', *urls,
                         '--endpoint', args.endpoint, '--payload', str(args.payload.resolve()),
                         '--output', str(args.output/'load'), '--concurrency', str(args.concurrency),
                         '--seconds', str(args.seconds), '--rate', str(args.rate)], check=True)
+        event('load_complete')
+    except BaseException as exc:
+        event('run_failed', error=repr(exc))
+        raise
     finally:
         for p in processes:
             if p.poll() is None:
@@ -113,6 +126,7 @@ def main():
         sampler.join(timeout=10)
         for handle in handles:
             handle.close()
+        event('cleanup_complete', exit_codes=[p.returncode for p in processes])
 
 
 if __name__ == '__main__':
