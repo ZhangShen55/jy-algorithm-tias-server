@@ -20,8 +20,9 @@ def percentile(values, q):
 
 async def run(args):
     import httpx
-    payload = json.loads(args.payload.read_text())
-    if len(payload.get('ImageList', [])) != 1:
+    files = sorted(args.payload.glob('*.json')) if args.payload.is_dir() else [args.payload]
+    payloads = [json.loads(f.read_text()) for f in files]
+    if not payloads or any(len(payload.get('ImageList', [])) != 1 for payload in payloads):
         raise ValueError('主实验要求每请求一图')
     args.output.mkdir(parents=True, exist_ok=False)
     stop = time.perf_counter()+args.seconds
@@ -40,7 +41,7 @@ async def run(args):
                     sent = time.perf_counter()
                     row = {'sequence': number, 'instance': base, 'sent_offset_s': sent-started}
                     try:
-                        response = await client.post(base+args.endpoint, json=payload)
+                        response = await client.post(base+args.endpoint, json=payloads[number % len(payloads)])
                         row['status'] = response.status_code
                         body = response.json()
                         # 200 只是传输成功；师生接口还必须有成功图片结果。
@@ -90,7 +91,8 @@ async def run(args):
     completed_in_window = [r for r in successful if r['completed_offset_s'] <= args.seconds]
     summary = {'mode': 'open_loop_single_image_http' if args.rate else 'closed_loop_single_image_http', 'endpoint': args.endpoint,
                'instances': len(args.urls), 'total_concurrency': args.concurrency,
-               'dispatch': 'fixed_worker_to_instance_no_retry',
+               'dispatch': 'fixed_worker_to_instance_no_retry' if not args.rate else 'round_robin_arrival_no_retry',
+               'payload_count': len(payloads),
                'target_images_per_s': args.rate or None,
                'generator_limit_events': sum(r.get('error') == 'load_generator_inflight_limit' for r in records),
                'scheduled_latency_ms_p95': percentile([r['latency_from_schedule_ms'] for r in successful if 'latency_from_schedule_ms' in r], .95),

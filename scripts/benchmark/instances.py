@@ -22,6 +22,7 @@ def main():
     parser.add_argument('--instances', type=int, default=8)
     parser.add_argument('--concurrency', type=int, default=48)
     parser.add_argument('--seconds', type=int, default=180)
+    parser.add_argument('--rate', type=float, default=0)
     parser.add_argument('--first-port', type=int, default=18981)
     parser.add_argument('--queue-size', type=int, default=0)
     parser.add_argument('--max-batches', type=int, default=1)
@@ -83,7 +84,7 @@ def main():
             urls.append(url)
         (args.output / 'instances.json').write_text(json.dumps({'pids': [p.pid for p in processes], 'urls': urls, 'queue_size': args.queue_size, 'max_batches': args.max_batches, 'gpu_uuid': gpu, 'python': sys.executable}, indent=2))
         # 每个实例单独持续调用预热，故意不将此阶段算入正式采样。
-        payload = args.payload.read_bytes()
+        payload = (sorted(args.payload.glob('*.json'))[0] if args.payload.is_dir() else args.payload).read_bytes()
         for url in urls:
             deadline = time.monotonic()+args.warmup_seconds
             while time.monotonic() < deadline:
@@ -94,7 +95,7 @@ def main():
         subprocess.run([sys.executable, str(root/'scripts/benchmark/load.py'), '--urls', *urls,
                         '--endpoint', args.endpoint, '--payload', str(args.payload.resolve()),
                         '--output', str(args.output/'load'), '--concurrency', str(args.concurrency),
-                        '--seconds', str(args.seconds)], check=True)
+                        '--seconds', str(args.seconds), '--rate', str(args.rate)], check=True)
     finally:
         for p in processes:
             if p.poll() is None:
