@@ -108,9 +108,14 @@ def main():
                           'request': {k: v for k, v in payload.items() if k != 'ImageList'},
                           'status': response.status_code, 'elapsed_ms': (time.perf_counter()-started)*1000,
                           'predictions': list(captured), 'response': response.json()}
+                body = record['response']
+                if endpoint.startswith('/ImageDetect/'):
+                    record['valid_business'] = len(body.get('DataList', [])) == 1 and body['DataList'][0].get('StatusObject', {}).get('StatusCode') == 0
+                else:
+                    record['valid_business'] = body.get('Response', {}).get('ErrCode') == 0 and len(body.get('TaskResult', [])) == 1
                 out.write(json.dumps(record, ensure_ascii=False) + '\n')
                 out.flush()
-                if response.status_code != 200 or not captured:
+                if response.status_code != 200 or not captured or not record['valid_business']:
                     failures += 1
                 if any(not p['runtime_fp16'] for p in captured):
                     raise RuntimeError('FP16 verification failed')

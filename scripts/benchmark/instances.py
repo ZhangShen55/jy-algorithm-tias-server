@@ -83,7 +83,7 @@ def main():
             if args.endpoint.startswith('/ImageDetect/'):
                 if not body.get('DataList') or any(r.get('StatusObject', {}).get('StatusCode') != 0 for r in body['DataList']):
                     raise RuntimeError(f'Warmup business error: {url}')
-            elif not body.get('TaskResult'):
+            elif body.get('Response', {}).get('ErrCode') != 0 or len(body.get('TaskResult', [])) != 1:
                 raise RuntimeError(f'Warmup empty result: {url}')
     try:
         for index in range(args.instances):

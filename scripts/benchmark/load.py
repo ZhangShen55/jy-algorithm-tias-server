@@ -52,7 +52,7 @@ async def run(args):
                             data = body.get('DataList', [])
                             row['valid'] = response.status_code == 200 and len(data) == 1 and data[0].get('StatusObject', {}).get('StatusCode') == 0
                         else:
-                            row['valid'] = response.status_code == 200 and bool(body.get('TaskResult'))
+                            row['valid'] = response.status_code == 200 and body.get('Response', {}).get('ErrCode') == 0 and len(body.get('TaskResult', [])) == 1
                         if not row['valid']:
                             row['error_response'] = body
                     except Exception as exc:
