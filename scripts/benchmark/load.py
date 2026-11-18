@@ -39,9 +39,12 @@ async def run(args):
                     sequence += 1
                     base = args.urls[worker_index % len(args.urls)].rstrip('/')
                     sent = time.perf_counter()
-                    row = {'sequence': number, 'instance': base, 'sent_offset_s': sent-started}
+                    selected_payload = payloads[number % len(payloads)]
+                    image = selected_payload['ImageList'][0]
+                    row = {'sequence': number, 'instance': base, 'sent_offset_s': sent-started,
+                           'image_id': image.get('ImageId', image.get('ImageID'))}
                     try:
-                        response = await client.post(base+args.endpoint, json=payloads[number % len(payloads)])
+                        response = await client.post(base+args.endpoint, json=selected_payload)
                         row['status'] = response.status_code
                         body = response.json()
                         # 200 只是传输成功；师生接口还必须有成功图片结果。
