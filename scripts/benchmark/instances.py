@@ -1,6 +1,6 @@
 """管理仅本轮创建的单 worker 实例，预热后调用闭环压测，退出时清理。"""
 import argparse
-import contextlib
+from concurrent.futures import ThreadPoolExecutor
 import csv
 import json
 import os
@@ -55,6 +55,21 @@ def main():
                 done.wait(1)
     sampler = threading.Thread(target=sample, daemon=True)
     sampler.start()
+    payload_files = sorted(args.payload.glob('*.json')) if args.payload.is_dir() else [args.payload]
+    payloads = [p.read_bytes() for p in payload_files]
+    if not payloads:
+        raise ValueError('No warmup payloads')
+    def post_warmup(url, payload):
+        req = urllib.request.Request(url+args.endpoint, data=payload, headers={'Content-Type': 'application/json'})
+        with urllib.request.urlopen(req, timeout=120) as response:
+            body = json.load(response)
+            if response.status != 200:
+                raise RuntimeError(f'Warmup failed: {url}')
+            if args.endpoint.startswith('/ImageDetect/'):
+                if not body.get('DataList') or any(r.get('StatusObject', {}).get('StatusCode') != 0 for r in body['DataList']):
+                    raise RuntimeError(f'Warmup business error: {url}')
+            elif not body.get('TaskResult'):
+                raise RuntimeError(f'Warmup empty result: {url}')
     try:
         for index in range(args.instances):
             port = args.first_port+index
@@ -92,17 +107,20 @@ def main():
                     time.sleep(1)
             urls.append(url)
             event('instance_ready', port=port)
+            post_warmup(url, payloads[0])
+            event('instance_prefilled', port=port)
         (args.output / 'instances.json').write_text(json.dumps({'pids': [p.pid for p in processes], 'urls': urls, 'queue_size': args.queue_size, 'max_batches': args.max_batches, 'gpu_uuid': gpu, 'python': sys.executable}, indent=2))
-        # 每个实例单独持续调用预热，故意不将此阶段算入正式采样。
-        payload = (sorted(args.payload.glob('*.json'))[0] if args.payload.is_dir() else args.payload).read_bytes()
-        for url in urls:
-            event('warmup_start', url=url)
+        # 错峰完成首次模型初始化后，并行预热全部实例及样本，避免串行预热使前面的实例冷却。
+        def warm(url):
             deadline = time.monotonic()+args.warmup_seconds
-            while time.monotonic() < deadline:
-                req = urllib.request.Request(url+args.endpoint, data=payload, headers={'Content-Type': 'application/json'})
-                with urllib.request.urlopen(req, timeout=120) as response:
-                    if response.status != 200:
-                        raise RuntimeError(f'Warmup failed: {url}')
+            index = 0
+            while time.monotonic() < deadline or index < len(payloads):
+                post_warmup(url, payloads[index % len(payloads)])
+                index += 1
+        event('warmup_start')
+        with ThreadPoolExecutor(max_workers=args.instances) as pool:
+            list(pool.map(warm, urls))
+        event('warmup_complete')
         event('load_start')
         subprocess.run([sys.executable, str(root/'scripts/benchmark/load.py'), '--urls', *urls,
                         '--endpoint', args.endpoint, '--payload', str(args.payload.resolve()),
