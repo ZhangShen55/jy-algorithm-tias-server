@@ -32,11 +32,14 @@ def main():
     parser.add_argument('--warmup-seconds', type=int, default=30)
     parser.add_argument('--audit-reference', type=Path, help='独立业务一致性模式；不用作容量测量')
     parser.add_argument('--audit-repetitions', type=int, default=1)
+    parser.add_argument('--trace-http', action='store_true', help='独立诊断时间线，勿混作普通容量成绩')
     args = parser.parse_args()
     if args.instances < 1 or args.concurrency < 1 or args.max_batches < 1 or args.queue_size < 0:
         parser.error('实例数与并发必须大于零')
     if args.audit_repetitions < 1 or (args.audit_reference and args.rate):
         parser.error('一致性重复必须大于零，且不能混入定速容量实验')
+    if args.trace_http and not args.audit_reference:
+        parser.error('HTTP时间线只用于带audit-reference的独立诊断，不混入普通容量实验')
     if args.audit_reference:
         try:
             from .audit import workload
@@ -50,7 +53,9 @@ def main():
     def event(name, **details):
         with (args.output/'events.jsonl').open('a') as stream:
             stream.write(json.dumps({'event': name, 'unix_time': time.time(), 'elapsed_s': time.perf_counter()-started, **details})+'\n')
-    event('run_start', instances=args.instances, concurrency=args.concurrency, max_batches=args.max_batches, backend=args.backend)
+    event('run_start', instances=args.instances, concurrency=args.concurrency, max_batches=args.max_batches,
+          backend=args.backend, trace_http=args.trace_http,
+          audit_reference=str(args.audit_reference.resolve()) if args.audit_reference else None)
     gpu = 'GPU-8c6b7efd-2b4f-04f3-db71-b50d2482fc49'
     processes, handles, urls = [], [], []
     load_process = None
@@ -117,6 +122,10 @@ def main():
             config = args.output / f'config-{port}.toml'
             config.write_text(text)
             env = {**os.environ, 'CONFIG_PATH': str(config), 'CUDA_VISIBLE_DEVICES': gpu}
+            # 显式移除继承值，默认容量组不得意外启用诊断。
+            env.pop('VBAS_BENCHMARK_TRACE_FILE', None)
+            if args.trace_http:
+                env['VBAS_BENCHMARK_TRACE_FILE'] = str(args.output/f'timing-{port}.jsonl')
             log = (args.output / f'instance-{port}.log').open('w')
             handles.append(log)
             process = subprocess.Popen([sys.executable, '-m', 'uvicorn', 'scripts.benchmark.server:app', '--host', '127.0.0.1', '--port', str(port), '--workers', '1'], cwd=root, env=env, stdout=log, stderr=subprocess.STDOUT)

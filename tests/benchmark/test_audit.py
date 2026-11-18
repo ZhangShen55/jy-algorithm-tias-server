@@ -11,6 +11,7 @@ import tempfile
 import types
 import unittest
 from unittest.mock import patch
+from urllib.parse import unquote
 
 from scripts.benchmark.audit import difference, run, workload
 
@@ -54,16 +55,62 @@ class AuditTest(unittest.TestCase):
         self.assertEqual(result['count_deltas'], {'ObjectType:100': 1})
         self.assertEqual(result['business_geometry']['ObjectType:100']['max_coordinate_delta'], 1)
 
-    def test_image_bytes_and_coverage_must_match_reference(self):
+    def test_reference_coverage_must_match(self):
         self.assertEqual(len(workload(self.reference, self.pool, self.endpoint)), 2)
         (self.pool/'b.json').unlink()
         with self.assertRaises(ValueError):
             workload(self.reference, self.pool, self.endpoint)
+
+    def test_changed_image_bytes_are_rejected(self):
         path = self.pool/'a.json'
         body = json.loads(path.read_text())
         body['ImageList'][0]['StoragePath'] = base64.b64encode(b'changed').decode()
         path.write_text(json.dumps(body))
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(ValueError, '图片哈希'):
+            workload(self.reference, self.pool, self.endpoint)
+
+    def test_legacy_request_metadata_restores_only_image_identifier(self):
+        rows = [json.loads(line) for line in self.reference.read_text().splitlines()]
+        for row in rows:
+            row['request'] = {}
+        self.reference.write_text(''.join(json.dumps(r)+'\n' for r in rows))
+        self.assertEqual(len(workload(self.reference, self.pool, self.endpoint)), 2)
+        path = self.pool/'a.json'
+        body = json.loads(path.read_text())
+        body['ImageList'][0]['unexpected_option'] = 1
+        path.write_text(json.dumps(body))
+        with self.assertRaisesRegex(ValueError, '请求参数'):
+            workload(self.reference, self.pool, self.endpoint)
+
+    def test_student_policy_and_fp16_metadata_are_required_when_present(self):
+        rows = [json.loads(line) for line in self.reference.read_text().splitlines()]
+        for row in rows:
+            row['predictions'] = [{'model': 'yolo_person_model', 'runtime_fp16': True,
+                                   'predict_args': {'agnostic_nms': True}}]
+        def save():
+            self.reference.write_text(''.join(json.dumps(r)+'\n' for r in rows))
+        save()
+        with self.assertRaisesRegex(ValueError, 'NMS=False'):
+            workload(self.reference, self.pool, self.endpoint)
+        for row in rows:
+            row['predictions'][0]['predict_args']['agnostic_nms'] = False
+        save()
+        self.assertEqual(len(workload(self.reference, self.pool, self.endpoint)), 2)
+        rows[0]['predictions'][0]['runtime_fp16'] = False
+        save()
+        with self.assertRaisesRegex(ValueError, 'FP16'):
+            workload(self.reference, self.pool, self.endpoint)
+
+    def test_legacy_torch_half_evidence_does_not_override_explicit_runtime_false(self):
+        rows = [json.loads(line) for line in self.reference.read_text().splitlines()]
+        for row in rows:
+            row['predictions'] = [{'model': 'yolo_person_model', 'weight_dtype': 'torch.float16',
+                                   'predict_args': {'half': True, 'agnostic_nms': False}}]
+        self.reference.write_text(''.join(json.dumps(r)+'\n' for r in rows))
+        self.assertEqual(len(workload(self.reference, self.pool, self.endpoint)), 2)
+        rows[0]['predictions'][0]['runtime_fp16'] = False
+        self.reference.write_text(''.join(json.dumps(r)+'\n' for r in rows))
+        with self.assertRaisesRegex(ValueError, 'FP16'):
             workload(self.reference, self.pool, self.endpoint)
 
     def invoke(self, fail):
@@ -76,7 +123,8 @@ class AuditTest(unittest.TestCase):
                 return self
             async def __aexit__(self, *args):
                 pass
-            async def post(self, url, json):
+            async def post(self, url, json, headers):
+                assert unquote(headers['X-Benchmark-Image-Id']) == json['ImageList'][0]['ImageId']
                 Client.active += 1
                 Client.peak = max(Client.peak, Client.active)
                 await asyncio.sleep(0)
@@ -104,6 +152,8 @@ class AuditTest(unittest.TestCase):
         self.assertEqual(result['strict_equal_calls'], 6)
         self.assertEqual(result['http_or_business_failures'], 0)
         self.assertEqual(result['unattempted_calls'], 0)
+        self.assertEqual(result['client_http_body_latency_ms']['samples'], 6)
+        self.assertGreaterEqual(result['client_http_body_latency_ms']['mean'], 0)
         self.assertEqual(set(result['calls_per_instance']), {'http://a', 'http://b'})
 
     def test_http_failure_stops_new_work_and_preserves_incomplete_status(self):
