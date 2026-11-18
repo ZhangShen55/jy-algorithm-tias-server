@@ -55,7 +55,7 @@ def main():
                                           stdout=log, stderr=subprocess.STDOUT).returncode
                 leftovers = [p.name for p in Path(folder).rglob('*') if p.is_file()]
                 log = (args.output/f'child-{tampered}.log').read_text(errors='replace')
-                expected = code != 0 and '解密' in log if tampered else code == 0
+                expected = code != 0 and 'ModelProtectionError: 模型解密失败:' in log and 'CUDA out of memory' not in log if tampered else code == 0
                 passed = expected and not leftovers
                 summary['checks'].append({'tampered': tampered, 'returncode': code,
                                           'plaintext_leftovers': leftovers, 'passed': passed})
