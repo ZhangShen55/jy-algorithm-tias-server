@@ -31,12 +31,12 @@ async def run(args):
     limits = httpx.Limits(max_connections=args.concurrency, max_keepalive_connections=args.concurrency)
     with (args.output / 'requests.jsonl').open('w') as out:
         async with httpx.AsyncClient(timeout=args.timeout, limits=limits, trust_env=False) as client:
-            async def worker():
+            async def worker(worker_index):
                 nonlocal sequence
                 while time.perf_counter() < stop:
                     number = sequence
                     sequence += 1
-                    base = args.urls[number % len(args.urls)].rstrip('/')
+                    base = args.urls[worker_index % len(args.urls)].rstrip('/')
                     sent = time.perf_counter()
                     row = {'sequence': number, 'instance': base, 'sent_offset_s': sent-started}
                     try:
@@ -57,7 +57,7 @@ async def run(args):
                     row['latency_ms'] = (time.perf_counter()-sent)*1000
                     records.append(row)
                     out.write(json.dumps(row, ensure_ascii=False)+'\n')
-            await asyncio.gather(*(worker() for _ in range(args.concurrency)))
+            await asyncio.gather(*(worker(i) for i in range(args.concurrency)))
     elapsed = time.perf_counter()-started
     successful = [r for r in records if r['valid']]
     latencies = [r['latency_ms'] for r in successful]
@@ -65,6 +65,7 @@ async def run(args):
     completed_in_window = [r for r in successful if r['completed_offset_s'] <= args.seconds]
     summary = {'mode': 'closed_loop_single_image_http', 'endpoint': args.endpoint,
                'instances': len(args.urls), 'total_concurrency': args.concurrency,
+               'dispatch': 'fixed_worker_to_instance_no_retry',
                'send_window_s': args.seconds, 'elapsed_including_drain_s': elapsed,
                'requests': len(records), 'successful': len(successful),
                'failed': len(records)-len(successful),
