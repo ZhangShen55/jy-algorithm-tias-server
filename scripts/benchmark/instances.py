@@ -30,9 +30,19 @@ def main():
     parser.add_argument('--queue-size', type=int, default=0)
     parser.add_argument('--max-batches', type=int, default=1)
     parser.add_argument('--warmup-seconds', type=int, default=30)
+    parser.add_argument('--audit-reference', type=Path, help='独立业务一致性模式；不用作容量测量')
+    parser.add_argument('--audit-repetitions', type=int, default=1)
     args = parser.parse_args()
     if args.instances < 1 or args.concurrency < 1 or args.max_batches < 1 or args.queue_size < 0:
         parser.error('实例数与并发必须大于零')
+    if args.audit_repetitions < 1 or (args.audit_reference and args.rate):
+        parser.error('一致性重复必须大于零，且不能混入定速容量实验')
+    if args.audit_reference:
+        try:
+            from .audit import workload
+        except ImportError:
+            from audit import workload
+        workload(args.audit_reference, args.payload, args.endpoint)
     root = Path(__file__).resolve().parents[2]
     args.output = args.output.resolve()
     args.output.mkdir(parents=True, exist_ok=False)
@@ -149,10 +159,17 @@ def main():
                 response.read()
         (args.output/'startup-memory.json').write_text(json.dumps(startup_stats, indent=2))
         event('load_start')
-        load_process = subprocess.Popen([sys.executable, str(root/'scripts/benchmark/load.py'), '--urls', *urls,
+        command = [sys.executable, str(root/'scripts/benchmark/load.py'), '--urls', *urls,
                         '--endpoint', args.endpoint, '--payload', str(args.payload.resolve()),
                         '--output', str(args.output/'load'), '--concurrency', str(args.concurrency),
-                        '--seconds', str(args.seconds), '--rate', str(args.rate), '--seed', str(args.seed)])
+                        '--seconds', str(args.seconds), '--rate', str(args.rate), '--seed', str(args.seed)]
+        if args.audit_reference:
+            command = [sys.executable, str(root/'scripts/benchmark/audit.py'), '--urls', *urls,
+                       '--endpoint', args.endpoint, '--payload', str(args.payload.resolve()),
+                       '--output', str(args.output/'load'), '--concurrency', str(args.concurrency),
+                       '--seed', str(args.seed), '--reference', str(args.audit_reference.resolve()),
+                       '--repetitions', str(args.audit_repetitions)]
+        load_process = subprocess.Popen(command)
         code = load_process.wait()
         if code:
             raise RuntimeError(f'Load generator exited: {code}')

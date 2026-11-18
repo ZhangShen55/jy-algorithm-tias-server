@@ -67,3 +67,7 @@ CPU 用单调时钟；GPU 用实际 stream 上的 CUDA Events。日常指标与�
 当前服务继续原串行实验，不插入额外GPU负载。原PyTorch/TensorRT容量流程结束且GPU空闲后，补一轮相同I8、同FP16、同14.366图/s、同种子2725806188、180秒发送/30秒预热，发生器在途保护上限提高到256，其它请求和服务配置不变。保留60秒超时和有界连接/内存，发生OOM/超时/服务错误即记录失败并停止继续增压；不无限增大上限。若仍触发保护，结论保持受限，不能冒充测得绝对峰值。若未触发，按3个连续10秒窗口检查持续积压及时间，同时核对客户端CPU、发送滞后、GPU和失败。此补测用于解释边界，不用失败点作为推荐配置。
 
 源码核对：api/tasks.py→services/task_service_base64.py 的旧人数路由没有调用BatchAdmissionController，且async处理路径内存在同步model.predict；因此MaxConcurrentBatches/MaxQueueSize只是人数实验文件中的配置值，不是有效的人数准入控制。师生路由另走build_behavior_router的准入逻辑，必须分接口解释。保留服务行为进行基线测量，本项不改生产排队/准入或运行环境。
+
+## 独立并发业务核查
+
+容量流程结束且GPU空闲后，用instances.py的--audit-reference模式，三个接口、两个后端各按零失败候选配置执行完整请求池1遍（seed=20261118），与该后端顺序结果比较并保存每次完整业务响应。采集开销不计入容量成绩；不覆盖混合接口竞态或原始模型框。工具及真实GPU待验状态见 [并发核查记录](reports/20261118-concurrent-audit/report.md)。
