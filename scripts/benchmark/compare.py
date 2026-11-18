@@ -2,6 +2,7 @@
 import argparse
 import collections
 import json
+import statistics
 from pathlib import Path
 
 
@@ -14,8 +15,9 @@ def iou(a, b):
 
 def match(reference, candidate, threshold):
     # 按 IoU 从高到低贪心一对一匹配，禁止同一框重复匹配。
-    pairs = sorted([(iou(a, b), i, j) for i, a in enumerate(reference)
-                    for j, b in enumerate(candidate) if int(a[5]) == int(b[5])], reverse=True)
+    pairs = sorted([(score, i, j) for i, a in enumerate(reference)
+                    for j, b in enumerate(candidate) if int(a[5]) == int(b[5])
+                    and (score := iou(a, b)) >= threshold], reverse=True)
     used_a, used_b, matches = set(), set(), []
     for score, i, j in pairs:
         if score >= threshold and i not in used_a and j not in used_b:
@@ -40,6 +42,30 @@ def load(path):
     return result
 
 
+def canonical(value):
+    if isinstance(value, dict):
+        return {k: canonical(v) for k, v in value.items() if k not in {'TimeStamp', 'UseTimeMs', 'FreeCapacity'}}
+    if isinstance(value, list):
+        return sorted((canonical(v) for v in value), key=lambda v: json.dumps(v, sort_keys=True))
+    return value
+
+
+def business_counts(value, result=None):
+    result = collections.Counter() if result is None else result
+    if isinstance(value, dict):
+        if 'ObjectType' in value and 'ObjectCount' in value:
+            result[f'ObjectType:{value["ObjectType"]}'] += value['ObjectCount']
+        for name in ['PersonCnt', 'FaceCnt']:
+            if name in value:
+                result[name] += value[name]
+        for v in value.values():
+            business_counts(v, result)
+    elif isinstance(value, list):
+        for v in value:
+            business_counts(v, result)
+    return result
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--reference', type=Path, required=True)
@@ -52,6 +78,9 @@ def main():
     reference, candidate = load(args.reference), load(args.candidate)
     args.output.mkdir(parents=True, exist_ok=False)
     counts = collections.Counter()
+    count_deltas = collections.defaultdict(list)
+    class_stats = collections.defaultdict(collections.Counter)
+    matches_all = []
     with (args.output / 'differences.jsonl').open('w') as stream:
         for key in sorted(reference.keys() | candidate.keys()):
             a, b = reference.get(key), candidate.get(key)
@@ -64,6 +93,13 @@ def main():
                 counts['failed_pairs'] += 1
                 stream.write(json.dumps({'key': key, 'error': 'non_200'})+'\n')
                 continue
+            equal = canonical(a['response']) == canonical(b['response'])
+            counts['business_equal_ignoring_timing_and_order' if equal else 'business_changed'] += 1
+            ac, bc = business_counts(a['response']), business_counts(b['response'])
+            for count_key in ac.keys() | bc.keys():
+                count_deltas[(key[0], count_key)].append(bc[count_key]-ac[count_key])
+            stream.write(json.dumps({'key': key, 'business_equal_ignoring_timing_and_order': equal,
+                                     'reference_counts': dict(ac), 'candidate_counts': dict(bc)})+'\n')
             am = {p['model']: p for p in a['predictions']}
             bm = {p['model']: p for p in b['predictions']}
             for model in sorted(am.keys() | bm.keys()):
@@ -72,12 +108,29 @@ def main():
                     stream.write(json.dumps({'key': key, 'model': model, 'error': 'model_missing'})+'\n')
                     continue
                 result = match(am[model]['boxes_xyxy_conf_cls'], bm[model]['boxes_xyxy_conf_cls'], args.iou)
+                matches_all.extend(result['matched'])
+                reference_boxes, candidate_boxes = am[model]['boxes_xyxy_conf_cls'], bm[model]['boxes_xyxy_conf_cls']
+                for item in result['matched']:
+                    class_stats[(key[0], model, int(reference_boxes[item['reference_index']][5]))]['matched'] += 1
+                for index in result['missing']:
+                    class_stats[(key[0], model, int(reference_boxes[index][5]))]['missing'] += 1
+                for index in result['added']:
+                    class_stats[(key[0], model, int(candidate_boxes[index][5]))]['added'] += 1
                 for name in ['matched', 'missing', 'added']:
                     counts[name] += len(result[name])
                 stream.write(json.dumps({'key': key, 'model': model, **result})+'\n')
     summary = {'evaluation': 'reference_consistency_not_ground_truth_accuracy',
                'algorithm': 'class_aware_greedy_descending_iou', 'iou_threshold': args.iou,
-               'counts': dict(counts), 'business_response_comparison': 'pending'}
+               'counts': dict(counts),
+               'matched_boxes': {'mean_iou': statistics.mean(m['iou'] for m in matches_all) if matches_all else None,
+                                 'max_coordinate_delta': max((m['max_coordinate_delta'] for m in matches_all), default=None),
+                                 'mean_absolute_confidence_delta': statistics.mean(abs(m['confidence_delta']) for m in matches_all) if matches_all else None},
+               'per_class': [{'endpoint': k[0], 'model': k[1], 'class_id': k[2], **v} for k, v in sorted(class_stats.items())],
+               'business_counts_relative_to_reference': [{'endpoint': k[0], 'key': k[1], 'images': len(v),
+                    'equal_images': sum(d == 0 for d in v), 'mean_absolute_delta': statistics.mean(abs(d) for d in v),
+                    'max_absolute_delta': max(abs(d) for d in v), 'signed_total_delta': sum(v)}
+                    for k, v in sorted(count_deltas.items())],
+               'business_comparison': 'strict_values_after_removing_timing_capacity_and_list_order_not_accuracy_acceptance'}
     (args.output / 'summary.json').write_text(json.dumps(summary, indent=2))
     print(json.dumps(summary))
 
