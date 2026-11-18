@@ -31,9 +31,9 @@ async def run(args):
     limits = httpx.Limits(max_connections=args.concurrency, max_keepalive_connections=args.concurrency)
     with (args.output / 'requests.jsonl').open('w') as out:
         async with httpx.AsyncClient(timeout=args.timeout, limits=limits, trust_env=False) as client:
-            async def worker(worker_index):
+            async def worker(worker_index, planned=None):
                 nonlocal sequence
-                while time.perf_counter() < stop:
+                while planned is not None or time.perf_counter() < stop:
                     number = sequence
                     sequence += 1
                     base = args.urls[worker_index % len(args.urls)].rstrip('/')
@@ -55,17 +55,45 @@ async def run(args):
                         row.update(status=None, valid=False, error=repr(exc))
                     row['completed_offset_s'] = time.perf_counter()-started
                     row['latency_ms'] = (time.perf_counter()-sent)*1000
+                    if planned is not None:
+                        row['planned_offset_s'] = planned-started
+                        row['latency_from_schedule_ms'] = (time.perf_counter()-planned)*1000
                     records.append(row)
                     out.write(json.dumps(row, ensure_ascii=False)+'\n')
-            await asyncio.gather(*(worker(i) for i in range(args.concurrency)))
+                    if planned is not None:
+                        return
+            if not args.rate:
+                await asyncio.gather(*(worker(i) for i in range(args.concurrency)))
+            else:
+                running = set()
+                arrival = started
+                index = 0
+                while arrival < stop:
+                    await asyncio.sleep(max(0, arrival-time.perf_counter()))
+                    if len(running) >= args.concurrency:
+                        row = {'status': None, 'valid': False, 'latency_ms': 0,
+                               'error': 'load_generator_inflight_limit', 'planned_offset_s': arrival-started}
+                        records.append(row)
+                        out.write(json.dumps(row)+'\n')
+                    else:
+                        task = asyncio.create_task(worker(index, arrival))
+                        running.add(task)
+                        task.add_done_callback(running.discard)
+                    index += 1
+                    arrival = started+index/args.rate
+                if running:
+                    await asyncio.gather(*running)
     elapsed = time.perf_counter()-started
     successful = [r for r in records if r['valid']]
     latencies = [r['latency_ms'] for r in successful]
     # 窗口内完成吞吐与停止发请求后排空的耗时分别报告。
     completed_in_window = [r for r in successful if r['completed_offset_s'] <= args.seconds]
-    summary = {'mode': 'closed_loop_single_image_http', 'endpoint': args.endpoint,
+    summary = {'mode': 'open_loop_single_image_http' if args.rate else 'closed_loop_single_image_http', 'endpoint': args.endpoint,
                'instances': len(args.urls), 'total_concurrency': args.concurrency,
                'dispatch': 'fixed_worker_to_instance_no_retry',
+               'target_images_per_s': args.rate or None,
+               'generator_limit_events': sum(r.get('error') == 'load_generator_inflight_limit' for r in records),
+               'scheduled_latency_ms_p95': percentile([r['latency_from_schedule_ms'] for r in successful if 'latency_from_schedule_ms' in r], .95),
                'send_window_s': args.seconds, 'elapsed_including_drain_s': elapsed,
                'requests': len(records), 'successful': len(successful),
                'failed': len(records)-len(successful),
@@ -90,8 +118,9 @@ if __name__ == '__main__':
     parser.add_argument('--output', required=True, type=Path)
     parser.add_argument('--concurrency', type=int, default=48)
     parser.add_argument('--seconds', type=float, default=180)
+    parser.add_argument('--rate', type=float, default=0, help='大于零启用定速开放式负载，concurrency 为客户端在途上限')
     parser.add_argument('--timeout', type=float, default=60)
     args = parser.parse_args()
-    if args.concurrency < 1 or args.seconds <= 0 or args.timeout <= 0:
+    if args.concurrency < 1 or args.seconds <= 0 or args.timeout <= 0 or args.rate < 0:
         parser.error('并发、持续时间、超时必须大于零')
     asyncio.run(run(args))
