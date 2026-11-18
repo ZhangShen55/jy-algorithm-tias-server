@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import sys
+import subprocess
 import time
 
 
@@ -18,6 +19,7 @@ def main():
     parser.add_argument('--output', required=True, type=Path)
     parser.add_argument('--backend', choices=['pytorch', 'tensorrt'], default='pytorch')
     parser.add_argument('--engine-root', default='')
+    parser.add_argument('--endpoint', choices=['/AE/SyncTasks2', '/ImageDetect/student/v1.0.0', '/ImageDetect/teacher/v1.0.0'], help='仅采集指定接口，独立进程隔离 predictor 状态')
     parser.add_argument('--limit', type=int, default=1, help='每接口图片数，0 为全部')
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[2]
@@ -65,7 +67,9 @@ def main():
     import importlib.metadata as metadata
     manifest = {
         'mode': 'sequential_in_process_api_baseline_not_http_load_test',
-        'backend': args.backend, 'engine_root': args.engine_root,
+        'source_git_commit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=root, text=True).strip(),
+        'source_git_tracked_changes': subprocess.check_output(['git', 'status', '--porcelain', '--untracked-files=no'], cwd=root, text=True).splitlines(),
+        'backend': args.backend, 'engine_root': args.engine_root, 'endpoint_filter': args.endpoint,
         'gpu_uuid': gpu, 'device': torch.cuda.get_device_name(0),
         'torch_cuda_runtime': torch.version.cuda,
         'versions': {p: metadata.version(p) for p in ['torch', 'torchvision', 'ultralytics']},
@@ -79,6 +83,8 @@ def main():
     failures = 0
     with TestClient(app) as client, (args.output / 'predictions.jsonl').open('w') as out:
         for endpoint, folder in endpoints:
+            if args.endpoint and endpoint != args.endpoint:
+                continue
             files = sorted((root / 'tests' / folder).rglob('*.jpg'))
             if args.limit:
                 files = files[:args.limit]

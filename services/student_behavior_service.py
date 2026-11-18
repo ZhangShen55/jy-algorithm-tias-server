@@ -141,6 +141,7 @@ def process_person_detection(img: np.ndarray, offset: Tuple[int, int], img_size:
         img,
         conf=0.1,
         imgsz=get_capped_inference_size(img_size),
+        agnostic_nms=False,
         half=use_half,
         verbose=verbose,
     )[0]

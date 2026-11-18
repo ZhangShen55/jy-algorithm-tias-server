@@ -42,19 +42,20 @@ def main():
         if original is None:
             raise ValueError(f'Cannot read: {key[2]}')
         panels = []
-        for label, record, unmatched in [('PyTorch FP16', reference[key], row['missing']), ('TensorRT FP16', candidate[key], row['added'])]:
+        for label, record, unmatched, index_key in [('PyTorch FP16', reference[key], row['missing'], 'reference_index'), ('TensorRT FP16', candidate[key], row['added'], 'candidate_index')]:
+            shifted = {m[index_key] for m in row['matched'] if m['max_coordinate_delta'] >= 2}
             prediction = next(p for p in record['predictions'] if p['model']==row['model'])
             canvas = original.copy()
             for i, box in enumerate(prediction['boxes_xyxy_conf_cls']):
-                color = (0,0,255) if i in unmatched else (0,180,0)
+                color = (0,0,255) if i in unmatched else ((255,0,0) if i in shifted else (0,180,0))
                 x1,y1,x2,y2 = map(int,box[:4])
                 cv2.rectangle(canvas,(x1,y1),(x2,y2),color,3 if i in unmatched else 1)
-                if i in unmatched:
+                if i in unmatched or i in shifted:
                     name = prediction['names'].get(str(int(box[5])), str(int(box[5])))
                     cv2.putText(canvas,f'{name} {box[4]:.5f}',(max(0,x1),max(18,y1-4)),cv2.FONT_HERSHEY_SIMPLEX,.55,color,2)
             banner = np.zeros((55,canvas.shape[1],3),dtype=np.uint8)
             cv2.putText(banner,f'{label} | {row["model"]} | boxes={len(prediction["boxes_xyxy_conf_cls"])}',(10,24),cv2.FONT_HERSHEY_SIMPLEX,.65,(255,255,255),1)
-            cv2.putText(banner,'RED: unmatched  GREEN: matched | '+key[2][-95:],(10,46),cv2.FONT_HERSHEY_SIMPLEX,.45,(220,220,220),1)
+            cv2.putText(banner,'RED unmatched | BLUE >=2px drift | GREEN matched | '+key[2][-95:],(10,46),cv2.FONT_HERSHEY_SIMPLEX,.45,(220,220,220),1)
             panels.append(np.vstack([banner,canvas]))
         filename = f'{len(index):02d}-{hashlib.sha256(str(key).encode()).hexdigest()[:12]}.jpg'
         if not cv2.imwrite(str(args.output/filename),np.hstack(panels)):
