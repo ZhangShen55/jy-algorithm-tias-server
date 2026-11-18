@@ -65,3 +65,7 @@
 ## 离线分析工具已备妥
 
 `scripts/benchmark/summarize_capacity.py`（0855c07）已完成合成验证及15个正式完成轮离线核对；服务器私有副本 `environment-20261118/summarize_capacity-0855c07.py`，r2归集产物与本机备份哈希见 ../20261118-capacity-analysis/report.md。该工具只读证据，无GPU/服务操作，正式服务仍b15dd39。容量结束后用新run_id补做全量归集，开放式时间线按协议区分实际在途、计划发送滞后与发生器本地丢弃。
+
+## 公开结构核查补证
+
+已从现有PyTorch实例只读获取OpenAPI，学生NMS修正后与先前测量版7个公开路径及完整schema相同，SHA697baa96efd0949fd6e787412ccee994154a026636b596d37602b9cb4ec53068；本机备份校验通过。证据见 ../20261118-contract-check/report.md。TensorRT及原main对照、并发响应仍待补齐，不提前标为全部通过。
