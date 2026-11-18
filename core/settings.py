@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     IMAGE_ROOT: str = "/mnt/ias-images"
     RESULT_IMAGE_ROOT: str = "/data/result_images"
     SAVE_RESULT_IMAGE: int = 0
+    InferenceHalf: bool = False
     Port: int = 8881
     GPU_ID: Union[int, str]
     Person_Thresd: Dict[str, float]
@@ -85,7 +86,9 @@ else:
     #     torch.backends.cudnn.benchmark = True
     #     torch.backends.cudnn.deterministic = False
 # use_half = device.type == "cuda"  # 仅在 CUDA 场景启用 FP16
-use_half = False  # 优先精准度，所以开启 fp32。20251205
+use_half = settings.InferenceHalf
+if use_half and device.type != "cuda":
+    raise RuntimeError("InferenceHalf requires an available CUDA device")
 
 APP_VER = "V4.1_20251222"
 ADP_VER = "V4.1_20251222"

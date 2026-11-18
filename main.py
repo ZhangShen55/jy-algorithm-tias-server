@@ -62,7 +62,7 @@ app.include_router(build_behavior_router(worker_controller))
 app.include_router(build_worker_ops_router(worker_controller))
 
 if bool(getattr(settings, "VbasExposeLegacySyncTasks", False)):
-    from .api.tasks import router as tasks_router
+    from api.tasks import router as tasks_router
 
     app.include_router(tasks_router)
 

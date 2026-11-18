@@ -198,7 +198,7 @@ async def process_polygon(idx, poly, img, target_height, target_width, TaskID):
 async def sync_tasks(task_info: TaskInfo) -> SyncTasksResponse:
 
     # 增加连接计数
-    from ..services.capacity_service import increment_connection, increment_processed_images
+    from services.capacity_service import increment_connection, increment_processed_images
     increment_connection()
     start_time = time.time()
     logger.info(f"Received TaskID: {task_info.TaskID}")
