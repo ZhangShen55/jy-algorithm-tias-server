@@ -37,7 +37,9 @@ def main():
         available = next(int(line.split()[1])*1024 for line in Path('/proc/meminfo').read_text().splitlines() if line.startswith('MemAvailable:'))
         # 保留主机余量；限制属于实验边界，不通过 OOM 杀死其他服务寻找 CPU 内存上限。
         if available < (8+instances*1.5)*(1 << 30):
-            return {'label': label, 'usable': False, 'cause': 'host_memory_budget', 'instances': instances, 'concurrency': concurrency}
+            skipped = {'label': label, 'usable': False, 'cause': 'host_memory_budget', 'instances': instances, 'concurrency': concurrency}
+            (args.output/f'{label}.skipped.json').write_text(json.dumps(skipped, indent=2))
+            return skipped
         cmd = [sys.executable, str(root/'scripts/benchmark/instances.py'), '--output', str(folder),
                '--payload', str((args.payload_root/name).resolve()), '--endpoint', endpoint,
                '--instances', str(instances), '--concurrency', str(concurrency), '--max-batches', str(batches),
@@ -52,6 +54,14 @@ def main():
             result['summary'] = json.loads(summary.read_text())
             result['usable'] = code == 0 and result['summary']['failed'] == 0 and result['summary']['successful'] > 0
         if not result['usable']:
+            failures = []
+            request_file = folder/'load/requests.jsonl'
+            if request_file.exists():
+                for line in request_file.open():
+                    row = json.loads(line)
+                    if not row['valid'] and len(failures) < 10:
+                        failures.append(row)
+            result['failure_examples'] = failures
             oom = False
             for f in folder.glob('instance-*.log'):
                 with f.open(errors='replace') as stream:
@@ -64,7 +74,8 @@ def main():
             journal.write(json.dumps(result)+'\n')
         print(json.dumps(result), flush=True)
         time.sleep(2)
-        if code and result.get('cause') != 'cuda_oom':
+        unexpected = any(r.get('status') not in [429, 503] and r.get('error') != 'load_generator_inflight_limit' for r in result.get('failure_examples', []))
+        if (code or unexpected) and result.get('cause') != 'cuda_oom':
             raise RuntimeError(f'Unexpected case failure: inspect {label}')
         return result
 
@@ -119,8 +130,11 @@ def main():
                  candidate['max_batches'], args.explore_seconds, rate=throughput*fraction)
         results.append({'endpoint': endpoint, 'candidate': candidate, 'median_confirmed_images_per_s': throughput,
                         'stability_zero_failures': stable['usable'], 'production_slo': 'not_specified',
-                        'adoption': 'requires_user_review', 'search_scope': 'adaptive_tested_grid_not_absolute_hardware_limit'})
+                        'adoption': 'requires_user_review', 'search_scope': 'adaptive_tested_grid_not_absolute_hardware_limit',
+                        'search_stop_rules': 'concurrency_plateau_or_failure; two_instance_plateaus_or_resource_boundary'})
         (args.output/'capacity-results.json').write_text(json.dumps(results, indent=2))
+    if any(not row['stability_zero_failures'] for row in results):
+        raise RuntimeError('Stability failure needs investigation; do not recommend candidates')
     print('Capacity experiments finished; adoption and accuracy acceptance remain separate.', flush=True)
 
 
