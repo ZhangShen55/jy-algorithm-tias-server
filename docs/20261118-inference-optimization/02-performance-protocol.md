@@ -59,3 +59,11 @@ CPU 用单调时钟；GPU 用实际 stream 上的 CUDA Events。日常指标与�
 ## 实测发现与实验配置分组
 
 现有 BatchAdmissionController 尚未实现本地等待队列，MaxQueueSize>0 仍会拒绝满载请求。默认组保留 MaxConcurrentBatches=1、MaxQueueSize=0；另设实际并发组，仅在独立测试配置中增加 MaxConcurrentBatches（例如 I=8/C=48 时每实例 6）。两组分别报告，不把准入配置改变的效果归为模型后端收益。不修改仓库默认值，也不据此自动采用新的生产配置。
+
+## 定速保护上限补测（2026-11-18，沿用已授权容量与失败归因范围）
+
+人数110%轮触发发生器C32在途保护，168个计划槽未发送，2418个实际HTTP请求均成功；原case-result中http_or_business_failure是粗分类，不改写原始文件，离线报告细分为generator_inflight_limit_not_dispatched。目标到达速率14.366图/s不能因本地保护触发就视为服务器硬峰值，未发送槽也不能统计成服务返回错误。
+
+当前服务继续原串行实验，不插入额外GPU负载。原PyTorch/TensorRT容量流程结束且GPU空闲后，补一轮相同I8、同FP16、同14.366图/s、同种子2725806188、180秒发送/30秒预热，发生器在途保护上限提高到256，其它请求和服务配置不变。保留60秒超时和有界连接/内存，发生OOM/超时/服务错误即记录失败并停止继续增压；不无限增大上限。若仍触发保护，结论保持受限，不能冒充测得绝对峰值。若未触发，按3个连续10秒窗口检查持续积压及时间，同时核对客户端CPU、发送滞后、GPU和失败。此补测用于解释边界，不用失败点作为推荐配置。
+
+源码核对：api/tasks.py→services/task_service_base64.py 的旧人数路由没有调用BatchAdmissionController，且async处理路径内存在同步model.predict；因此MaxConcurrentBatches/MaxQueueSize只是人数实验文件中的配置值，不是有效的人数准入控制。师生路由另走build_behavior_router的准入逻辑，必须分接口解释。保留服务行为进行基线测量，本项不改生产排队/准入或运行环境。

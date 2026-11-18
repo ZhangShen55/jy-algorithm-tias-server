@@ -23,6 +23,31 @@ def describe(values):
             'max': max(values) if values else None}
 
 
+def failure_attribution(records):
+    """计划槽丢弃不等于收到服务错误，保留两种分母。"""
+    causes = collections.Counter()
+    for row in records:
+        if row['valid']:
+            continue
+        if row.get('error') == 'load_generator_inflight_limit':
+            if 'sent_offset_s' in row:
+                raise ValueError('本地保护丢弃记录不应有发送时间')
+            causes['generator_inflight_limit_not_dispatched'] += 1
+        elif row.get('status') in (429, 503):
+            causes['http_429_or_503_requires_service_log'] += 1
+        elif row.get('status') == 200:
+            causes['http_200_business_failure'] += 1
+        elif row.get('status') is not None:
+            causes['other_http_error'] += 1
+        else:
+            causes['transport_or_client_error_after_dispatch'] += 1
+    return {'recorded_load_slots': len(records),
+            'dispatched_requests': sum('sent_offset_s' in r for r in records),
+            'successful_http_and_business': sum(bool(r['valid']) for r in records),
+            'failed_slot_causes': dict(causes),
+            'requires_higher_inflight_bound_recheck': bool(causes['generator_inflight_limit_not_dispatched'])}
+
+
 def timeline(records, seconds, open_loop, window=10):
     sent = sorted(r['sent_offset_s'] for r in records if 'sent_offset_s' in r)
     completed = sorted(r['completed_offset_s'] for r in records if 'completed_offset_s' in r)
@@ -60,6 +85,9 @@ def timeline(records, seconds, open_loop, window=10):
             'backlog_rule': 'three_consecutive_full_10s_increases_open_loop_only',
             'interpretation': 'operational_congestion_signal_not_production_slo_or_hardware_limit',
             'local_generator_drops': len(dropped),
+            'first_generator_protection_s': min(dropped, default=None),
+            'congestion_observation': ('censored_by_generator_limit_requires_recheck' if dropped else
+                                       ('sustained_growth_detected' if wall else 'no_sustained_growth_detected_in_window')),
             'send_lag_ms': describe([(r['sent_offset_s']-r['planned_offset_s'])*1000
                                      for r in records if 'sent_offset_s' in r and 'planned_offset_s' in r])}
 
@@ -121,6 +149,7 @@ def summarize(root, output):
             if (len(records), successful, len(records)-successful) != (summary['requests'], summary['successful'], summary['failed']):
                 raise ValueError(f'请求完整性与摘要不符：{folder}')
             item['request_integrity'] = 'counts_match_saved_summary'
+            item['failure_attribution'] = failure_attribution(records)
             item['timeline'] = timeline(records, summary['send_window_s'], summary['mode'].startswith('open_loop'))
             resource_path = folder/'resources.csv'
             if resource_path.exists():
@@ -139,15 +168,19 @@ def summarize(root, output):
         writer = csv.writer(stream, lineterminator='\n')
         writer.writerow(['case', 'usable', 'instances', 'total_concurrency', 'max_batches',
                          'successes', 'failures', 'images_per_s', 'p50_ms', 'p95_ms', 'p99_ms', 'mean_ms',
-                         'first_failure_s', 'congestion_interval_start_s', 'generator_drops'])
+                         'first_failure_s', 'congestion_interval_start_s', 'generator_drops',
+                         'dispatched_requests', 'failure_causes', 'requires_higher_inflight_bound_recheck'])
         for item in cases:
             case = item['case']; summary = case.get('summary', {})
             latency = summary.get('successful_image_latency_ms', {})
             trace = item.get('timeline', {}); wall = trace.get('first_sustained_backlog_increase') or {}
+            attribution = item.get('failure_attribution', {})
             writer.writerow([case['label'], case['usable'], case['instances'], case['concurrency'], case.get('max_batches'),
                              summary.get('successful'), summary.get('failed'), summary.get('success_images_per_s_in_window'),
                              *[latency.get(k) for k in ['p50', 'p95', 'p99', 'mean']],
-                             trace.get('first_failure_s'), wall.get('interval_start_s'), trace.get('local_generator_drops')])
+                             trace.get('first_failure_s'), wall.get('interval_start_s'), trace.get('local_generator_drops'),
+                             attribution.get('dispatched_requests'), json.dumps(attribution.get('failed_slot_causes', {})),
+                             attribution.get('requires_higher_inflight_bound_recheck')])
     return {'completed': len(cases), 'incomplete_excluded': incomplete, 'output': str(output)}
 
 
