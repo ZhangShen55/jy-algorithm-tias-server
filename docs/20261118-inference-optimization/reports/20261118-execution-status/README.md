@@ -61,3 +61,7 @@
 用户已确认学生人数保持独立默认 `agnostic_nms=False`，详见 ../20261118-student-nms-correction/report.md。父调度4182465已 SIGSTOP，当前 sync-confirm-sync-explore-i8-c8-b1-r1 子轮继续自然结束。必须先核对无 instances/load 且 GPU 空闲，才能拉取修正并顺序重采学生两后端；然后 SIGCONT 原父调度。旧学生结果不可作最终独立基线，原始文件保留；不要另启容量任务。
 
 修正协调器已于 GPU 空闲后启动（PID30437），状态 `student-nms-correction-20261118/state.json`；脚本在 `environment-20261118/student-nms-correction.py`，成功自动恢复4182465，失败保持暂停。服务器代码 b15dd39。首批学生输出三模型FP16且人数False已核验。完成后取回 `student-nms-correction-20261118/corrected-baselines.tar.gz` 并验证SHA。不要在协调器运行期间另启GPU任务。同步期间人数测量逻辑未改，需在最终报告记录0ca3a43→b15dd39版本边界。
+
+## 离线分析工具已备妥
+
+`scripts/benchmark/summarize_capacity.py`（0855c07）已完成合成验证及15个正式完成轮离线核对；服务器私有副本 `environment-20261118/summarize_capacity-0855c07.py`，r2归集产物与本机备份哈希见 ../20261118-capacity-analysis/report.md。该工具只读证据，无GPU/服务操作，正式服务仍b15dd39。容量结束后用新run_id补做全量归集，开放式时间线按协议区分实际在途、计划发送滞后与发生器本地丢弃。
