@@ -1,6 +1,6 @@
 # 学生人数 NMS 口径修正
 
-状态：用户已确认，代码已修正，待服务器验证与独立重采。日期：2026-11-18（北京时间）。
+状态：用户已确认，代码修正已提交推送；服务器正在独立重采。日期：2026-11-18（北京时间）。
 
 ## 发现与决策
 
@@ -17,3 +17,13 @@ Ultralytics 8.3.156 的 Model.predict 会把本次 kwargs 合并到已存在 pre
 ## 待补证据
 
 服务器提交、运行起止、逐图采集完整性、差异统计、校验清单和恢复时间：待实测填写。本次修正不能写为真实准确率或生产验收通过。
+
+## 实施检查点
+
+- 提交 `b15dd396172e5532661a88e547cb70e92a9f5147` 已推送 perf，服务器已 fast-forward，跟踪文件干净。
+- 本地对实际生产函数做隔离调用核验：人数 predict 必须收到 False，FP16 设置及空检测结果保持；编译检查与 diff 检查通过。
+- 当前 sync I8/C8/b1 首轮确认正常结束，300秒3926次成功、0失败，13.06图/s，P95 660.40ms；尚未完成三轮复测，不是最终推荐。
+- 调度暂停时 GPU 仅3MiB，无 instances/load 运行；2026-11-18 20:18后启动独占GPU的修正协调器 PID30437。已采集的首批记录核对 HTTP200、业务成功、三模型 FP16、人数参数False。
+- 协调器：`/home/zhangs/workspace/vbas-benchmarks/environment-20261118/student-nms-correction.py`。状态与日志：`student-nms-correction-20261118/{state.json,coordinator.log,torch-collect.log,trt-collect.log}`。
+- 成功后自动组合原人数/教师与新学生为 `torch-corrected-baseline-20261118`、`trt-corrected-baseline-20261118`，另存新对照、3张学生重复采集、校验清单与打包，再恢复原调度。任何阶段失败保持暂停，先检查，不自动覆盖或重跑。
+- 打包完成后仍需取回本机并校验，以及按新结果更新差异案例图与最终报告；本检查点不表示重采完成。
