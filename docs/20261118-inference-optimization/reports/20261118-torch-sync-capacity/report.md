@@ -76,3 +76,9 @@
 原始case-result的cause为粗粒度http_or_business_failure，保持原样；离线工具新增对“计划槽/实际发送/本地保护/HTTP错误/业务失败”的区分，避免归因混淆。原两后端串行流程结束后，按02协议对同110%配置补一轮C256保护上限，验证是否仍持续积压，不覆盖这轮、不借用其他GPU、不无限扩容发生器。
 
 当前学生接口容量搜索已自动开始；人数报告还不能标为全部验收完成或生产推荐。
+
+## 定速证据校验备份
+
+三档定速轮的完整文件和新版离线归因已打包至服务器 `torch-sync-open-checkpoint-20261118/evidence.tar.gz`，已取回本机 `/Users/zhangshen/.codex/backups/vbas-benchmark-20261118/torch-sync-open-checkpoint-20261118/evidence.tar.gz`。SHA256 `672b9f80c20e9ce6cbd9fa70c592da479ee83fb6eb8cb17ce3d59c268d9129d4` 一致，解包后74份文件逐项校验通过。
+
+离线归因版本0e51d43在新目录 `capacity-analysis-20261118-sync-attribution/` 实测通过，原始请求与双摘要仍相符；其中人数110%被明确标为censored_by_generator_limit_requires_recheck。该分析快照还归集当时已完成的学生轮，不表示这些学生轮已全部完成容量验收。

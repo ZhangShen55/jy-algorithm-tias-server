@@ -73,3 +73,5 @@
 ## 公开结构核查补证
 
 已从现有PyTorch实例只读获取OpenAPI，学生NMS修正后与先前测量版7个公开路径及完整schema相同，SHA697baa96efd0949fd6e787412ccee994154a026636b596d37602b9cb4ec53068；本机备份校验通过。证据见 ../20261118-contract-check/report.md。TensorRT及原main对照、并发响应仍待补齐，不提前标为全部通过。
+
+人数定速补证已取回本机：torch-sync-open-checkpoint-20261118/evidence.tar.gz，SHA672b9f80c20e9ce6cbd9fa70c592da479ee83fb6eb8cb17ce3d59c268d9129d4；74文件校验通过。新版离线0e51d43已实测，110%明确标记保护截断，后续C256补测不可省略。学生原正式流程继续，勿插入GPU实验。
