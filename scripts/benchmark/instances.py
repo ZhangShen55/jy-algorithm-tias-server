@@ -24,6 +24,7 @@ def main():
     parser.add_argument('--seconds', type=int, default=180)
     parser.add_argument('--first-port', type=int, default=18981)
     parser.add_argument('--queue-size', type=int, default=0)
+    parser.add_argument('--max-batches', type=int, default=1)
     parser.add_argument('--warmup-seconds', type=int, default=30)
     args = parser.parse_args()
     if args.instances < 1 or args.concurrency < 1:
@@ -56,7 +57,7 @@ def main():
                 'GPU_ID': f'"{gpu}"\nInferenceHalf = true',
                 'VbasExposeLegacySyncTasks': 'true', 'VisionOrchestratorBaseUrl': '""',
                 'InstanceId': f'"perf-{port}"', 'BaseUrl': f'"http://127.0.0.1:{port}"',
-                'MaxQueueSize': str(args.queue_size)}
+                'MaxQueueSize': str(args.queue_size), 'MaxConcurrentBatches': str(args.max_batches)}
             for key, value in substitutions.items():
                 text = re.sub(rf'^{key}\s*=.*$', f'{key} = {value}', text, flags=re.M)
             config = args.output / f'config-{port}.toml'
@@ -80,7 +81,7 @@ def main():
                         raise TimeoutError(f'Instance startup timeout: {port}')
                     time.sleep(1)
             urls.append(url)
-        (args.output / 'instances.json').write_text(json.dumps({'pids': [p.pid for p in processes], 'urls': urls, 'queue_size': args.queue_size, 'gpu_uuid': gpu, 'python': sys.executable}, indent=2))
+        (args.output / 'instances.json').write_text(json.dumps({'pids': [p.pid for p in processes], 'urls': urls, 'queue_size': args.queue_size, 'max_batches': args.max_batches, 'gpu_uuid': gpu, 'python': sys.executable}, indent=2))
         # 每个实例单独持续调用预热，故意不将此阶段算入正式采样。
         payload = args.payload.read_bytes()
         for url in urls:
