@@ -46,11 +46,24 @@ def main():
     def sample():
         with (args.output / 'resources.csv').open('w') as out:
             writer = csv.writer(out)
-            writer.writerow(['unix_time', 'gpu_query', 'process_stats'])
+            writer.writerow(['unix_time', 'gpu_query', 'process_stats_json'])
+            previous = {}
             while not done.is_set():
                 query = subprocess.run(['nvidia-smi', f'--id={gpu}', '--query-gpu=memory.used,utilization.gpu,temperature.gpu,power.draw,clocks.sm', '--format=csv,noheader,nounits'], capture_output=True, text=True)
-                proc = subprocess.run(['ps', '-o', 'pid=,pcpu=,rss=', '-p', ','.join(str(p.pid) for p in processes)], capture_output=True, text=True) if processes else None
-                writer.writerow([time.time(), query.stdout.strip(), proc.stdout.strip() if proc else ''])
+                now = time.monotonic()
+                stats = []
+                for process in list(processes):
+                    try:
+                        fields = Path(f'/proc/{process.pid}/stat').read_text().rsplit(')', 1)[1].split()
+                        ticks = int(fields[11])+int(fields[12])
+                        old = previous.get(process.pid)
+                        cpu = (ticks-old[1])/os.sysconf('SC_CLK_TCK')/(now-old[0])*100 if old else None
+                        previous[process.pid] = (now, ticks)
+                        stats.append({'pid': process.pid, 'cpu_percent_one_core_100': cpu,
+                                      'rss_kib': int(fields[21])*os.sysconf('SC_PAGE_SIZE')/1024})
+                    except (FileNotFoundError, ProcessLookupError):
+                        continue
+                writer.writerow([time.time(), query.stdout.strip(), json.dumps(stats)])
                 out.flush()
                 done.wait(1)
     sampler = threading.Thread(target=sample, daemon=True)
