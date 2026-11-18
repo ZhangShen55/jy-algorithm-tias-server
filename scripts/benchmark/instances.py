@@ -19,6 +19,8 @@ def main():
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--payload', type=Path, required=True)
     parser.add_argument('--endpoint', required=True)
+    parser.add_argument('--backend', choices=['pytorch', 'tensorrt'], default='pytorch')
+    parser.add_argument('--engine-root', default='')
     parser.add_argument('--instances', type=int, default=8)
     parser.add_argument('--concurrency', type=int, default=48)
     parser.add_argument('--seconds', type=int, default=180)
@@ -54,6 +56,7 @@ def main():
             with socket.socket() as test:
                 test.bind(('127.0.0.1', port))
             text = (root / 'config.toml').read_text()
+            text = 'InferenceBackend = '+json.dumps(args.backend)+'\nEngineRoot = '+json.dumps(args.engine_root)+'\n'+text
             substitutions = {
                 'GPU_ID': f'"{gpu}"\nInferenceHalf = true',
                 'VbasExposeLegacySyncTasks': 'true', 'VisionOrchestratorBaseUrl': '""',

@@ -4,7 +4,7 @@ from ultralytics import YOLO
 import torch
 from pydantic import Field
 from pydantic_settings import BaseSettings
-from typing import Any, Dict, Union
+from typing import Any, Dict, Union, Literal
 from .config_loader import load_config
 from .model_protection import ModelPathResolver, ModelProtectionConfig
 
@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     RESULT_IMAGE_ROOT: str = "/data/result_images"
     SAVE_RESULT_IMAGE: int = 0
     InferenceHalf: bool = False
+    InferenceBackend: Literal["pytorch", "tensorrt"] = "pytorch"
+    EngineRoot: str = ""
     Port: int = 8881
     GPU_ID: Union[int, str]
     Person_Thresd: Dict[str, float]
@@ -104,9 +106,35 @@ TEACHER_BEHAVIOR_MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', 'mod
 model_protection_config = ModelProtectionConfig.from_mapping(getattr(settings, "ModelProtection", {}))
 model_path_resolver = ModelPathResolver(model_protection_config)
 
-yolo_person_model = YOLO(str(model_path_resolver.prepare_model_path(PERSON_MODEL_PATH))).to(device)
-yolo_face_model = YOLO(str(model_path_resolver.prepare_model_path(FACE_MODEL_PATH))).to(device)
-yolo_student_model = YOLO(str(model_path_resolver.prepare_model_path(STUDENT_MODEL_PATH))).to(device)
-yolo_teacher_behavior_model = YOLO(str(model_path_resolver.prepare_model_path(TEACHER_BEHAVIOR_MODEL_PATH))).to(device)
+def load_inference_model(pt_path):
+    if settings.InferenceBackend == "pytorch":
+        return YOLO(str(model_path_resolver.prepare_model_path(pt_path))).to(device)
+    if device.type != "cuda" or not use_half or not settings.EngineRoot:
+        raise RuntimeError("TensorRT requires CUDA, InferenceHalf=true and EngineRoot")
+    from pathlib import Path
+    import numpy as np
+    name = Path(pt_path).stem
+    engine_path = Path(settings.EngineRoot) / name / f"{name}.engine"
+    path = model_path_resolver.prepare_model_path(engine_path)
+    model = YOLO(str(path), task="detect")
+    # 当前实验引擎固定实际输入尺寸，不能沿用 PyTorch 的自动矩形补边。
+    shape = (384, 640) if name == "teacher_behavior" else (1088, 1920)
+    original = model.predict
+    def predict(*args, **kwargs):
+        kwargs["imgsz"] = shape
+        kwargs["half"] = True
+        return original(*args, **kwargs)
+    model.predict = predict
+    # 在清理解密临时文件前实例化运行时，避免延迟加载访问已删除文件。
+    model.predict(np.zeros((*shape, 3), dtype=np.uint8), device=0, verbose=False)
+    if not model.predictor.model.fp16:
+        raise RuntimeError(f"Engine is not FP16: {name}")
+    return model
+
+
+yolo_person_model = load_inference_model(PERSON_MODEL_PATH)
+yolo_face_model = load_inference_model(FACE_MODEL_PATH)
+yolo_student_model = load_inference_model(STUDENT_MODEL_PATH)
+yolo_teacher_behavior_model = load_inference_model(TEACHER_BEHAVIOR_MODEL_PATH)
 if model_protection_config.cleanup_after_load:
     model_path_resolver.cleanup()

@@ -16,6 +16,8 @@ def digest(path):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--output', required=True, type=Path)
+    parser.add_argument('--backend', choices=['pytorch', 'tensorrt'], default='pytorch')
+    parser.add_argument('--engine-root', default='')
     parser.add_argument('--limit', type=int, default=1, help='每接口图片数，0 为全部')
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[2]
@@ -26,6 +28,7 @@ def main():
     import re
     config = (root / 'config.toml').read_text()
     config = re.sub(r'^GPU_ID\s*=.*$', f'GPU_ID = "{gpu}"\nInferenceHalf = true', config, flags=re.M)
+    config = 'InferenceBackend = '+json.dumps(args.backend)+'\nEngineRoot = '+json.dumps(args.engine_root)+'\n'+config
     config = config.replace('VbasExposeLegacySyncTasks = false', 'VbasExposeLegacySyncTasks = true')
     config = re.sub(r'^VisionOrchestratorBaseUrl\s*=.*$', 'VisionOrchestratorBaseUrl = ""', config, flags=re.M)
     config_path = args.output / 'config.toml'
@@ -54,13 +57,15 @@ def main():
                     'coordinate_space': 'input_image_pixels_after_nms_before_business_filter',
                     'original_shape': result.orig_shape, 'speed_ms': result.speed,
                     'predict_args': {k: v for k, v in kw.items() if k != 'source'},
-                    'weight_dtype': str(next(_model.model.parameters()).dtype),
+                    'weight_dtype': str(next(_model.model.parameters()).dtype) if args.backend == 'pytorch' else 'not_applicable_engine',
+                    'runtime_fp16': bool(_model.predictor.model.fp16),
                 })
             return results
         model.predict = wrap
     import importlib.metadata as metadata
     manifest = {
         'mode': 'sequential_in_process_api_baseline_not_http_load_test',
+        'backend': args.backend, 'engine_root': args.engine_root,
         'gpu_uuid': gpu, 'device': torch.cuda.get_device_name(0),
         'torch_cuda_runtime': torch.version.cuda,
         'versions': {p: metadata.version(p) for p in ['torch', 'torchvision', 'ultralytics']},
@@ -107,7 +112,7 @@ def main():
                 out.flush()
                 if response.status_code != 200 or not captured:
                     failures += 1
-                if any(p['weight_dtype'] != 'torch.float16' for p in captured):
+                if any(not p['runtime_fp16'] for p in captured):
                     raise RuntimeError('FP16 verification failed')
     print(json.dumps({'output': str(args.output), 'failed_requests': failures}))
     if failures:
