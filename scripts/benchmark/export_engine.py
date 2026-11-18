@@ -1,5 +1,6 @@
 """在独立环境/指定 GPU 构建本测试集实际 shape 的 FP16 引擎，不覆盖源模型。"""
 import argparse
+import ast
 import functools
 import hashlib
 import json
@@ -29,13 +30,58 @@ def main():
     target = args.output/source.name
     shutil.copy2(source, target)
     shape = (384, 640) if args.model == 'teacher_behavior' else (1088, 1920)
-    engine = YOLO(str(target)).export(format='engine', imgsz=shape, batch=1, half=True,
-                                     device=0, dynamic=False, simplify=False, opset=17, workspace=4)
+    # ONNX 是中间图；正式推理精度由后续 engine 的 I/O 和构建设置明确约束。
+    onnx_path = YOLO(str(target)).export(format='onnx', imgsz=shape, batch=1, half=False,
+                                        device=0, dynamic=False, simplify=False, opset=17)
+    graph = onnx.load(str(onnx_path))
+    metadata = {}
+    for item in graph.metadata_props:
+        try:
+            metadata[item.key] = ast.literal_eval(item.value)
+        except (ValueError, SyntaxError):
+            metadata[item.key] = item.value
+    logger = tensorrt.Logger(tensorrt.Logger.INFO)
+    builder = tensorrt.Builder(logger)
+    network = builder.create_network(1 << int(tensorrt.NetworkDefinitionCreationFlag.EXPLICIT_BATCH))
+    parser_onnx = tensorrt.OnnxParser(network, logger)
+    if not parser_onnx.parse(Path(onnx_path).read_bytes()):
+        raise RuntimeError('\n'.join(str(parser_onnx.get_error(i)) for i in range(parser_onnx.num_errors)))
+    if not builder.platform_has_fast_fp16:
+        raise RuntimeError('Fast FP16 unavailable')
+    for i in range(network.num_inputs):
+        network.get_input(i).dtype = tensorrt.float16
+    for i in range(network.num_outputs):
+        network.get_output(i).dtype = tensorrt.float16
+    config = builder.create_builder_config()
+    config.set_flag(tensorrt.BuilderFlag.FP16)
+    config.clear_flag(tensorrt.BuilderFlag.TF32)
+    config.set_memory_pool_limit(tensorrt.MemoryPoolType.WORKSPACE, 4 << 30)
+    config.profiling_verbosity = tensorrt.ProfilingVerbosity.DETAILED
+    serialized = builder.build_serialized_network(network, config)
+    if serialized is None:
+        raise RuntimeError('TensorRT engine build failed')
+    engine = target.with_suffix('.engine')
+    header = json.dumps(metadata).encode()
+    engine.write_bytes(len(header).to_bytes(4, 'little')+header+bytes(serialized))
+    runtime = tensorrt.Runtime(logger)
+    loaded = runtime.deserialize_cuda_engine(serialized)
+    if loaded is None:
+        raise RuntimeError('Engine deserialization failed')
+    tensors = []
+    for i in range(loaded.num_io_tensors):
+        name = loaded.get_tensor_name(i)
+        dtype = loaded.get_tensor_dtype(name)
+        if dtype != tensorrt.float16:
+            raise RuntimeError(f'Non-FP16 I/O: {name} {dtype}')
+        tensors.append({'name': name, 'dtype': str(dtype), 'shape': list(loaded.get_tensor_shape(name))})
+    inspector = loaded.create_engine_inspector()
+    (args.output/'layers.json').write_text(inspector.get_engine_information(tensorrt.LayerInformationFormat.JSON))
     manifest = {'model': args.model, 'source_sha256': hashlib.sha256(source.read_bytes()).hexdigest(),
                 'engine_sha256': hashlib.sha256(Path(engine).read_bytes()).hexdigest(),
                 'shape': [1, 3, *shape], 'precision_requested': 'fp16', 'dynamic': False,
                 'torch': torch.__version__, 'tensorrt': tensorrt.__version__, 'onnx': onnx.__version__,
                 'gpu_uuid': gpu, 'exporter': 'legacy_torch_onnx_dynamo_false',
+                'io_tensors': tensors, 'tf32_enabled': False,
                 'scope': 'dataset_shapes_only_not_general_deployment_acceptance'}
     (args.output/'build-manifest.json').write_text(json.dumps(manifest, indent=2))
     print(json.dumps(manifest))
