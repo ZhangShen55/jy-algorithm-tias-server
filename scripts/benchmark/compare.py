@@ -66,6 +66,32 @@ def business_counts(value, result=None):
     return result
 
 
+def business_boxes(value, result=None):
+    result = collections.defaultdict(list) if result is None else result
+    def append(label, positions):
+        for p in positions or []:
+            result[label].append([p[k] for k in ['LeftTopX', 'LeftTopY', 'RightBtmX', 'RightBtmY']]+[1., 0])
+    if isinstance(value, dict):
+        if 'ObjectType' in value:
+            append(f'ObjectType:{value["ObjectType"]}', value.get('ObjectPostList'))
+        for name in ['Personlist', 'Facelist']:
+            if name in value:
+                append(name, [p['ROI'] for p in value[name]])
+        for v in value.values():
+            business_boxes(v, result)
+    elif isinstance(value, list):
+        for v in value:
+            business_boxes(v, result)
+    return result
+
+
+def valid_business(row):
+    body = row['response']
+    if row['endpoint'] == '/AE/SyncTasks2':
+        return body.get('Response', {}).get('ErrCode') == 0 and len(body.get('TaskResult', [])) == 1
+    return len(body.get('DataList', [])) == 1 and body['DataList'][0].get('StatusObject', {}).get('StatusCode') == 0
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--reference', type=Path, required=True)
@@ -81,6 +107,7 @@ def main():
     count_deltas = collections.defaultdict(list)
     class_stats = collections.defaultdict(collections.Counter)
     matches_all = []
+    geometry_stats = collections.defaultdict(collections.Counter)
     with (args.output / 'differences.jsonl').open('w') as stream:
         for key in sorted(reference.keys() | candidate.keys()):
             a, b = reference.get(key), candidate.get(key)
@@ -89,17 +116,28 @@ def main():
                 stream.write(json.dumps({'key': key, 'error': 'missing_record' if b is None else 'added_record'})+'\n')
                 continue
             counts['paired_records'] += 1
-            if a['status'] != 200 or b['status'] != 200:
+            if a['status'] != 200 or b['status'] != 200 or not valid_business(a) or not valid_business(b):
                 counts['failed_pairs'] += 1
                 stream.write(json.dumps({'key': key, 'error': 'non_200'})+'\n')
                 continue
             equal = canonical(a['response']) == canonical(b['response'])
             counts['business_equal_ignoring_timing_and_order' if equal else 'business_changed'] += 1
             ac, bc = business_counts(a['response']), business_counts(b['response'])
+            ab, bb = business_boxes(a['response']), business_boxes(b['response'])
+            geometry = {}
+            for label in ab.keys() | bb.keys():
+                matched = match(ab.get(label, []), bb.get(label, []), args.iou)
+                geometry[label] = {'matched': len(matched['matched']), 'missing': len(matched['missing']),
+                                   'added': len(matched['added']),
+                                   'max_coordinate_delta': max((m['max_coordinate_delta'] for m in matched['matched']), default=0)}
+                for field in ['matched', 'missing', 'added']:
+                    geometry_stats[(key[0], label)][field] += geometry[label][field]
+                geometry_stats[(key[0], label)]['max_coordinate_delta'] = max(geometry_stats[(key[0], label)]['max_coordinate_delta'], geometry[label]['max_coordinate_delta'])
             for count_key in ac.keys() | bc.keys():
                 count_deltas[(key[0], count_key)].append(bc[count_key]-ac[count_key])
             stream.write(json.dumps({'key': key, 'business_equal_ignoring_timing_and_order': equal,
-                                     'reference_counts': dict(ac), 'candidate_counts': dict(bc)})+'\n')
+                                     'reference_counts': dict(ac), 'candidate_counts': dict(bc),
+                                     'business_geometry': geometry})+'\n')
             am = {p['model']: p for p in a['predictions']}
             bm = {p['model']: p for p in b['predictions']}
             for model in sorted(am.keys() | bm.keys()):
@@ -126,6 +164,7 @@ def main():
                                  'max_coordinate_delta': max((m['max_coordinate_delta'] for m in matches_all), default=None),
                                  'mean_absolute_confidence_delta': statistics.mean(abs(m['confidence_delta']) for m in matches_all) if matches_all else None},
                'per_class': [{'endpoint': k[0], 'model': k[1], 'class_id': k[2], **v} for k, v in sorted(class_stats.items())],
+               'business_geometry': [{'endpoint': k[0], 'key': k[1], **v} for k, v in sorted(geometry_stats.items())],
                'business_counts_relative_to_reference': [{'endpoint': k[0], 'key': k[1], 'images': len(v),
                     'equal_images': sum(d == 0 for d in v), 'mean_absolute_delta': statistics.mean(abs(d) for d in v),
                     'max_absolute_delta': max(abs(d) for d in v), 'signed_total_delta': sum(v)}
