@@ -79,3 +79,7 @@
 ## 已准备的并发核查工具
 
 本地audit.py及instances.py --audit-reference模式已实现，4项无模型回归、编译与差异检查通过，未拉取到正在测量的服务器。原串行容量完成且GPU空闲后再同步并执行两后端×三接口全量业务审计，独立目录，不混入性能成绩；见 ../20261118-concurrent-audit/report.md。完整性CPU扫描也已完成，两后端共255646框均无NaN/Inf/非法类/越界/反序/零面积，记录见 ../20261118-baseline-integrity/report.md。以上不表示真实GPU并发或准确率已通过。
+
+## 响应编码组件已离线补测
+
+serialization.py对两份修正版基线的三接口响应重放35406次，JSONResponse构造/render/头初始化均值约0.03～0.10ms，全部值往返校验通过；无模型/GPU，未改变正式服务。逐图证据已取回本机校验，见 ../20261118-response-serialization/report.md。该项排除Pydantic响应校验、请求解析、业务构造及网络，不能写成完整响应耗时或完成全部分段项。
