@@ -83,3 +83,9 @@ PyTorch学生原定19轮采集完成：闭环稳定性15774次零失败；定速
 ## 响应编码组件已离线补测
 
 serialization.py对两份修正版基线的三接口响应重放35406次，JSONResponse构造/render/头初始化均值约0.03～0.10ms，全部值往返校验通过；无模型/GPU，未改变正式服务。逐图证据已取回本机校验，见 ../20261118-response-serialization/report.md。该项排除Pydantic响应校验、请求解析、业务构造及网络，不能写成完整响应耗时或完成全部分段项。
+
+## 2026-11-19新增工具准备（未改当前正式服务）
+
+代码0beae6b已推送：timing.py及--trace-http默认关闭，只供audit-reference独立诊断；13项无模型回归、服务器FastAPI CPU替身body/headers/OpenAPI透明性检查通过。三接口各64回归集已冻结，201文件本机校验；R3对两后端×三接口快速/全量输入均通过，兼容旧ImageList省略及Torch half证据，原基线不改写。两次CPU预检失败与修复证据保留，未启动GPU。详见 ../20261119-http-timing/report.md 和 ../20261119-quick-regression/report.md。
+
+原串行流程后还需执行：64图×3的两后端/三接口off/on诊断12组（I1/C1/b1）；全量池/load.py同配置I1/C1/b1各后端3×300秒交错配对；两后端三接口全量并发业务审计；人数C256边界补测；PyTorch显式回退、TensorRT运行OpenAPI及输入读取/下载成本。所有真实GPU项仍待验，先查进程与空闲，不能重复启动或用诊断数据冒充普通容量。
