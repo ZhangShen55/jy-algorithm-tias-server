@@ -105,7 +105,8 @@ def main():
                 response = client.post(endpoint, json=payload)
                 record = {'endpoint': endpoint, 'image_id': image_id,
                           'image_sha256': hashlib.sha256(raw).hexdigest(), 'shape': [h, w],
-                          'request': {k: v for k, v in payload.items() if k != 'ImageList'},
+                          'request': {**{k: v for k, v in payload.items() if k != 'ImageList'},
+                                      'ImageList': [{k: v for k, v in item.items() if k not in {'StoragePath', 'Data'}} for item in payload['ImageList']]},
                           'status': response.status_code, 'elapsed_ms': (time.perf_counter()-started)*1000,
                           'predictions': list(captured), 'response': response.json()}
                 body = record['response']

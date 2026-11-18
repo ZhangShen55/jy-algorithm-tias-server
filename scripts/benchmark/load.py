@@ -3,6 +3,7 @@ import argparse
 import asyncio
 import collections
 import json
+import random
 from pathlib import Path
 import statistics
 import time
@@ -22,6 +23,7 @@ async def run(args):
     import httpx
     files = sorted(args.payload.glob('*.json')) if args.payload.is_dir() else [args.payload]
     payloads = [json.loads(f.read_text()) for f in files]
+    random.Random(args.seed).shuffle(payloads)
     if not payloads or any(len(payload.get('ImageList', [])) != 1 for payload in payloads):
         raise ValueError('主实验要求每请求一图')
     args.output.mkdir(parents=True, exist_ok=False)
@@ -98,7 +100,7 @@ async def run(args):
     summary = {'mode': 'open_loop_single_image_http' if args.rate else 'closed_loop_single_image_http', 'endpoint': args.endpoint,
                'instances': len(args.urls), 'total_concurrency': args.concurrency,
                'dispatch': 'fixed_worker_to_instance_no_retry' if not args.rate else 'round_robin_arrival_no_retry',
-               'payload_count': len(payloads),
+               'payload_count': len(payloads), 'payload_seed': args.seed,
                'target_images_per_s': args.rate or None,
                'generator_limit_events': sum(r.get('error') == 'load_generator_inflight_limit' for r in records),
                'scheduled_latency_ms_p95': percentile([r['latency_from_schedule_ms'] for r in successful if 'latency_from_schedule_ms' in r], .95),
@@ -127,6 +129,7 @@ if __name__ == '__main__':
     parser.add_argument('--output', required=True, type=Path)
     parser.add_argument('--concurrency', type=int, default=48)
     parser.add_argument('--seconds', type=float, default=180)
+    parser.add_argument('--seed', type=int, default=20261118)
     parser.add_argument('--rate', type=float, default=0, help='大于零启用定速开放式负载，concurrency 为客户端在途上限')
     parser.add_argument('--timeout', type=float, default=60)
     args = parser.parse_args()

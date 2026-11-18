@@ -24,6 +24,7 @@ def main():
     parser.add_argument('--instances', type=int, default=8)
     parser.add_argument('--concurrency', type=int, default=48)
     parser.add_argument('--seconds', type=int, default=180)
+    parser.add_argument('--seed', type=int, default=20261118)
     parser.add_argument('--rate', type=float, default=0)
     parser.add_argument('--first-port', type=int, default=18981)
     parser.add_argument('--queue-size', type=int, default=0)
@@ -72,6 +73,8 @@ def main():
     sampler = threading.Thread(target=sample, daemon=True)
     sampler.start()
     payload_files = sorted(args.payload.glob('*.json')) if args.payload.is_dir() else [args.payload]
+    if len(payload_files) > 16:
+        payload_files = [payload_files[round(i*(len(payload_files)-1)/15)] for i in range(16)]
     payloads = [p.read_bytes() for p in payload_files]
     if not payloads:
         raise ValueError('No warmup payloads')
@@ -149,7 +152,7 @@ def main():
         load_process = subprocess.Popen([sys.executable, str(root/'scripts/benchmark/load.py'), '--urls', *urls,
                         '--endpoint', args.endpoint, '--payload', str(args.payload.resolve()),
                         '--output', str(args.output/'load'), '--concurrency', str(args.concurrency),
-                        '--seconds', str(args.seconds), '--rate', str(args.rate)])
+                        '--seconds', str(args.seconds), '--rate', str(args.rate), '--seed', str(args.seed)])
         code = load_process.wait()
         if code:
             raise RuntimeError(f'Load generator exited: {code}')

@@ -2,6 +2,7 @@
 import argparse
 import json
 import math
+import hashlib
 from pathlib import Path
 import statistics
 import subprocess
@@ -44,7 +45,8 @@ def main():
                '--payload', str((args.payload_root/name).resolve()), '--endpoint', endpoint,
                '--instances', str(instances), '--concurrency', str(concurrency), '--max-batches', str(batches),
                '--seconds', str(seconds), '--warmup-seconds', '30', '--backend', args.backend,
-               '--engine-root', args.engine_root, '--rate', str(rate)]
+               '--engine-root', args.engine_root, '--rate', str(rate),
+               '--seed', str(int.from_bytes(hashlib.sha256(label.encode()).digest()[:4], 'little'))]
         with (args.output/f'{label}.log').open('w') as log:
             code = subprocess.run(cmd, cwd=root, stdout=log, stderr=subprocess.STDOUT).returncode
         result = {'label': label, 'instances': instances, 'concurrency': concurrency, 'max_batches': batches,
@@ -85,8 +87,6 @@ def main():
         instance_plateaus = 0
         best_tps = 0
         for instances in [1, 2, 4, 6, 8, 12, 16]:
-            if args.backend == 'pytorch' and name == 'student' and instances >= 8:
-                break  # 已有 8 实例预热 OOM 证据，保留原日志，避免无意义重复。
             instance_best = 0
             previous = None
             base_failed = False
