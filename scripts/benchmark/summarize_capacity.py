@@ -67,21 +67,28 @@ def timeline(records, seconds, open_loop, window=10):
         bins.append({'elapsed_s': t, 'sent': n_sent, 'completed': n_done,
                      'scheduled': n_planned, 'generator_dropped': n_dropped,
                      'network_inflight': n_sent - n_done,
+                     'scheduled_not_sent_excluding_local_drops': n_planned - n_dropped - n_sent,
                      'scheduled_unresolved_excluding_local_drops': n_planned - n_done - n_dropped})
-    wall = None
-    if open_loop:
+    def first_growth(field):
+        if not open_loop:
+            return None
         for i in range(3, len(bins)):
             group = bins[i-3:i+1]
             if all(group[j+1]['elapsed_s'] - group[j]['elapsed_s'] == window and
-                   group[j+1]['scheduled_unresolved_excluding_local_drops'] >
-                   group[j]['scheduled_unresolved_excluding_local_drops'] for j in range(3)):
-                wall = {'interval_start_s': group[0]['elapsed_s'],
+                   group[j+1][field] > group[j][field] for j in range(3)):
+                return {'interval_start_s': group[0]['elapsed_s'],
                         'detected_at_s': group[-1]['elapsed_s'],
-                        'backlogs': [g['scheduled_unresolved_excluding_local_drops'] for g in group]}
-                break
+                        'backlogs': [g[field] for g in group]}
+        return None
+    wall = first_growth('scheduled_unresolved_excluding_local_drops')
+    dispatch_wall = first_growth('scheduled_not_sent_excluding_local_drops')
+    network_wall = first_growth('network_inflight')
     return {'window_s': window, 'windows': bins,
             'first_failure_s': min((t for t in failures if t is not None), default=None),
             'first_sustained_backlog_increase': wall,
+            'first_sustained_dispatch_backlog_increase': dispatch_wall,
+            'first_sustained_network_inflight_increase': network_wall,
+            'backlog_components': 'scheduled_unresolved = scheduled_not_sent + network_inflight; neither proves server_queue_depth',
             'backlog_rule': 'three_consecutive_full_10s_increases_open_loop_only',
             'interpretation': 'operational_congestion_signal_not_production_slo_or_hardware_limit',
             'local_generator_drops': len(dropped),

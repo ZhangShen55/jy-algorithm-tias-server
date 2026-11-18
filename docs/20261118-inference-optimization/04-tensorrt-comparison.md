@@ -49,3 +49,5 @@
 源码核对：api/tasks.py→services/task_service_base64.py 的旧人数路由没有调用BatchAdmissionController，且async处理路径内存在同步model.predict；因此MaxConcurrentBatches/MaxQueueSize只是人数实验文件中的配置值，不是有效的人数准入控制。师生路由另走build_behavior_router的准入逻辑，必须分接口解释。保留服务行为进行基线测量，本项不改生产排队/准入或运行环境。
 
 2026-11-19已固定后续同配置配对：各接口全量池/load.py、I1/C1/b1、同seed、30秒预热/300秒发送，每后端3轮交错；与各自最佳配置分开。另有64图×3的off/on诊断开销组，不能充当后端容量成绩；方法见02及HTTP时间线报告。当前原串行流程未完成，不提前插入GPU任务。
+
+教师110%出现计划未发送积压，补单/双发生器定速对照的条件已固定于02；不能将迟发到195秒的全量成功当作服务已在180秒忠实承受目标速率。TRT运行OpenAPI已与PyTorch结构相同，实际并发业务响应/回退仍待验证。

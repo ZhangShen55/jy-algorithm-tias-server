@@ -40,3 +40,7 @@ run_id：`capacity-analysis-20261118-2045`，服务器 `/home/zhangs/workspace/v
 - cases.csv：`eb3ad10af4d3fe96bd844d6294ff15570883a52c66da431d21d88fe4b70b8929`。
 
 离线工具不改变正式服务版本，服务器继续b15dd39容量复测。后续可复用该工具对完整运行生成新的独立分析目录，不覆盖r1/r2证据。
+
+## 未发送与已发送在途拆分（2026-11-19）
+
+教师110%揭示计划未解决量可能主要来自客户端发送滞后。工具新增scheduled_not_sent_excluding_local_drops及两分量各自的三窗口增长结果，保留原字段/原始文件；4项回归区分慢发送、慢响应、本地保护丢弃及不足窗口/闭环，共17项工具检查通过。独立私有脚本SHA4ef9b7d299da0ccad209496edd369a1bc4455ed64af7df46a6d6b302664accaa。新run capacity-analysis-20261119-torch-dispatch-components完整核对69轮，summary SHA91bb5eff1afdc3e622bf34c2e71fa83b7a108abca4a561b0f2256bc4395ac72d，cases SHA2638e50e0951ec8fedd9901c25388696c57d7123e5468a0e69856292b5e38b02；本机相符。检出教师未发积压0～30秒增长，而网络在途未达到同样三窗口规则，不将其称服务队列撞墙。正式服务未拉取工具，仍b15dd39；原先快照保留。
