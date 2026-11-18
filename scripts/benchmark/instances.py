@@ -42,6 +42,7 @@ def main():
     event('run_start', instances=args.instances, concurrency=args.concurrency, max_batches=args.max_batches, backend=args.backend)
     gpu = 'GPU-8c6b7efd-2b4f-04f3-db71-b50d2482fc49'
     processes, handles, urls = [], [], []
+    load_process = None
     done = threading.Event()
     def sample():
         with (args.output / 'resources.csv').open('w') as out:
@@ -53,14 +54,14 @@ def main():
                 query = subprocess.run(['nvidia-smi', f'--id={gpu}', '--query-gpu=memory.used,utilization.gpu,temperature.gpu,power.draw,clocks.sm', '--format=csv,noheader,nounits'], capture_output=True, text=True)
                 now = time.monotonic()
                 stats = []
-                for process in list(processes):
+                for process in list(processes)+([load_process] if load_process is not None else []):
                     try:
                         fields = Path(f'/proc/{process.pid}/stat').read_text().rsplit(')', 1)[1].split()
                         ticks = int(fields[11])+int(fields[12])
                         old = previous.get(process.pid)
                         cpu = (ticks-old[1])/os.sysconf('SC_CLK_TCK')/(now-old[0])*100 if old else None
                         previous[process.pid] = (now, ticks)
-                        stats.append({'pid': process.pid, 'cpu_percent_one_core_100': cpu,
+                        stats.append({'pid': process.pid, 'role': 'load_generator' if process is load_process else 'server', 'cpu_percent_one_core_100': cpu,
                                       'rss_kib': int(fields[21])*os.sysconf('SC_PAGE_SIZE')/1024})
                     except (FileNotFoundError, ProcessLookupError):
                         continue
@@ -89,6 +90,7 @@ def main():
         for index in range(args.instances):
             port = args.first_port+index
             with socket.socket() as test:
+                test.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                 test.bind(('127.0.0.1', port))
             text = (root / 'config.toml').read_text()
             text = 'InferenceBackend = '+json.dumps(args.backend)+'\nEngineRoot = '+json.dumps(args.engine_root)+'\n'+text
@@ -144,10 +146,13 @@ def main():
                 response.read()
         (args.output/'startup-memory.json').write_text(json.dumps(startup_stats, indent=2))
         event('load_start')
-        subprocess.run([sys.executable, str(root/'scripts/benchmark/load.py'), '--urls', *urls,
+        load_process = subprocess.Popen([sys.executable, str(root/'scripts/benchmark/load.py'), '--urls', *urls,
                         '--endpoint', args.endpoint, '--payload', str(args.payload.resolve()),
                         '--output', str(args.output/'load'), '--concurrency', str(args.concurrency),
-                        '--seconds', str(args.seconds), '--rate', str(args.rate)], check=True)
+                        '--seconds', str(args.seconds), '--rate', str(args.rate)])
+        code = load_process.wait()
+        if code:
+            raise RuntimeError(f'Load generator exited: {code}')
         event('load_complete')
         steady_stats = {}
         for url in urls:
@@ -158,6 +163,13 @@ def main():
         event('run_failed', error=repr(exc))
         raise
     finally:
+        if load_process is not None and load_process.poll() is None:
+            load_process.terminate()
+            try:
+                load_process.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                load_process.kill()
+                load_process.wait()
         for p in processes:
             if p.poll() is None:
                 p.terminate()

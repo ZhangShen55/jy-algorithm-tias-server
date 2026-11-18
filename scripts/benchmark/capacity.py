@@ -115,10 +115,15 @@ def main():
         neighbors = [r for r in candidates if r['label'] != best['label']]
         neighbor = min(neighbors, key=lambda r:abs(math.log(r['instances']/best['instances']))+abs(math.log(r['concurrency']/best['concurrency']))) if neighbors else None
         confirmed = []
-        for candidate in [best]+([neighbor] if neighbor else []):
-            trials = [case(f'{name}-confirm-{candidate["label"]}-r{repeat}', name, endpoint,
-                           candidate['instances'], candidate['concurrency'], candidate['max_batches'], args.confirm_seconds)
-                      for repeat in range(1,4)]
+        finalists = [best]+([neighbor] if neighbor else [])
+        trial_results = {c['label']: [] for c in finalists}
+        for repeat in range(1, 4):
+            for candidate in finalists:
+                trial = case(f'{name}-confirm-{candidate["label"]}-r{repeat}', name, endpoint,
+                             candidate['instances'], candidate['concurrency'], candidate['max_batches'], args.confirm_seconds)
+                trial_results[candidate['label']].append(trial)
+        for candidate in finalists:
+            trials = trial_results[candidate['label']]
             if all(r['usable'] for r in trials):
                 confirmed.append((statistics.median(r['summary']['success_images_per_s_in_window'] for r in trials), candidate))
         if not confirmed:

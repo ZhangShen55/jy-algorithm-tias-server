@@ -32,6 +32,9 @@ async def run(args):
     limits = httpx.Limits(max_connections=args.concurrency, max_keepalive_connections=args.concurrency)
     with (args.output / 'requests.jsonl').open('w') as out:
         async with httpx.AsyncClient(timeout=args.timeout, limits=limits, trust_env=False) as client:
+            started = time.perf_counter()
+            started_unix = time.time()
+            stop = started+args.seconds
             async def worker(worker_index, planned=None):
                 nonlocal sequence
                 while planned is not None or time.perf_counter() < stop:
@@ -99,6 +102,7 @@ async def run(args):
                'target_images_per_s': args.rate or None,
                'generator_limit_events': sum(r.get('error') == 'load_generator_inflight_limit' for r in records),
                'scheduled_latency_ms_p95': percentile([r['latency_from_schedule_ms'] for r in successful if 'latency_from_schedule_ms' in r], .95),
+               'started_unix_time': started_unix,
                'send_window_s': args.seconds, 'elapsed_including_drain_s': elapsed,
                'requests': len(records), 'successful': len(successful),
                'failed': len(records)-len(successful),
