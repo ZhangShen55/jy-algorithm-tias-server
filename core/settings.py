@@ -132,9 +132,11 @@ def load_inference_model(pt_path):
     return model
 
 
-yolo_person_model = load_inference_model(PERSON_MODEL_PATH)
-yolo_face_model = load_inference_model(FACE_MODEL_PATH)
-yolo_student_model = load_inference_model(STUDENT_MODEL_PATH)
-yolo_teacher_behavior_model = load_inference_model(TEACHER_BEHAVIOR_MODEL_PATH)
-if model_protection_config.cleanup_after_load:
-    model_path_resolver.cleanup()
+try:
+    yolo_person_model = load_inference_model(PERSON_MODEL_PATH)
+    yolo_face_model = load_inference_model(FACE_MODEL_PATH)
+    yolo_student_model = load_inference_model(STUDENT_MODEL_PATH)
+    yolo_teacher_behavior_model = load_inference_model(TEACHER_BEHAVIOR_MODEL_PATH)
+finally:
+    if model_protection_config.cleanup_after_load:
+        model_path_resolver.cleanup()
