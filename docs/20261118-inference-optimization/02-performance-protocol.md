@@ -6,7 +6,7 @@
 
 | 接口 | 图片 |
 |---|---|
-| `/SyncTasks2` | 学生画面，人数检测 |
+| `/AE/SyncTasks2` | 学生画面，人数检测 |
 | `/ImageDetect/student/v1.0.0` | 学生画面，学生行为及接口附带检测结果 |
 | `/ImageDetect/teacher/v1.0.0` | 教师画面，教师行为 |
 
