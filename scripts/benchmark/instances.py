@@ -46,9 +46,10 @@ def main():
     def sample():
         with (args.output / 'resources.csv').open('w') as out:
             writer = csv.writer(out)
-            writer.writerow(['unix_time', 'gpu_query', 'process_stats_json'])
+            writer.writerow(['unix_time', 'gpu_query', 'process_stats_json', 'gpu_process_memory_csv'])
             previous = {}
             while not done.is_set():
+                iteration_started = time.monotonic()
                 query = subprocess.run(['nvidia-smi', f'--id={gpu}', '--query-gpu=memory.used,utilization.gpu,temperature.gpu,power.draw,clocks.sm', '--format=csv,noheader,nounits'], capture_output=True, text=True)
                 now = time.monotonic()
                 stats = []
@@ -63,9 +64,10 @@ def main():
                                       'rss_kib': int(fields[21])*os.sysconf('SC_PAGE_SIZE')/1024})
                     except (FileNotFoundError, ProcessLookupError):
                         continue
-                writer.writerow([time.time(), query.stdout.strip(), json.dumps(stats)])
+                gpu_processes = subprocess.run(['nvidia-smi', f'--id={gpu}', '--query-compute-apps=pid,used_memory', '--format=csv,noheader,nounits'], capture_output=True, text=True)
+                writer.writerow([time.time(), query.stdout.strip(), json.dumps(stats), gpu_processes.stdout.strip()])
                 out.flush()
-                done.wait(1)
+                done.wait(max(0, 1-(time.monotonic()-iteration_started)))
     sampler = threading.Thread(target=sample, daemon=True)
     sampler.start()
     payload_files = sorted(args.payload.glob('*.json')) if args.payload.is_dir() else [args.payload]
@@ -102,7 +104,7 @@ def main():
             env = {**os.environ, 'CONFIG_PATH': str(config), 'CUDA_VISIBLE_DEVICES': gpu}
             log = (args.output / f'instance-{port}.log').open('w')
             handles.append(log)
-            process = subprocess.Popen([sys.executable, '-m', 'uvicorn', 'main:app', '--host', '127.0.0.1', '--port', str(port), '--workers', '1'], cwd=root, env=env, stdout=log, stderr=subprocess.STDOUT)
+            process = subprocess.Popen([sys.executable, '-m', 'uvicorn', 'scripts.benchmark.server:app', '--host', '127.0.0.1', '--port', str(port), '--workers', '1'], cwd=root, env=env, stdout=log, stderr=subprocess.STDOUT)
             processes.append(process)
             event('instance_spawned', port=port, pid=process.pid)
             url = f'http://127.0.0.1:{port}'
@@ -134,12 +136,24 @@ def main():
         with ThreadPoolExecutor(max_workers=args.instances) as pool:
             list(pool.map(warm, urls))
         event('warmup_complete')
+        startup_stats = {}
+        for url in urls:
+            with urllib.request.urlopen(url+'/_benchmark/memory') as response:
+                startup_stats[url] = json.load(response)
+            with urllib.request.urlopen(urllib.request.Request(url+'/_benchmark/reset_peak', data=b'', method='POST')) as response:
+                response.read()
+        (args.output/'startup-memory.json').write_text(json.dumps(startup_stats, indent=2))
         event('load_start')
         subprocess.run([sys.executable, str(root/'scripts/benchmark/load.py'), '--urls', *urls,
                         '--endpoint', args.endpoint, '--payload', str(args.payload.resolve()),
                         '--output', str(args.output/'load'), '--concurrency', str(args.concurrency),
                         '--seconds', str(args.seconds), '--rate', str(args.rate)], check=True)
         event('load_complete')
+        steady_stats = {}
+        for url in urls:
+            with urllib.request.urlopen(url+'/_benchmark/memory') as response:
+                steady_stats[url] = json.load(response)
+        (args.output/'inference-memory.json').write_text(json.dumps(steady_stats, indent=2))
     except BaseException as exc:
         event('run_failed', error=repr(exc))
         raise
