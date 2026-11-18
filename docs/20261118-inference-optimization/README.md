@@ -1,6 +1,6 @@
 # 推理性能与精度优化计划
 
-状态：执行中。PyTorch/TensorRT各5901次全量采集、四模型FP16 I/O引擎及分段诊断已完成；正式三接口容量流程正在运行。连续执行状态见 [检查点](reports/20261118-execution-status/README.md)，最终报告与验收尚未完成。
+状态：执行中。PyTorch/TensorRT各5901次全量采集、四模型FP16 I/O引擎及分段诊断已完成；学生独立 NMS=False 两后端各2162张重采及本机校验备份已完成，原容量流程已恢复。最新对照见 [修正版报告](reports/20261118-precision-comparison-corrected/report.md)。连续执行状态见 [检查点](reports/20261118-execution-status/README.md)，最终报告与验收尚未完成。
 
 ## 已确定的范围
 

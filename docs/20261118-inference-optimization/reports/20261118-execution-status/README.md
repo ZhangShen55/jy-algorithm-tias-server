@@ -2,6 +2,10 @@
 
 状态：执行中，未结项。用户已授权连续推进，不需要逐阶段询问启动。
 
+## 当前检查点（北京时间2026-11-18 20:33）
+
+学生口径修正协调器已完成并退出，调度4182465已恢复。两后端学生各2162张独立NMS=False采集、全量组合对照、3张PyTorch重复、19份文件哈希与本机备份已验证。最新证据见 ../20261118-precision-comparison-corrected/report.md。原始旧学生数据保留，只作历史。当前sync确认轮继续，不能按下文历史暂停记录再次SIGCONT或另启任务。
+
 ## 当前长任务
 
 服务器 `ssh zhangs12`，仓库 `/home/zhangs/workspace/vbas/`，分支 perf。当前已启动串行命令：PyTorch capacity.py 成功完成后自动执行 TensorRT capacity.py。不要重复启动 GPU 任务。

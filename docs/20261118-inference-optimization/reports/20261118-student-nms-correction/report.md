@@ -1,6 +1,6 @@
 # 学生人数 NMS 口径修正
 
-状态：用户已确认，代码修正已提交推送；服务器正在独立重采。日期：2026-11-18（北京时间）。
+状态：独立重采、对照、重复性检查与本机校验备份已完成，容量调度已恢复。日期：2026-11-18（北京时间）。
 
 ## 发现与决策
 
@@ -16,7 +16,7 @@ Ultralytics 8.3.156 的 Model.predict 会把本次 kwargs 合并到已存在 pre
 
 ## 待补证据
 
-服务器提交、运行起止、逐图采集完整性、差异统计、校验清单和恢复时间：待实测填写。本次修正不能写为真实准确率或生产验收通过。
+已补齐的采集、对照、恢复及校验证据见 [修正版报告](../20261118-precision-comparison-corrected/report.md)；并发一致性仍待验证。本次修正不能写为真实准确率或生产验收通过。
 
 ## 实施检查点
 
@@ -27,3 +27,11 @@ Ultralytics 8.3.156 的 Model.predict 会把本次 kwargs 合并到已存在 pre
 - 协调器：`/home/zhangs/workspace/vbas-benchmarks/environment-20261118/student-nms-correction.py`。状态与日志：`student-nms-correction-20261118/{state.json,coordinator.log,torch-collect.log,trt-collect.log}`。
 - 成功后自动组合原人数/教师与新学生为 `torch-corrected-baseline-20261118`、`trt-corrected-baseline-20261118`，另存新对照、3张学生重复采集、校验清单与打包，再恢复原调度。任何阶段失败保持暂停，先检查，不自动覆盖或重跑。
 - 打包完成后仍需取回本机并校验，以及按新结果更新差异案例图与最终报告；本检查点不表示重采完成。
+
+## 完成证据
+
+两后端各2162张学生记录全部有效、三模型均FP16且人数False。学生PyTorch3张独立重复得到275框完全一致。组合全量各5901条，127778框匹配、47参考独有、43候选新增；学生人数31张计数不同，单图最大差1，净+1，尚待用户复核采用。新统计取代旧学生口径，不修改旧文件。
+
+2026-11-18 20:28:31（北京时间）协调器完成并自动SIGCONT原容量调度4182465。已核对下一轮sync I6/C6/b1确认测试运行；没有重复GPU任务。
+
+备份已取回本机并核验：`/Users/zhangshen/.codex/backups/vbas-benchmark-20261118/student-nms-correction-20261118/corrected-baselines.tar.gz`；SHA256 `53f09d1cb6c9b289ab1c33ab0cbf312a3f61a385b64c8b66b0bb500d40cf7895`。解包后checksums.json的19项均匹配。后续继续执行正式容量、并发与兼容回退测试。
