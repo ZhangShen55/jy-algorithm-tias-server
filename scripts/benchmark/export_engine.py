@@ -57,9 +57,13 @@ def main():
     config.clear_flag(tensorrt.BuilderFlag.TF32)
     config.set_memory_pool_limit(tensorrt.MemoryPoolType.WORKSPACE, 4 << 30)
     config.profiling_verbosity = tensorrt.ProfilingVerbosity.DETAILED
+    cache_path = args.output.parent/'timing-cache.bin'
+    cache_bytes = cache_path.read_bytes() if cache_path.exists() else b''
+    config.set_timing_cache(config.create_timing_cache(cache_bytes), False)
     serialized = builder.build_serialized_network(network, config)
     if serialized is None:
         raise RuntimeError('TensorRT engine build failed')
+    cache_path.write_bytes(bytes(config.get_timing_cache().serialize()))
     engine = target.with_suffix('.engine')
     header = json.dumps(metadata).encode()
     engine.write_bytes(len(header).to_bytes(4, 'little')+header+bytes(serialized))
@@ -82,6 +86,8 @@ def main():
                 'torch': torch.__version__, 'tensorrt': tensorrt.__version__, 'onnx': onnx.__version__,
                 'gpu_uuid': gpu, 'exporter': 'legacy_torch_onnx_dynamo_false',
                 'io_tensors': tensors, 'tf32_enabled': False,
+                'timing_cache_input_sha256': hashlib.sha256(cache_bytes).hexdigest(),
+                'timing_cache_output_sha256': hashlib.sha256(cache_path.read_bytes()).hexdigest(),
                 'scope': 'dataset_shapes_only_not_general_deployment_acceptance'}
     (args.output/'build-manifest.json').write_text(json.dumps(manifest, indent=2))
     print(json.dumps(manifest))
