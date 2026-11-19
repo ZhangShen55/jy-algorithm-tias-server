@@ -59,3 +59,9 @@ docker/secrets/
 *.pptx
 *.xls
 *.xlsx
+
+# TensorRT runtime assets (private release bundle)
+/model/*
+!/model/README.md
+*.engine
+*.engine.enc

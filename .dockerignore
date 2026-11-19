@@ -36,3 +36,7 @@ openspec/
 **/models/
 **/models-encrypted/
 **/models-encrypted/*.key
+
+# Project TensorRT runtime assets remain external
+**/model/
+**/*.engine.enc

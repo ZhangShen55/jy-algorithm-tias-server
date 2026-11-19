@@ -4,6 +4,7 @@ import hmac
 import logging
 import os
 import secrets
+import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -58,6 +59,7 @@ class ModelPathResolver:
         self.config = config
         self._prepared_paths: list[Path] = []
         self._cached_key: str | None = None
+        self._private_temp_root: Path | None = None
 
     def prepare_model_path(self, plain_model_path: str | Path) -> Path:
         plain_path = Path(plain_model_path)
@@ -71,9 +73,17 @@ class ModelPathResolver:
             raise ModelProtectionError(f"加密模型不存在: {encrypted_path}")
         self.config.decrypted_temp_root.mkdir(parents=True, exist_ok=True)
         os.chmod(self.config.decrypted_temp_root, 0o700)
-        target_path = self.config.decrypted_temp_root / plain_path.name
-        decrypt_model_file(encrypted_path, target_path, key)
-        self._prepared_paths.append(target_path)
+        if self._private_temp_root is None:
+            self._private_temp_root = Path(tempfile.mkdtemp(prefix=f"worker-{os.getpid()}-", dir=self.config.decrypted_temp_root))
+            os.chmod(self._private_temp_root, 0o700)
+        target_path = self._private_temp_root / plain_path.name
+        if target_path not in self._prepared_paths:
+            self._prepared_paths.append(target_path)
+        try:
+            decrypt_model_file(encrypted_path, target_path, key)
+        except BaseException:
+            self.cleanup()
+            raise
         logger.info("模型已临时解密 model=%s temp_path=%s", plain_path.name, target_path)
         return target_path
 
@@ -85,6 +95,10 @@ class ModelPathResolver:
                     logger.info("临时明文模型已清理 temp_path=%s", path)
             finally:
                 self._prepared_paths.remove(path)
+
+        if self._private_temp_root is not None:
+            self._private_temp_root.rmdir()
+            self._private_temp_root = None
 
     def _get_key(self) -> str:
         if self._cached_key is None:

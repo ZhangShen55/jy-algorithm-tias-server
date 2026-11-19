@@ -8,23 +8,23 @@ OpenSpec子任务完成才勾选；源05聚合任务只有对应全部子任务�
 
 ## 1. 范围冻结与只读预检（源05：T0/T1）
 
-- [ ] 1.1 复核proposal/design/三份spec与源八文档一致：项目model/、仅服务器验证、不部署、四模型各100张；将此次评审结论回写源05，状态与实施完成分开。
-- [ ] 1.2 只读核对ssh zhangs12上的旧42轮真实进程、events/cleanup和指定GPU占用；留存检查结果，旧任务未结束时不pull、不启动GPU验证、不操作历史PID。
-- [ ] 1.3 冻结当前旧代码commit、私有配置、vbas/vbas-trt环境清单、源权重和旧TRT资产SHA及完整备份路径，建立可恢复的旧参考工作区/运行单元。
-- [ ] 1.4 核对授权GPU UUID、平台、库版本、各Engine原始manifest及input/output信息；确定复用或独立重建，保存理由和真实依赖声明冲突，不升级基线环境。
+- [x] 1.1 复核proposal/design/三份spec与源八文档一致：项目model/、仅服务器验证、不部署、四模型各100张；将此次评审结论回写源05，状态与实施完成分开。
+- [x] 1.2 只读核对ssh zhangs12上的旧42轮真实进程、events/cleanup和指定GPU占用；留存检查结果，旧任务未结束时不pull、不启动GPU验证、不操作历史PID。
+- [x] 1.3 冻结当前旧代码commit、私有配置、vbas/vbas-trt环境清单、源权重和旧TRT资产SHA及完整备份路径，建立可恢复的旧参考工作区/运行单元。
+- [x] 1.4 核对授权GPU UUID、平台、库版本、各Engine原始manifest及input/output信息；确定复用或独立重建，保存理由和真实依赖声明冲突，不升级基线环境。
 
 ## 2. 四模型资产与离线工具（依赖1；源05：T2）
 
-- [ ] 2.1 定义manifest schema/version和四模型显式文件映射；实现CPU校验，覆盖缺文件/缺模型/错SHA/错形状/错类别、无效元数据头以及目标目录已存在的反例测试。
+- [x] 2.1 定义manifest schema/version和四模型显式文件映射；实现CPU校验，覆盖缺文件/缺模型/错SHA/错形状/错类别、无效元数据头以及目标目录已存在的反例测试。
 - [ ] 2.2 实现scripts/verify_tensorrt_models.py：默认静态检查，显式选项才启动GPU诊断；检查实际TensorRT反序列化、HALF I/O、类别、形状和环境，失败退出非零并指明模型。
 - [ ] 2.3 实现scripts/export_tensorrt_models.py离线构建，source-root/output/device显式指定；沿用现有FP16/TF32关闭及元数据封装方法，失败无完成标记，旧benchmark脚本保持原样。
 - [ ] 2.4 增加已有受审资产复制/校验流程；在新私有release目录准备全件Engine并核验后置入项目model/，不覆盖源PT/ONNX/Engine或混装版本；保存全部构建/复制来源和SHA。
-- [ ] 2.5 增加model/说明并更新.gitignore/.dockerignore，验证Engine/密文/实际私有manifest/中间文件不会被常规添加；仅跟踪工具、模板和脱敏文档。
+- [x] 2.5 增加model/说明并更新.gitignore/.dockerignore，验证Engine/密文/实际私有manifest/中间文件不会被常规添加；仅跟踪工具、模板和脱敏文档。
 
 ## 3. TRT-only运行时（依赖2；源05：T3）
 
-- [ ] 3.1 新建core/inference_runtime.py，完成项目根路径解析、显式四模型映射和预检；settings保留现有导出对象引用，默认tensorrt/FP16，去除在线.pt路径推导。
-- [ ] 3.2 处理导入前GPU可见性与外层UUID绑定，测试逻辑cuda:0映射；配置pytorch/cpu/half=False及缺CUDA/依赖时明确失败，无自动降级或下载/导出。
+- [x] 3.1 新建core/inference_runtime.py，完成项目根路径解析、显式四模型映射和预检；settings保留现有导出对象引用，默认tensorrt/FP16，去除在线.pt路径推导。
+- [x] 3.2 处理导入前GPU可见性与外层UUID绑定，测试逻辑cuda:0映射；配置pytorch/cpu/half=False及缺CUDA/依赖时明确失败，无自动降级或下载/导出。
 - [ ] 3.3 完成固定shape加载和四模型warmup就绪门槛，测试任一反序列化/FP16/shape失败均不注册或提供半就绪服务，并清理私有临时文件。
 - [ ] 3.4 运行CPU回归后，在唯一授权GPU上完成四模型真实后端/I/O/shape/warmup检查并保存日志；不得仅以文件扩展名证明TensorRT已执行。
 

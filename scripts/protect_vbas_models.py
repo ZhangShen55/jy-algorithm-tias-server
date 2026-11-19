@@ -11,21 +11,26 @@ from core.model_protection import encrypt_model_file, generate_key
 
 
 DEFAULT_MODEL_NAMES = [
-    "person_count.pt",
-    "face_count.pt",
-    "student.pt",
-    "teacher_behavior.pt",
+    "person_count.engine",
+    "face_count.engine",
+    "student.engine",
+    "teacher_behavior.engine",
 ]
 
 
 def protect_models(source_dir: Path, target_dir: Path, key: str, model_names=None) -> list[Path]:
     model_names = model_names or DEFAULT_MODEL_NAMES
+    for model_name in model_names:
+        if Path(model_name).name != model_name:
+            raise ValueError(f"模型名称必须是文件名: {model_name}")
+        if not (source_dir / model_name).is_file():
+            raise FileNotFoundError(f"模型缺失: {source_dir / model_name}")
+        if (target_dir / f"{model_name}.enc").exists():
+            raise FileExistsError(f"加密输出已存在: {model_name}.enc")
     target_dir.mkdir(parents=True, exist_ok=True)
     outputs = []
     for model_name in model_names:
         source_path = source_dir / model_name
-        if not source_path.exists():
-            continue
         target_path = target_dir / f"{model_name}.enc"
         encrypt_model_file(source_path, target_path, key)
         outputs.append(target_path)
@@ -34,7 +39,7 @@ def protect_models(source_dir: Path, target_dir: Path, key: str, model_names=Non
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="将 VBAS 明文模型加密为 .enc 文件。")
-    parser.add_argument("--source-dir", default="models", help="明文模型目录")
+    parser.add_argument("--source-dir", default="model", help="明文 Engine 目录")
     parser.add_argument("--target-dir", default="models-encrypted", help="加密模型输出目录")
     parser.add_argument("--key-file", required=True, help="模型密钥文件；不存在时可配合 --generate-key 生成")
     parser.add_argument("--generate-key", action="store_true", help="如果密钥文件不存在则生成新密钥")

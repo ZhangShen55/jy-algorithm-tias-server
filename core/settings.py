@@ -1,11 +1,10 @@
 # core/settings.py
 import os
-from ultralytics import YOLO
-import torch
 from pydantic import Field
 from pydantic_settings import BaseSettings
 from typing import Any, Dict, Union, Literal
 from .config_loader import load_config
+from .inference_runtime import configure_device, load_models, resolve_engine_root
 from .model_protection import ModelPathResolver, ModelProtectionConfig
 
 CONFIG_PATH = os.getenv("CONFIG_PATH",os.path.abspath(os.path.join(os.path.dirname(__file__), "../config.toml")))
@@ -15,8 +14,8 @@ class Settings(BaseSettings):
     IMAGE_ROOT: str = "/mnt/ias-images"
     RESULT_IMAGE_ROOT: str = "/data/result_images"
     SAVE_RESULT_IMAGE: int = 0
-    InferenceHalf: bool = False
-    InferenceBackend: Literal["pytorch", "tensorrt"] = "pytorch"
+    InferenceHalf: bool = True
+    InferenceBackend: Literal["pytorch", "tensorrt"] = "tensorrt"
     EngineRoot: str = ""
     Port: int = 8881
     GPU_ID: Union[int, str]
@@ -78,19 +77,13 @@ _cfg = {
 }
 settings = Settings(**_cfg)
 
-if str(settings.GPU_ID).lower() == "cpu":
-    os.environ["CUDA_VISIBLE_DEVICES"] = ""
-    device = torch.device("cpu")
-else:
-    os.environ["CUDA_VISIBLE_DEVICES"] = str(settings.GPU_ID)
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    # if device.type == "cuda":
-    #     torch.backends.cudnn.benchmark = True
-    #     torch.backends.cudnn.deterministic = False
-# use_half = device.type == "cuda"  # 仅在 CUDA 场景启用 FP16
+configure_device(settings.GPU_ID)
+# GPU libraries are imported only after preserving the external visibility mapping.
+import torch
+if not torch.cuda.is_available():
+    raise RuntimeError("TensorRT requires an available CUDA device")
+device = torch.device("cuda:0")
 use_half = settings.InferenceHalf
-if use_half and device.type != "cuda":
-    raise RuntimeError("InferenceHalf requires an available CUDA device")
 
 APP_VER = "V4.1_20251222"
 ADP_VER = "V4.1_20251222"
@@ -98,45 +91,20 @@ ALG_VER = "person_count_20251222_1920p/face_count(20251212)/student(20250819)"
 #已经处理任务总数
 Total_HaveProcess_Tasks = {"val": 0}
 
-PERSON_MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', 'models', 'person_count.pt')
-FACE_MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', 'models', 'face_count.pt')
-STUDENT_MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', 'models', 'student.pt')
-TEACHER_BEHAVIOR_MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', 'models', 'teacher_behavior.pt')
+_engine_root = resolve_engine_root(settings.EngineRoot)
+PERSON_MODEL_PATH = str(_engine_root / 'person_count.engine')
+FACE_MODEL_PATH = str(_engine_root / 'face_count.engine')
+STUDENT_MODEL_PATH = str(_engine_root / 'student.engine')
+TEACHER_BEHAVIOR_MODEL_PATH = str(_engine_root / 'teacher_behavior.engine')
 
 model_protection_config = ModelProtectionConfig.from_mapping(getattr(settings, "ModelProtection", {}))
 model_path_resolver = ModelPathResolver(model_protection_config)
-
-def load_inference_model(pt_path):
-    if settings.InferenceBackend == "pytorch":
-        return YOLO(str(model_path_resolver.prepare_model_path(pt_path))).to(device)
-    if device.type != "cuda" or not use_half or not settings.EngineRoot:
-        raise RuntimeError("TensorRT requires CUDA, InferenceHalf=true and EngineRoot")
-    from pathlib import Path
-    import numpy as np
-    name = Path(pt_path).stem
-    engine_path = Path(settings.EngineRoot) / name / f"{name}.engine"
-    path = model_path_resolver.prepare_model_path(engine_path)
-    model = YOLO(str(path), task="detect")
-    # 当前实验引擎固定实际输入尺寸，不能沿用 PyTorch 的自动矩形补边。
-    shape = (384, 640) if name == "teacher_behavior" else (1088, 1920)
-    original = model.predict
-    def predict(*args, **kwargs):
-        kwargs["imgsz"] = shape
-        kwargs["half"] = True
-        return original(*args, **kwargs)
-    model.predict = predict
-    # 在清理解密临时文件前实例化运行时，避免延迟加载访问已删除文件。
-    model.predict(np.zeros((*shape, 3), dtype=np.uint8), device=0, verbose=False)
-    if not model.predictor.model.fp16:
-        raise RuntimeError(f"Engine is not FP16: {name}")
-    return model
-
-
 try:
-    yolo_person_model = load_inference_model(PERSON_MODEL_PATH)
-    yolo_face_model = load_inference_model(FACE_MODEL_PATH)
-    yolo_student_model = load_inference_model(STUDENT_MODEL_PATH)
-    yolo_teacher_behavior_model = load_inference_model(TEACHER_BEHAVIOR_MODEL_PATH)
+    _models = load_models(settings, model_path_resolver)
+    yolo_person_model = _models['person_count']
+    yolo_face_model = _models['face_count']
+    yolo_student_model = _models['student']
+    yolo_teacher_behavior_model = _models['teacher_behavior']
 finally:
     if model_protection_config.cleanup_after_load:
         model_path_resolver.cleanup()
