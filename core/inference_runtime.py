@@ -46,6 +46,15 @@ def isolate_predictions(model, shape):
 
 
 def load_models(settings, resolver):
+    try:
+        return _load_models(settings, resolver)
+    except BaseException:
+        # Keeping plaintext after a successful load must never keep a failed release.
+        resolver.cleanup()
+        raise
+
+
+def _load_models(settings, resolver):
     if settings.InferenceBackend != 'tensorrt' or not settings.InferenceHalf:
         raise ValueError('This service requires InferenceBackend=tensorrt and InferenceHalf=true; use the old release for PyTorch')
     root = resolve_engine_root(settings.EngineRoot)

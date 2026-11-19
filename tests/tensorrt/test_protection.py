@@ -27,3 +27,18 @@ class ProtectionTests(unittest.TestCase):
             self.assertTrue(keyfile.exists());self.assertTrue(plain.exists())
 
 if __name__=='__main__':unittest.main()
+
+class RuntimeFailureCleanupTests(unittest.TestCase):
+    def test_failed_release_validation_removes_decrypted_files_even_if_keep_after_success(self):
+        from types import SimpleNamespace
+        from core.inference_runtime import load_models
+        from core.engine_artifacts import MODEL_SPECS
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d);enc=root/'enc';enc.mkdir();key=generate_key();keyfile=root/'key';keyfile.write_text(key)
+            for name in MODEL_SPECS:
+                plain=root/f'{name}.engine';plain.write_bytes(b'not-a-valid-engine')
+                encrypt_model_file(plain,enc/f'{name}.engine.enc',key)
+            resolver=ModelPathResolver(ModelProtectionConfig(True,enc,root/'tmp',keyfile,False))
+            config=SimpleNamespace(InferenceBackend='tensorrt',InferenceHalf=True,EngineRoot=str(root))
+            with self.assertRaises(ValueError):load_models(config,resolver)
+            self.assertFalse(list((root/'tmp').rglob('*.engine')),'failure must always clean decrypted files')
