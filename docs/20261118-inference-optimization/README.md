@@ -1,8 +1,8 @@
 # 推理性能与精度优化计划
 
-状态：执行中。两后端各5901次修正版基线、四模型FP16 I/O引擎、原容量143轮及人数C256补证均已采集和备份；I1/C1/b1三接口18组同配置配对亦完成并完整备份，正在接续全量并发业务审计。最新一致性见 [修正版报告](reports/20261118-precision-comparison-corrected/report.md)，容量边界见 [C256补证](reports/20261119-sync-c256/report.md)，连续执行状态见 [检查点](reports/20261118-execution-status/README.md)。教师发生器、并发审计及最终报告/验收等尚未完成。
+状态：执行中。两后端各5901次修正版基线、四模型FP16 I/O引擎、原容量143轮及人数C256补证均已采集和备份；I1/C1/b1三接口18组同配置配对亦完成并完整备份，全量并发业务审计11802次均与各自基线规范化一致并完成备份，接续HTTP统计开关诊断。最新一致性见 [修正版报告](reports/20261118-precision-comparison-corrected/report.md)，容量边界见 [C256补证](reports/20261119-sync-c256/report.md)，连续执行状态见 [检查点](reports/20261118-execution-status/README.md)。教师发生器、统计开关/回退及最终报告/验收等尚未完成。
 
-2026-11-19 09:40恢复连接后确认：原PyTorch69轮/TRT74轮全部自然结束、无未完成轮，指定GPU空闲。完整143轮2797文件已本机校验备份。TRT[学生21轮](reports/20261119-trt-student-capacity/report.md)及[教师29轮](reports/20261119-trt-teacher-capacity/report.md)已归集；教师发生器限制仍需独立补证。之后C256两轮亦完成并备份，失败点不推荐；同一b15dd39的[固定配对](reports/20261119-backend-paired/report.md)18组107942次均成功。全部cleanup且GPU空闲后才同步e90b31f，两环境各32项CPU回归通过，接续独立业务审计。
+2026-11-19 09:40恢复连接后确认：原PyTorch69轮/TRT74轮全部自然结束、无未完成轮，指定GPU空闲。完整143轮2797文件已本机校验备份。TRT[学生21轮](reports/20261119-trt-student-capacity/report.md)及[教师29轮](reports/20261119-trt-teacher-capacity/report.md)已归集；教师发生器限制仍需独立补证。之后C256两轮亦完成并备份，失败点不推荐；同一b15dd39的[固定配对](reports/20261119-backend-paired/report.md)18组107942次均成功。全部cleanup且GPU空闲后才同步e90b31f，两环境各32项CPU回归通过，六组独立业务审计11802次通过并完整备份，42份运行OpenAPI结构一致。
 
 ## 已确定的范围
 

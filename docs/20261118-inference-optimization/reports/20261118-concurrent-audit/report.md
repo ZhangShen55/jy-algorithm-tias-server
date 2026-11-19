@@ -1,6 +1,6 @@
 # 同接口并发业务一致性工具与执行出口
 
-状态：工具代码完成，最初4项无模型回归检查通过；最新审计/时间线共13项通过；尚未执行真实GPU并发审计，不写为并发一致性已通过。当前正式服务仍为b15dd39，未拉取本工具或插入额外GPU任务。
+状态：六组全量真实GPU并发业务审计完成，11802次均成功，规范化最终业务响应全部与各自后端corrected顺序基线严格相等。原始/派生197文件已本机整包及逐成员核验；只验证同接口业务响应，不评价真实准确率或混合接口竞态。当前结果见文末，原工具准备记录保留。
 
 ## 执行方法
 
@@ -32,7 +32,7 @@
 
 `python3 -m unittest discover -s tests/benchmark -p test_audit.py`：4项通过。覆盖时间差可忽略但计数/坐标变化必须保留、图片字节/覆盖不符拒绝、两个并发worker完整保存全部图片及重复、HTTP错误停止新派发并保留未执行状态。测试不加载模型、不访问网络，仅验证采集和对照逻辑；不替代真实CUDA/HTTP验证。audit.py与instances.py编译、git diff检查通过。
 
-真实GPU审计、差异归因、产物哈希/备份与最终出口仍待执行。后续在任务05和完成出口07按实际证据更新。
+以上为工具准备时的检查范围；真实GPU执行与备份结果见下节。
 
 2026-11-19更新：新增HTTP接收时延、Unicode关联头、历史ImageList/FP16元数据保护兼容；六组全量及快速池CPU预检通过。--trace-http只允许和audit-reference共同诊断，方法及真实GPU待验状态见 ../20261119-http-timing/report.md，输入冻结见 ../20261119-quick-regression/report.md。
 
@@ -41,3 +41,29 @@
 18组普通配对结束并确认指定GPU空闲后，服务器FF同步e90b31f，两环境各32项CPU回归通过。六组完整池再次在服务器CPU预检通过，引用torch/trt-corrected-baseline-20261118原件，SHA分别ccfdde4bec50200f8d62ca05dfd6de861e393c968f1002502e157a08e8b52b59和0a8b40f11a64031e88dc2656519f7af19804625ab75bc7822f939b0b49eb5c4b。
 
 run_id为concurrent-business-audit-20261119，控制父551538，脚本/日志environment-20261118/concurrent-business-audit-20261119.py/.log，驱动SHA38899c1c3b2d97c042474c27474b996b270dad116bba1a5f6080dae779c13c29。三接口按人数/学生/教师顺序PT→TRT，各完整池一次，总11802次正式调用；PT I/C/b分别8/8/1、4/8/2、12/24/2；TRT分别8/16/2、2/8/4、8/16/2。人数b仍无准入作用。seed20261118、预热30秒、客户端60秒超时，trace关闭。保存逐图完整响应/同后端顺序差异、每端口实际OpenAPI、资源与原始日志，不计容量；每轮新目录和原GPU/主机预算保护，失败保留停止。真实GPU完成与差异/备份尚待实时记录，不将控制启动当执行完成。新阶段冻结e90b31f，后续文档提交不在此阶段中途拉取。
+
+## 2026-11-19 全量执行与独立复核结果
+
+六组均按完整池各一次完成，序号恰为0..N-1、图片ID无重复/缺失、SHA与同后端基线一致；逐行重新计算业务差异与保存comparison相同，两份summary相同，最后事件均为cleanup_complete。原控制551538已自然退出，指定GPU恢复3MiB/0%。Traceback、CUDA out of memory、CUDA error、NMS time limit扫描均0，所有最终响应浮点数有限。
+
+| 接口 | 后端 | I/C/b | 完成/独立图片 | 规范化严格相等 | 计数变化 | HTTP/业务失败 |
+|---|---|---|---:|---:|---:|---:|
+| sync | pytorch | 8/8/1 | 2162 | 2162 | 0 | 0 |
+| sync | tensorrt | 8/16/2 | 2162 | 2162 | 0 | 0 |
+| student | pytorch | 4/8/2 | 2162 | 2162 | 0 | 0 |
+| student | tensorrt | 2/8/4 | 2162 | 2162 | 0 | 0 |
+| teacher | pytorch | 12/24/2 | 1577 | 1577 | 0 | 0 |
+| teacher | tensorrt | 8/16/2 | 1577 | 1577 | 0 | 0 |
+
+“严格相等”沿用已冻结canonical定义：忽略TimeStamp、UseTimeMs、FreeCapacity和列表顺序；没有放宽浮点坐标、计数或置信度来取得一致。各实例均实际收到正式请求，分布见summary.per_instance。结果表示这批输入/候选配置下并发相对各自顺序业务输出一致，不表示两后端彼此无差异；原127778框匹配、47参考独有/43新增及学生人数差异等后端对照结论继续保留。原始模型检测框未在此模式重采，混合接口共享predictor竞态和未覆盖正类别仍不在本项结论内。
+
+42个实际实例均捕获完整运行OpenAPI，公开7路径及完整schema结构相同，且与原contracts-tensorrt-runtime-20261119/openapi.json结构相同。JSON文件排版不用于判断契约变化。所有组默认trace关闭，未生成timing-*.jsonl；后续开启/关闭诊断单独执行，不把本次额外保存和比较开销混入容量。
+
+## 本阶段完整证据与备份
+
+- 原始run_id：concurrent-business-audit-20261119，代码e90b31f943f9ec59942297214b0397913f07e08c；计划SHA2f427174f56a84712edb852e41b2ab6fb7178e478bab9322310626e574668501。
+- 独立复核目录concurrent-business-analysis-20261119，summary SHAaa1fcbbbc77ad6ae00cab05e724c0fb2a1b08749e0afaf3cda507e5112c79d2d；保存逐组响应/摘要SHA、每端口分布、OpenAPI成员清单及default-off-contract-check.json。
+- concurrent-business-checkpoint-20261119/evidence.tar.gz：197源文件、6526744字节、SHA0d01a2ee4a8ee8668f1eb4e9c50ae68184fe169c98132f3f455aafc7b8183f1b。含完整响应、比较、实例日志/配置/资源/事件、42份OpenAPI、驱动/日志、分析及两环境各32项CPU回归证据。源文件打包前后不变。
+- 本机/Users/zhangshen/.codex/backups/vbas-benchmark-20261118/concurrent-business-checkpoint-20261119/已核对整包及197成员、解包，local-verification.json保存结果。完整配置/照片/逐图响应均不推Git。
+
+本项实验完成；真实GPU统计开关/开销、教师单双发生器、显式PyTorch回退、读取/下载成本与最终完整性/图表/交接继续。结果不构成部署或精度采用授权。
