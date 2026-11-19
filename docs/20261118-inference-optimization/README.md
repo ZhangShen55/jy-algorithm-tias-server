@@ -2,6 +2,8 @@
 
 状态：执行中。PyTorch/TensorRT各5901次全量采集、四模型FP16 I/O引擎及分段诊断已完成；学生独立 NMS=False 两后端各2162张重采及本机校验备份已完成，原容量流程已恢复。最新对照见 [修正版报告](reports/20261118-precision-comparison-corrected/report.md)。连续执行状态见 [检查点](reports/20261118-execution-status/README.md)，最终报告与验收尚未完成。
 
+2026-11-19 09:40恢复连接后确认：原PyTorch69轮/TRT74轮全部自然结束、无未完成轮，指定GPU空闲。完整143轮2797文件已本机校验备份。TRT[学生21轮](reports/20261119-trt-student-capacity/report.md)及[教师29轮](reports/20261119-trt-teacher-capacity/report.md)已归集；教师发生器限制仍需独立补证。当前按原b15dd39服务串行补两后端人数C256，后续配对/审计/回退等未完成。
+
 ## 已确定的范围
 
 - 工作分支：`perf`，从 `main` 建立。先完成 PyTorch FP16 基线，再对四个模型开展 TensorRT FP16 对照。C++ 改造另行计划。
