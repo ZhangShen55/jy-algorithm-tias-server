@@ -1,4 +1,4 @@
-当前状态：用户已于2026-11-19T18:44:50+08:00明确恢复，29/37项完成。离线导出工具使用独立r2重新完整验证；性能/稳定性与最终交接继续。完成后提交本任务改动并保持工作区干净，用户文件与私有资产保留。
+当前状态：用户已于2026-11-19T18:44:50+08:00明确恢复，30/37项完成。离线导出工具使用独立r2重新完整验证；性能/稳定性与最终交接继续。完成后提交本任务改动并保持工作区干净，用户文件与私有资产保留。
 
 ## 执行过程进度同步约定
 
@@ -19,7 +19,7 @@ OpenSpec子任务完成才勾选；源05聚合任务只有对应全部子任务�
 
 - [x] 2.1 定义manifest schema/version和四模型显式文件映射；实现CPU校验，覆盖缺文件/缺模型/错SHA/错形状/错类别、无效元数据头以及目标目录已存在的反例测试。
 - [x] 2.2 实现scripts/verify_tensorrt_models.py：默认静态检查，显式选项才启动GPU诊断；检查实际TensorRT反序列化、HALF I/O、类别、形状和环境，失败退出非零并指明模型。
-- [ ] 2.3 实现scripts/export_tensorrt_models.py离线构建，source-root/output/device显式指定；沿用现有FP16/TF32关闭及元数据封装方法，失败无完成标记，旧benchmark脚本保持原样。
+- [x] 2.3 实现scripts/export_tensorrt_models.py离线构建，source-root/output/device显式指定；沿用现有FP16/TF32关闭及元数据封装方法，失败无完成标记，旧benchmark脚本保持原样。
 - [x] 2.4 增加已有受审资产复制/校验流程；在新私有release目录准备全件Engine并核验后置入项目model/，不覆盖源PT/ONNX/Engine或混装版本；保存全部构建/复制来源和SHA。
 - [x] 2.5 增加model/说明并更新.gitignore/.dockerignore，验证Engine/密文/实际私有manifest/中间文件不会被常规添加；仅跟踪工具、模板和脱敏文档。
 
