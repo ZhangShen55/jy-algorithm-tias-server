@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import re
 import socket
+import signal
 import subprocess
 import sys
 import threading
@@ -33,6 +34,7 @@ def main():
     parser.add_argument('--audit-reference', type=Path, help='独立业务一致性模式；不用作容量测量')
     parser.add_argument('--audit-repetitions', type=int, default=1)
     parser.add_argument('--trace-http', action='store_true', help='独立诊断时间线，勿混作普通容量成绩')
+    parser.add_argument('--load-processes', type=int, choices=[1, 2], help='显式启用统一起点的单/双发生器诊断')
     args = parser.parse_args()
     if args.instances < 1 or args.concurrency < 1 or args.max_batches < 1 or args.queue_size < 0:
         parser.error('实例数与并发必须大于零')
@@ -40,6 +42,9 @@ def main():
         parser.error('一致性重复必须大于零，且不能混入定速容量实验')
     if args.trace_http and not args.audit_reference:
         parser.error('HTTP时间线只用于带audit-reference的独立诊断，不混入普通容量实验')
+    if args.load_processes is not None and (args.audit_reference or args.instances % args.load_processes or
+            args.concurrency % args.load_processes or args.concurrency < args.load_processes):
+        parser.error('协调发生器要求实例/总并发均匀分片，且不与audit-reference混用')
     if args.audit_reference:
         try:
             from .audit import workload
@@ -55,6 +60,7 @@ def main():
             stream.write(json.dumps({'event': name, 'unix_time': time.time(), 'elapsed_s': time.perf_counter()-started, **details})+'\n')
     event('run_start', instances=args.instances, concurrency=args.concurrency, max_batches=args.max_batches,
           backend=args.backend, trace_http=args.trace_http,
+          load_processes=args.load_processes,
           audit_reference=str(args.audit_reference.resolve()) if args.audit_reference else None)
     gpu = 'GPU-8c6b7efd-2b4f-04f3-db71-b50d2482fc49'
     processes, handles, urls = [], [], []
@@ -70,14 +76,26 @@ def main():
                 query = subprocess.run(['nvidia-smi', f'--id={gpu}', '--query-gpu=memory.used,utilization.gpu,temperature.gpu,power.draw,clocks.sm', '--format=csv,noheader,nounits'], capture_output=True, text=True)
                 now = time.monotonic()
                 stats = []
-                for process in list(processes)+([load_process] if load_process is not None else []):
+                sampled = [(p.pid, 'server') for p in list(processes)]
+                if load_process is not None:
+                    sampled.append((load_process.pid, 'load_coordinator' if args.load_processes else 'load_generator'))
+                    if args.load_processes:
+                        try:
+                            workers = json.loads((args.output/'load/workers.json').read_text())
+                            for worker in workers:
+                                fields = Path(f'/proc/{worker["pid"]}/stat').read_text().rsplit(')', 1)[1].split()
+                                if int(fields[1]) == load_process.pid:
+                                    sampled.append((worker['pid'], 'load_generator'))
+                        except (FileNotFoundError, ProcessLookupError, json.JSONDecodeError):
+                            pass
+                for pid, role in sampled:
                     try:
-                        fields = Path(f'/proc/{process.pid}/stat').read_text().rsplit(')', 1)[1].split()
+                        fields = Path(f'/proc/{pid}/stat').read_text().rsplit(')', 1)[1].split()
                         ticks = int(fields[11])+int(fields[12])
-                        old = previous.get(process.pid)
+                        old = previous.get(pid)
                         cpu = (ticks-old[1])/os.sysconf('SC_CLK_TCK')/(now-old[0])*100 if old else None
-                        previous[process.pid] = (now, ticks)
-                        stats.append({'pid': process.pid, 'role': 'load_generator' if process is load_process else 'server', 'cpu_percent_one_core_100': cpu,
+                        previous[pid] = (now, ticks)
+                        stats.append({'pid': pid, 'role': role, 'cpu_percent_one_core_100': cpu,
                                       'rss_kib': int(fields[21])*os.sysconf('SC_PAGE_SIZE')/1024})
                     except (FileNotFoundError, ProcessLookupError):
                         continue
@@ -172,13 +190,16 @@ def main():
                         '--endpoint', args.endpoint, '--payload', str(args.payload.resolve()),
                         '--output', str(args.output/'load'), '--concurrency', str(args.concurrency),
                         '--seconds', str(args.seconds), '--rate', str(args.rate), '--seed', str(args.seed)]
+        if args.load_processes is not None:
+            command[1] = str(root/'scripts/benchmark/coordinated_load.py')
+            command += ['--processes', str(args.load_processes)]
         if args.audit_reference:
             command = [sys.executable, str(root/'scripts/benchmark/audit.py'), '--urls', *urls,
                        '--endpoint', args.endpoint, '--payload', str(args.payload.resolve()),
                        '--output', str(args.output/'load'), '--concurrency', str(args.concurrency),
                        '--seed', str(args.seed), '--reference', str(args.audit_reference.resolve()),
                        '--repetitions', str(args.audit_repetitions)]
-        load_process = subprocess.Popen(command)
+        load_process = subprocess.Popen(command, start_new_session=args.load_processes is not None)
         code = load_process.wait()
         if code:
             raise RuntimeError(f'Load generator exited: {code}')
@@ -192,11 +213,23 @@ def main():
         event('run_failed', error=repr(exc))
         raise
     finally:
+        if load_process is not None and args.load_processes is not None:
+            # 新建会话只包含本轮协调器和其子进程；即使父进程意外退出也清理同组发生器。
+            try:
+                os.killpg(load_process.pid, signal.SIGTERM)
+            except ProcessLookupError:
+                pass
         if load_process is not None and load_process.poll() is None:
-            load_process.terminate()
+            if args.load_processes is None:
+                load_process.terminate()
             try:
                 load_process.wait(timeout=10)
             except subprocess.TimeoutExpired:
+                if args.load_processes is not None:
+                    try:
+                        os.killpg(load_process.pid, signal.SIGKILL)
+                    except ProcessLookupError:
+                        pass
                 load_process.kill()
                 load_process.wait()
         for p in processes:

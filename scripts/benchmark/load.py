@@ -36,12 +36,21 @@ async def run(args):
         async with httpx.AsyncClient(timeout=args.timeout, limits=limits, trust_env=False) as client:
             started = time.perf_counter()
             started_unix = time.time()
+            coordinated = getattr(args, 'coordination_dir', None) is not None
+            if coordinated:
+                try:
+                    from .coordinated_load import wait_for_start
+                except ImportError:
+                    from coordinated_load import wait_for_start
+                started, started_unix = await wait_for_start(args)
             stop = started+args.seconds
-            async def worker(worker_index, planned=None):
+            async def worker(worker_index, planned=None, planned_index=None):
                 nonlocal sequence
                 while planned is not None or time.perf_counter() < stop:
                     number = sequence
                     sequence += 1
+                    if coordinated:
+                        number = args.shard_index+args.shard_count*(number if planned_index is None else planned_index)
                     base = args.urls[worker_index % len(args.urls)].rstrip('/')
                     sent = time.perf_counter()
                     selected_payload = payloads[number % len(payloads)]
@@ -75,21 +84,24 @@ async def run(args):
                 await asyncio.gather(*(worker(i) for i in range(args.concurrency)))
             else:
                 running = set()
-                arrival = started
+                phase = args.shard_index/(args.rate*args.shard_count) if coordinated else 0
+                arrival = started+phase
                 index = 0
                 while arrival < stop:
                     await asyncio.sleep(max(0, arrival-time.perf_counter()))
                     if len(running) >= args.concurrency:
                         row = {'status': None, 'valid': False, 'latency_ms': 0,
                                'error': 'load_generator_inflight_limit', 'planned_offset_s': arrival-started}
+                        if coordinated:
+                            row['sequence'] = args.shard_index+args.shard_count*index
                         records.append(row)
                         out.write(json.dumps(row)+'\n')
                     else:
-                        task = asyncio.create_task(worker(index, arrival))
+                        task = asyncio.create_task(worker(index, arrival, index if coordinated else None))
                         running.add(task)
                         task.add_done_callback(running.discard)
                     index += 1
-                    arrival = started+index/args.rate
+                    arrival = started+phase+index/args.rate
                 if running:
                     await asyncio.gather(*running)
     elapsed = time.perf_counter()-started
@@ -117,6 +129,8 @@ async def run(args):
                'all_request_latency_ms_p95': percentile([r['latency_ms'] for r in records], .95),
                'warmup': 'must_be_performed_separately',
                'resource_metrics': 'must_be_collected_separately'}
+    if coordinated:
+        summary['coordinated_shard'] = {'index': args.shard_index, 'count': args.shard_count}
     (args.output / 'summary.json').write_text(json.dumps(summary, indent=2))
     print(json.dumps(summary))
 
@@ -132,7 +146,13 @@ if __name__ == '__main__':
     parser.add_argument('--seed', type=int, default=20261118)
     parser.add_argument('--rate', type=float, default=0, help='大于零启用定速开放式负载，concurrency 为客户端在途上限')
     parser.add_argument('--timeout', type=float, default=60)
+    parser.add_argument('--coordination-dir', type=Path, help='仅由coordinated_load.py管理的启动屏障')
+    parser.add_argument('--shard-index', type=int, default=0)
+    parser.add_argument('--shard-count', type=int, choices=[1, 2], default=1)
+    parser.add_argument('--ready-timeout', type=float, default=60)
     args = parser.parse_args()
     if args.concurrency < 1 or args.seconds <= 0 or args.timeout <= 0 or args.rate < 0:
         parser.error('并发、持续时间、超时必须大于零')
+    if not 0 <= args.shard_index < args.shard_count or args.ready_timeout <= 0:
+        parser.error('无效协调分片或启动超时')
     asyncio.run(run(args))
