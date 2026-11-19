@@ -1,6 +1,6 @@
 # 单/双发生器协调工具
 
-状态：协调代码及instances.py显式入口已实现；本机25项无模型回归通过，其中8项覆盖真实CPU loopback及进程控制。服务器Linux资源采样与真实GPU对照仍未验证，不能据此认定发生器瓶颈已解决。
+状态：协调工具CPU检查及四组真实Linux/GPU短工具验证通过，完整96文件已本机核验；42组固定教师正式补证正在接续。预检不作容量成绩，尚不能认定发生器瓶颈已解决。
 
 ## 实现约束
 
@@ -34,3 +34,19 @@ instances.py仅显式选择协调模式时调用新工具；采样需区分协�
 | instances.py | 30accfe7873f3416ad9ef81af4cee1ef563031ed8c225169f36291f1271cc127 |
 
 每次协调运行还会记录上述load/协调器源码哈希、分片PID及各原始请求/摘要哈希。现有正式服务冻结版与新工具版本边界必须在后续真实实验中分别记录；本机通过不代表已部署服务器或最终验收完成。
+
+## 2026-11-19 GPU工具预检接续
+
+18组同配置配对、六组全量业务审计和12组HTTP时间线诊断全部结束并完整备份后，指定GPU3MiB/0%、无instances/load/audit时启动四组短GPU工具预检。run_id为load-coordination-gpu-preflight-20261119，父578086；脚本/日志environment-20261118/同名.py/.log，驱动SHA3539bc93461368228b1c148fc57bafe030d25fa6ff4f8a671f38ef16e34b2140。PT/TRT各单/双一组，I2/C2/b1、teacher全池、seed20261118、预热30秒/正式10秒/HTTP60秒，四项本机合成检查先通过。仅验证真实Linux/GPU工具路径、共同窗口/原始统计/实际子PID资源和清理，不作容量成绩，服务器仍冻结e90b31f。真实四组结果/备份待实时核对，不能把启动视为完成。
+
+后续42组正式驱动teacher-load-coordination-formal-20261119.py已准备，SHA9debf399b1470d7ff46d691adffe78c1306983622c2b1905bd0ab842d8f05167，6项CPU合成统计/429日志归因检查通过；四组GPU工具验证通过且空闲后才可启动。按02的7组固定配置，每组r1单→双、r2双→单、r3单→双，各模式3轮。正式资源守卫与服务准入不放宽，已知429/本地未发完整分开记录，未知错误保留停止；完整结果及有效到达率结论仍待执行。
+
+## 四组Linux/GPU工具验证结果
+
+原控制578086已自然结束，四组均零失败，正式短工具请求数分别PT单518/PT双587/TRT单758/TRT双825（合计2688）；每组仅10秒，不以该数量/比值作为容量或后端收益。统一起点/10秒窗口、分片归属、合并原始计数及P50/P95/P99重新核对通过。实际load_coordinator及全部load_generator子PID均有CPU/RSS有效采样，正式窗口每PID9～10份；单进程为1个实际发生器，双进程为2个。各组cleanup后所有本轮协调/子发生器PID已回收，最后GPU3MiB/0%，默认未生成trace。
+
+完整load-coordination-preflight-checkpoint-20261119/evidence.tar.gz为96源文件、500620字节，SHAdfa290cc5d1f46e05bb54c627daa94a89b8ccdabd9f0c9d7a14d4e97f73d1f4c；源打包前后不变，本机同名目录整包及96成员校验解包。原始分片请求/摘要、合并请求/摘要、共同起点/ready/PID、资源、事件、配置/日志及控制脚本均包含。实际e90b31f的load.py含错误证据补强，SHA424102ac66547ac63b7b0c6ca84962c3d52a9f61338d0c79062dda5662e5e890；旧表a091...为25项CPU阶段历史，不覆盖或混用，实际manifest保存真实源码哈希。
+
+本工具GPU阶段完成后才启动42组正式补证teacher-load-coordination-formal-20261119，脚本/日志environment-20261118/同名.py/.log、源码SHA9debf399b1470d7ff46d691adffe78c1306983622c2b1905bd0ab842d8f05167。保持e90b31f不拉取，原主机预算为8+I×1.5GiB（PT I12需26GiB，TRT I8需20GiB）及GPU空闲保护不变。各轮load_processes=1/2显式选择，单发生器也走相同协调入口，避免把启动屏障差异混为双进程收益。开放式即使所有HTTP成功，也须归集未发/在途、发送滞后和全部实际发生器资源，不能仅据usable=True或目标rate声称有效服务到达能力。42组真实结果、完整归因/备份及容量结论仍未完成。
+
+正式42组已于四组预检完整本机核验且GPU空闲后启动，父581904，plan SHA1ebdc5bce7c72dcc93876543411a15d0d22782a9e768e652a1b328f37c9f9e07。首轮pt-closed-c24-b2-r1-p1正常逐实例装载，未见控制错误。仅启动不代表完成，后续以case-result/journal/请求新鲜度、实际子进程资源和controller-error为准；不按历史PID续发SIGCONT，不重跑已有目录。
