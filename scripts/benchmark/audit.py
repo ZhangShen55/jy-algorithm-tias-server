@@ -14,9 +14,11 @@ from urllib.parse import quote
 try:
     from .compare import business_boxes, business_counts, canonical, match, valid_business
     from .load import percentile
+    from .errors import exception_details
 except ImportError:
     from compare import business_boxes, business_counts, canonical, match, valid_business
     from load import percentile
+    from errors import exception_details
 
 
 def workload(reference, payload_root, endpoint):
@@ -120,6 +122,7 @@ async def run(args):
                         if 'latency_ms' not in row:
                             row.update(completed_offset_s=time.perf_counter()-started,
                                        latency_ms=(time.perf_counter()-sent)*1000)
+                        row.update(exception_details(exc))
                     if not row['valid']:
                         abort.set()
                     records.append(row)

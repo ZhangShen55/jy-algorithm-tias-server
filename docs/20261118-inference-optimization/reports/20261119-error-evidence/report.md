@@ -1,0 +1,19 @@
+# 后续客户端错误证据补强
+
+状态：代码已实现，本机32项无模型回归通过（新增7项错误证据测试）；真实GPU未验。当前固定配对继续冻结b15dd39，没有部署或中途修改测量。
+
+历史C256的29次ReadError只保存了repr，无法恢复底层errno/异常链；原记录及有限结论不改写，不重新跑C256。按既定失败归因要求，为后续load/audit增加仅在异常时记录的有界异常链：最多8层、每层repr最多1000字符，保留具体异常类型及已有OSError.errno，遵守Python显式屏蔽context。不记录局部变量或请求数据，不增加重试/超时、不改变服务/API/准入。
+
+在客户端完成时间/时延记录后构造额外证据字段，保留原error字符串；成功调用不增加错误字段。CPU构造嵌套/循环/屏蔽上下文及配置SO_LINGER=0后关闭连接的真实loopback故障，验证load和audit的私有错误记录及审计停止语义。os_errno_available只标记可达异常中是否有errno；可达链终止不代表底层因果已完整恢复，不根据fixture动作补造缺失信息。模拟不能证明旧C256同样由TCP RST、keepalive或某个CUDA行为导致。
+
+## 本机库边界调查
+
+本机HTTPX0.28.1/httpcore1.0.9/AnyIO4.9.0的受控故障实际只保留httpx.ReadError→httpcore.ReadError→anyio.BrokenResourceError。httpcore将下层异常放在args中而非总挂在__cause__，工具需要同时识别显式异常参数。查看本机AnyIO的StreamProtocol.connection_lost及SocketStream.receive源码，前者曾设置原异常cause，后者再用from None抛出，原errno因此不再位于最终可达链中。当前真实故障的errno不可用；构造的可达OSError则能保留原值。此结论只针对上述本机版本，不外推服务器或历史C256。没有为此升级/修改任何运行库，也不绕过显式屏蔽的context。
+
+## 验证与实际边界
+
+`python3 -m unittest discover -s tests/benchmark -p 'test_*.py'`共32项通过，errors/load/audit三脚本py_compile及git diff --check通过。新增测试覆盖可达OSError原errno、异常参数包装、循环/8层上限、显式屏蔽context、1000字符上限，以及真实CPU故障时load/audit保存可达层、状态保持失败和审计停止新发送；已有协调HTTP成功调用也核对没有error_chain字段。
+
+初始真实故障测试曾要求一定取得errno；调查本机库后确认这超出了“保留已有可达errno”的能力，最终按可达层验证，并用构造的可达OSError独立约束errno不得丢失。未放宽GPU失败门槛、状态或重试语义，没有为测试补造TCP原因。下一阶段仍须在服务器验证实际库/记录，旧C25629次读取失败及其根因限制保留。
+
+代码SHA256：errors.py为57cac0bf9be1d900f16838862d2a593504c11f2c8fc6ff35363b256d537c3bb5；load.py为424102ac66547ac63b7b0c6ca84962c3d52a9f61338d0c79062dda5662e5e890；audit.py为e454329e03b7dd5b64f69bb52a713e16552348e79e7c4bfbf6ad212270b3937b。后续协调运行的manifest会保存实际load源码哈希；不得混淆47ac26f旧工具和本次补强的边界。

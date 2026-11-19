@@ -8,6 +8,11 @@ from pathlib import Path
 import statistics
 import time
 
+try:
+    from .errors import exception_details
+except ImportError:
+    from errors import exception_details
+
 
 def percentile(values, q):
     values = sorted(values)
@@ -57,6 +62,7 @@ async def run(args):
                     image = selected_payload['ImageList'][0]
                     row = {'sequence': number, 'instance': base, 'sent_offset_s': sent-started,
                            'image_id': image.get('ImageId', image.get('ImageID'))}
+                    failure_exception = None
                     try:
                         response = await client.post(base+args.endpoint, json=selected_payload)
                         row['status'] = response.status_code
@@ -71,11 +77,14 @@ async def run(args):
                             row['error_response'] = body
                     except Exception as exc:
                         row.update(status=None, valid=False, error=repr(exc))
+                        failure_exception = exc
                     row['completed_offset_s'] = time.perf_counter()-started
                     row['latency_ms'] = (time.perf_counter()-sent)*1000
                     if planned is not None:
                         row['planned_offset_s'] = planned-started
                         row['latency_from_schedule_ms'] = (time.perf_counter()-planned)*1000
+                    if failure_exception is not None:
+                        row.update(exception_details(failure_exception))
                     records.append(row)
                     out.write(json.dumps(row, ensure_ascii=False)+'\n')
                     if planned is not None:

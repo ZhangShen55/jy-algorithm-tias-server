@@ -74,6 +74,7 @@ class CoordinatedLoadTests(unittest.TestCase):
                 self.assertEqual(result.returncode, 0, result.stderr)
                 rows = [json.loads(s) for s in (output/'requests.jsonl').read_text().splitlines()]
                 rows.sort(key=lambda r: r['sequence'])
+                self.assertTrue(all('error_chain' not in r for r in rows))
                 self.assertEqual([r['sequence'] for r in rows], [0, 1, 2, 3, 4, 5])
                 for row, planned in zip(rows, [0, .125, .25, .375, .5, .625]):
                     self.assertAlmostEqual(row['planned_offset_s'], planned, places=6)
