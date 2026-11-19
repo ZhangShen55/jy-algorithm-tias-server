@@ -1,0 +1,62 @@
+[
+  {
+    "directory": "trt-migration-20261119-reference-r1",
+    "files": 31,
+    "package": {
+      "bytes": 1593570673,
+      "sha256": "2dc960f08af14ff468017f51a09877c9972de774999a8869e4a4724fdcaa07c3"
+    },
+    "source_unchanged": true,
+    "local_all_files_verified": true
+  },
+  {
+    "directory": "trt-migration-20261119-model-checkpoint-r1",
+    "files": 279,
+    "package": {
+      "bytes": 259295746,
+      "sha256": "d4986aa32c1c0ac8814dc9378f8fbea0893c8bc6f0213c08931d0e8b03646cbc"
+    },
+    "source_unchanged": true,
+    "local_all_files_verified": true
+  },
+  {
+    "directory": "trt-migration-20261119-business-checkpoint-r1",
+    "files": 140,
+    "package": {
+      "bytes": 16350948,
+      "sha256": "e7507f5296574f17d86164735f41b183414b15b2048c0adc9d717b27ce96ccea"
+    },
+    "source_unchanged": true,
+    "local_all_files_verified": true
+  },
+  {
+    "directory": "trt-migration-20261119-functional-checkpoint-r1",
+    "files": 312,
+    "package": {
+      "bytes": 74845956,
+      "sha256": "8c9e9545e103b558810035e622bbc5f1524045fbab59a7d50aa4bf4aa5aba0de"
+    },
+    "source_unchanged": true,
+    "local_all_files_verified": true
+  },
+  {
+    "directory": "trt-migration-20261119-protection-checkpoint-r1",
+    "files": 48,
+    "package": {
+      "bytes": 403134042,
+      "sha256": "39706a4a68feaf807941e315bba53726a09499664a3aa1995a22fe9d11c778af"
+    },
+    "source_unchanged": true,
+    "local_all_files_verified": true
+  },
+  {
+    "directory": "trt-migration-20261119-full-input-checkpoint-r1",
+    "files": 3740,
+    "package": {
+      "bytes": 986801722,
+      "sha256": "ac73270ffec4bac045856329b8d6cb70fd229d5b5dcd1c556e38c542c8843038"
+    },
+    "source_unchanged": true,
+    "local_all_files_verified": true
+  }
+]
