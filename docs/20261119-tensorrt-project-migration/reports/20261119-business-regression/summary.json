@@ -1,0 +1,58 @@
+{
+  "code": "8234554",
+  "cases": [
+    {
+      "case": "student-concurrent",
+      "calls": 2162,
+      "strict_equal": 2162,
+      "failed": 0,
+      "summary_sha256": "66e076e6856ee599d6df906ed6e5df79a2eb3f7d2ec54e5d550b44b82f1dbf00"
+    },
+    {
+      "case": "student-sequential",
+      "calls": 2162,
+      "strict_equal": 2162,
+      "failed": 0,
+      "summary_sha256": "df2fce7e7eaf4b1376025e2de7a1be5216cf2906193d55c0024fc7725f0c3518"
+    },
+    {
+      "case": "sync-concurrent",
+      "calls": 2162,
+      "strict_equal": 2162,
+      "failed": 0,
+      "summary_sha256": "85af3ae6c15642efa7fa05fb9f1398862ac8e271c3adb0f7cb495a28ee4cc3eb"
+    },
+    {
+      "case": "sync-sequential",
+      "calls": 2162,
+      "strict_equal": 2162,
+      "failed": 0,
+      "summary_sha256": "e33f3b95c06dc7c490577ab64dd03040e1d8ccb48e250b812da5a3ad80c18137"
+    },
+    {
+      "case": "teacher-concurrent",
+      "calls": 1577,
+      "strict_equal": 1577,
+      "failed": 0,
+      "summary_sha256": "1a9bdfee6fd9ce735a608f1c7ff7604726b98436b81b21ece7aaa8f4c7a3390c"
+    },
+    {
+      "case": "teacher-sequential",
+      "calls": 1577,
+      "strict_equal": 1577,
+      "failed": 0,
+      "summary_sha256": "17d7bf0f14c5310c7571549a575001b21a56bf74e2936048d1a77d3a1fc2d819"
+    }
+  ],
+  "formal_calls": 11802,
+  "strict_equal": 11802,
+  "failed": 0,
+  "count_changed": 0,
+  "runtime_openapi_instances": 21,
+  "public_paths": 7,
+  "public_contract_equal_to_prior_trt": true,
+  "numeric_finite": true,
+  "all_cleanup": true,
+  "trace_files": 0,
+  "scope": "same_engine_final_business_response_not_raw_model_accuracy_or_mixed_interface_proof"
+}

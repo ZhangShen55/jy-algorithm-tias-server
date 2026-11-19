@@ -1,6 +1,6 @@
 # 项目统一 TensorRT Engine 迁移方案
 
-状态：实施中（21/37），用户已调用openspec-apply-change授权；只读预检通过，回退资产、本机/服务器Engine及新运行入口GPU检查完成，100张对比及备份完成、采用待复核；顺序/并发全量11802次一致，几何/输入/混合及稳定性待验，未部署。创建日期：2026-11-19（北京时间）。
+状态：实施中（26/37），用户已调用openspec-apply-change授权；只读预检通过，回退资产、本机/服务器Engine及新运行入口GPU检查完成，100张对比及备份完成、采用待复核；顺序/并发全量11802次一致，几何/输入/混合及稳定性待验，未部署。创建日期：2026-11-19（北京时间）。
 
 ## 目标和边界
 
@@ -56,3 +56,5 @@ OpenSpec的planning complete只表示文档齐备，不表示05/07实施或完�
 命名说明：按用户要求，change使用日期前缀 `20261119-migrate-vbas-to-tensorrt-engine`。当前安装的OpenSpec `status`命令要求名称以字母开头，因此无法通过该命令查看此名称的状态；文档保留，不能将该命名限制当成实施已完成或规范内容不合格。`validate`须独立核验。
 
 2026-11-19用户确认：Teacher_Behavior_Thresd.ImageSize固定640，其他值必须在加载前明确报错，不静默覆盖；原图分辨率不限制为640。
+
+专项执行检查点：全量业务与功能共享状态已完成，见[业务回归](reports/20261119-business-regression/report.md)和[专项回归](reports/20261119-functional-regression/report.md)。保护/多worker及性能稳定性尚未齐备，用户采用待复核。
