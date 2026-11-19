@@ -44,7 +44,7 @@ IoU是匹配框重叠指标，不是准确率。全部500次输出中，6254框�
 
 本机证据目录：/Users/zhangshen/.codex/backups/vbas-benchmark-20261118/trt-migration-20261119-model-checkpoint-r1/；解包后evidence/vbas-benchmarks/trt-migration-20261119-model-analysis-r1/含summary、differences及visual-index/visuals，源图按清单封存。完整照片、响应和配置不入Git。
 
-完整包evidence.tar.gz：279文件（含206张源图），259295746字节，SHA{pkg["package"]["sha256"]}。源前后不变，本机整包/279成员及解包后全部文件核验通过，local-verification.json留存。
+完整包evidence.tar.gz：279文件（含206张源图），259295746字节，SHA256 d4986aa32c1c0ac8814dc9378f8fbea0893c8bc6f0213c08931d0e8b03646cbc。源前后不变，本机整包/279成员及解包后全部文件核验通过，local-verification.json留存。
 
 ## 结论与下一步
 
