@@ -31,6 +31,18 @@ CONFIG_PATH=/绝对路径/私有测试配置.toml CUDA_VISIBLE_DEVICES=GPU-8c6b7
 
 使用未占用的独立测试端口。所有Engine加载并warmup后才接收服务；缺件/校验不符/无CUDA/不兼容后端明确启动失败，不退PT或CPU，不在线导出/下载。模型固定batch1不限制HTTP请求图片数量，既有逐图和批次准入语义保留。
 
+## 直接启动时的Engine保护
+
+可选加密模式使用四件Engine，离线执行（输出目录和密钥为新的私有路径）：
+
+```bash
+/home/zhangs/.conda/envs/vbas-trt/bin/python scripts/protect_vbas_models.py --source-dir model --target-dir /私有路径/engines-encrypted --key-file /私有路径/keys/model-key --generate-key
+```
+
+配置ModelProtection.Enabled=true、EncryptedModelRoot为上述密文目录、KeyFile为受控持久密钥绝对路径、DecryptedTempRoot为本任务独立的/dev/shm目录、CleanupAfterLoad=true。EngineRoot保留同一发布的manifest.json；解密内容按该manifest的明文SHA核验，不能混用发布。密钥权限600、父目录权限700，密文和manifest按受控资产分发，均不提交Git。
+
+本轮双worker验证使用持久KeyFile（位于/dev/shm之外），每个worker有独立0700临时子目录，成功加载后仅清理自己的明文；失败即使CleanupAfterLoad=false也清理。持久密钥不能删除，否则重启无法解密。不要把多worker指向同一个读取后即删除的/dev/shm密钥副本；旧secure entrypoint的单次副本引导不在本轮修改/验证范围，后续部署必须重新评审。
+
 ## 配置说明
 
 VBAS 通过环境变量 `CONFIG_PATH` 读取配置。未设置时默认读取 `config.toml`。

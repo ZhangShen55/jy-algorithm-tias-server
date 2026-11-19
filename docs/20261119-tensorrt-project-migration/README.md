@@ -1,6 +1,6 @@
 # 项目统一 TensorRT Engine 迁移方案
 
-状态：实施中（26/37），用户已调用openspec-apply-change授权；只读预检通过，回退资产、本机/服务器Engine及新运行入口GPU检查完成，100张对比及备份完成、采用待复核；顺序/并发全量11802次一致，几何/输入/混合及稳定性待验，未部署。创建日期：2026-11-19（北京时间）。
+状态：实施中（29/37），用户已调用openspec-apply-change授权；只读预检通过，回退资产、本机/服务器Engine及新运行入口GPU检查完成，100张对比及备份完成、采用待复核；顺序/并发全量11802次一致，几何/输入/混合、保护与恢复验证完成；离线新构建工具验证中、性能与稳定性待验，未部署。创建日期：2026-11-19（北京时间）。
 
 ## 目标和边界
 
@@ -42,7 +42,7 @@
 
 ## 对应 OpenSpec change
 
-已根据本索引及01～07生成 `20261119-migrate-vbas-to-tensorrt-engine`，当前仅规划产物就绪，未实施。
+已根据本索引及01～07生成 `20261119-migrate-vbas-to-tensorrt-engine`，当前实施中，真实进度以本索引状态和05映射为准。
 
 - [proposal：动机与范围](../../openspec/changes/20261119-migrate-vbas-to-tensorrt-engine/proposal.md)
 - [design：技术设计与取舍](../../openspec/changes/20261119-migrate-vbas-to-tensorrt-engine/design.md)
@@ -57,4 +57,6 @@ OpenSpec的planning complete只表示文档齐备，不表示05/07实施或完�
 
 2026-11-19用户确认：Teacher_Behavior_Thresd.ImageSize固定640，其他值必须在加载前明确报错，不静默覆盖；原图分辨率不限制为640。
 
-专项执行检查点：全量业务与功能共享状态已完成，见[业务回归](reports/20261119-business-regression/report.md)和[专项回归](reports/20261119-functional-regression/report.md)。保护/多worker及性能稳定性尚未齐备，用户采用待复核。
+专项执行检查点：全量业务与功能共享状态已完成，见[业务回归](reports/20261119-business-regression/report.md)和[专项回归](reports/20261119-functional-regression/report.md)。保护/多worker结果见下方新检查点；性能稳定性尚未齐备，用户采用待复核。
+
+保护与直接启动出口已验证，见[保护报告](reports/20261119-protection/report.md)；离线导出工具实际GPU验证中，性能与稳定性未完成。

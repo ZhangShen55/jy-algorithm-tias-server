@@ -80,7 +80,7 @@ Enabled = false
 EncryptedModelRoot = "/workspace/vbas/models-encrypted"
 # 临时明文模型目录。建议使用内存盘，权限会设置为 0700。
 DecryptedTempRoot = "/dev/shm/vbas-models"
-# 模型密钥运行期副本。secure entrypoint 会从只读挂载源复制到该路径，应用读取后删除副本。
+# 旧secure entrypoint的运行期副本读取后删除；本轮直接启动/多worker需改为dev/shm之外的受控持久密钥路径。
 KeyFile = "/dev/shm/vbas_model_key"
 # 模型加载成功后是否删除临时明文文件。
 CleanupAfterLoad = true

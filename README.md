@@ -22,7 +22,7 @@
 
 - **Python 3** + **FastAPI** + **Uvicorn**（可选 **uvloop**）
 - **Ultralytics YOLO**（`ultralytics`）
-- **OpenCV**、**NumPy**、**PyTorch**
+- **TensorRT FP16** 推理；**OpenCV**、**NumPy**、**PyTorch/torchvision** 供 Ultralytics 调用层使用
 - 生产环境可通过 **Nginx** 对多 Uvicorn 实例做负载均衡（见 `start.sh`）
 
 ---
@@ -42,7 +42,8 @@ vbas/
 ├── api/                    # HTTP 路由
 ├── services/               # 推理、准入和注册心跳
 ├── schemas/                # 请求与响应模型
-├── models/                 # 本地模型权重
+├── model/                  # 四件TensorRT Engine与私有manifest
+├── models/                 # 历史源权重，仅离线构建/对照及回退使用
 ├── scripts/                # 构建和模型保护工具
 └── openspec/
 ```
@@ -74,14 +75,14 @@ Engine及私有manifest不提交Git。源PT/ONNX留存私有构建和回退区�
 | 字段 | 含义 |
 |------|------|
 | `IMAGE_ROOT` | 同步任务或行为接口中**相对路径图片**的根目录 |
-| `GPU_ID` | GPU 编号；设为字符串 **`cpu`** 时使用 CPU |
+| `GPU_ID` | CUDA GPU编号或UUID；推荐UUID，CPU配置明确启动失败 |
 | `INSTANCE_COUNT` / `WORKERS_PER_INSTANCE` | 与 `start.sh` 配合：多实例时启动 Nginx + 多个 Uvicorn（后端端口从 8981 递增） |
 | `Person_Thresd` | 人数模型各类别置信度阈值（Head、Top_Head、Hat 等） |
 | `Face_Thresd` | 人脸检测阈值 |
 | `Student_Thresd` | 学生行为各类别阈值（Using_phone、Hand_raising、Sleep 等） |
 | `Teacher_Behavior_Thresd.MergeIoU` | 新老师行为模型同主体多类别框的高重叠合并阈值，默认 `0.8` |
 | `Teacher_Behavior_Thresd.SubjectClusterIoU` | 主体聚类 IoU 阈值，用于把同一老师的姿态框和授课行为框合成一个主体，默认 `0.45` |
-| `Teacher_Behavior_Thresd.ImageSize` | 新老师行为模型推理尺寸，默认 `640` |
+| `Teacher_Behavior_Thresd.ImageSize` | 本轮固定 `640`，其他值加载前明确报错；原图分辨率可变化 |
 | `Teacher_Behavior_Thresd.sit` / `stand` / `bbwriting` / `teach` | 新老师行为模型各类别默认置信度阈值；`sit` / `stand` 默认 `0.4`，`bbwriting` / `teach` 默认 `0.25`，接口请求中同名字段可临时覆盖 |
 | `Teacher_Behavior_Thresd.KeepOnlyMainSubject` | 是否只保留一个主老师主体，默认 `true` |
 | `Teacher_Behavior_Thresd.MainSubjectStrategy` | 主主体选择策略，默认 `posture_confidence`：优先按 `sit` / `stand` 姿态置信度选择老师主体 |

@@ -1,0 +1,9 @@
+{
+  "negative_cases": 4,
+  "missing_source_rejected": true,
+  "dual_modes": 2,
+  "business_calls": 24,
+  "strict_equal": 24,
+  "persistent_key_preserved": true,
+  "temporary_root_removed": true
+}

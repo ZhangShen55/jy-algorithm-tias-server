@@ -48,10 +48,10 @@ OpenSpec子任务完成才勾选；源05聚合任务只有对应全部子任务�
 
 ## 6. 保护与直接启动（依赖3，直接启动出口还依赖5；源05：T5/T6）
 
-- [ ] 6.1 更新scripts/protect_vbas_models.py的显式Engine四件清单和全件预检；缺件/错密钥/篡改测试非零失败，不产生伪完整资产集。
-- [ ] 6.2 更新core/model_protection.py为每worker创建独立0700目录，测试成功与异常清理、保护关闭直读Engine、双worker同时加载不覆盖/串删，持久密钥和源资产保留。
+- [x] 6.1 更新scripts/protect_vbas_models.py的显式Engine四件清单和全件预检；缺件/错密钥/篡改测试非零失败，不产生伪完整资产集。
+- [x] 6.2 更新core/model_protection.py为每worker创建独立0700目录，测试成功与异常清理、保护关闭直读Engine、双worker同时加载不覆盖/串删，持久密钥和源资产保留。
 - [x] 6.3 更新config.toml.example、README/RUNNING和直接启动命令，说明必要torch依赖、GPU UUID、环境、EngineRoot与关闭外部注册方法；不覆盖私有config.toml，不修改Docker/compose/线上启动脚本。
-- [ ] 6.4 在vbas-trt环境独立测试端口从项目根和其他cwd启动/重启，完成Health/WorkerStatus/Drain、双worker及保护回归；确认测试未注册外部编排服务。
+- [x] 6.4 在vbas-trt环境独立测试端口从项目根和其他cwd启动/重启，完成Health/WorkerStatus/Drain、双worker及保护回归；确认测试未注册外部编排服务。
 - [x] 6.5 在独立测试端口恢复旧commit/环境/配置/权重单元，三接口快速64图各一次冒烟并记录实际恢复命令；不停止或切换线上服务。
 
 ## 7. 有限性能和稳定性（依赖5/6；源05：T7）

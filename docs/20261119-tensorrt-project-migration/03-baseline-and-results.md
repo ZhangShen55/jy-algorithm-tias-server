@@ -19,3 +19,13 @@
 每组关联代码 commit/dirty diff、dataset清单SHA、配置SHA、模型及Engine SHA、manifest SHA、环境锁定清单（本轮不构建镜像）。保存每请求ID/图像SHA/序号/完整响应与比较、OpenAPI、资源、日志、错误、启动/清理记录。整包之前和之后计算源文件指纹，源发生变化则该包不作完整封存；整包SHA/大小和逐文件清单在本机核验解包。旧完整备份不删除、不覆盖。
 
 manifest.json 对每模型记录源PT SHA、ONNX SHA、含Ultralytics元数据头的engine文件SHA、FP16构建选项、实际I/O名称/dtype/shape、类别名称/顺序、GPU型号/compute capability、构建UUID、OS/CPU架构、TensorRT/CUDA/driver/torch/Ultralytics版本、构建代码SHA。普通/secure产物分别记录明文SHA/密文SHA，清单不含密钥。SHA只能证明完整性，不能代替可信发布来源；只加载本项目受审构建产物。
+
+## 本轮已封存阶段索引
+
+- [预检与旧资产](reports/20261119-preflight/report.md)：原权重/Engine/环境及回退单元冻结。
+- [四模型100张](reports/20261119-model-comparison/report.md)：同shape输出差异、私有图及完整备份；用户采用待复核。
+- [业务全量](reports/20261119-business-regression/report.md)：新TRT顺序/同接口并发11802次与旧参考一致。
+- [专项输入/几何/混合/旧PT恢复](reports/20261119-functional-regression/report.md)：同Engine42项一致，原PT几何8项计数变化独立记录。
+- [保护/双worker](reports/20261119-protection/report.md)：四Engine密文、4加载负例和双worker两模式。
+
+各报告包含独立run_id、整包SHA和本机逐文件核验位置；性能稳定性和最终全件证据尚未完成，不能以阶段包冒充最终交接。
