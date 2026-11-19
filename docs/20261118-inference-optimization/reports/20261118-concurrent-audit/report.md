@@ -35,3 +35,9 @@
 真实GPU审计、差异归因、产物哈希/备份与最终出口仍待执行。后续在任务05和完成出口07按实际证据更新。
 
 2026-11-19更新：新增HTTP接收时延、Unicode关联头、历史ImageList/FP16元数据保护兼容；六组全量及快速池CPU预检通过。--trace-http只允许和audit-reference共同诊断，方法及真实GPU待验状态见 ../20261119-http-timing/report.md，输入冻结见 ../20261119-quick-regression/report.md。
+
+## 2026-11-19 全量GPU阶段启动
+
+18组普通配对结束并确认指定GPU空闲后，服务器FF同步e90b31f，两环境各32项CPU回归通过。六组完整池再次在服务器CPU预检通过，引用torch/trt-corrected-baseline-20261118原件，SHA分别ccfdde4bec50200f8d62ca05dfd6de861e393c968f1002502e157a08e8b52b59和0a8b40f11a64031e88dc2656519f7af19804625ab75bc7822f939b0b49eb5c4b。
+
+run_id为concurrent-business-audit-20261119，控制父551538，脚本/日志environment-20261118/concurrent-business-audit-20261119.py/.log，驱动SHA38899c1c3b2d97c042474c27474b996b270dad116bba1a5f6080dae779c13c29。三接口按人数/学生/教师顺序PT→TRT，各完整池一次，总11802次正式调用；PT I/C/b分别8/8/1、4/8/2、12/24/2；TRT分别8/16/2、2/8/4、8/16/2。人数b仍无准入作用。seed20261118、预热30秒、客户端60秒超时，trace关闭。保存逐图完整响应/同后端顺序差异、每端口实际OpenAPI、资源与原始日志，不计容量；每轮新目录和原GPU/主机预算保护，失败保留停止。真实GPU完成与差异/备份尚待实时记录，不将控制启动当执行完成。新阶段冻结e90b31f，后续文档提交不在此阶段中途拉取。
