@@ -42,11 +42,13 @@
 
 ## 对应 OpenSpec change
 
-已根据本索引及01～07生成 `migrate-vbas-to-tensorrt-engine`，当前仅规划产物就绪，未实施。
+已根据本索引及01～07生成 `migrate-vbas-to-tensorrt-engine-20261119`，当前仅规划产物就绪，未实施。
 
-- [proposal：动机与范围](../../openspec/changes/migrate-vbas-to-tensorrt-engine/proposal.md)
-- [design：技术设计与取舍](../../openspec/changes/migrate-vbas-to-tensorrt-engine/design.md)
-- [tasks：实施与验证清单](../../openspec/changes/migrate-vbas-to-tensorrt-engine/tasks.md)
+- [proposal：动机与范围](../../openspec/changes/migrate-vbas-to-tensorrt-engine-20261119/proposal.md)
+- [design：技术设计与取舍](../../openspec/changes/migrate-vbas-to-tensorrt-engine-20261119/design.md)
+- [tasks：实施与验证清单](../../openspec/changes/migrate-vbas-to-tensorrt-engine-20261119/tasks.md)
 - 三项能力规范位于该change的specs/：模型产物、推理运行时、迁移验证。
 
 OpenSpec的planning complete只表示文档齐备，不表示05/07实施或完成出口通过；修改范围或协议时两处同步。
+
+执行期间按[05任务清单](05-tasks.md)的映射表同步标注每个子任务的状态、完成数量和证据；开始、实质检查点、完成或阻塞均更新，不等结项统一回填。

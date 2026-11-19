@@ -2,7 +2,7 @@
 
 当前core/settings.py已有实验TRT分支，默认仍为pytorch/half=False；从models/*.pt的stem推导嵌套Engine路径。scripts/benchmark/export_engine.py可生成带Ultralytics元数据头的FP16 Engine，但硬编码本次3090设备。保护工具默认PT且跳过缺件，多个worker解密使用同名临时路径。项目需要将这些实验能力整理成可直接启动的服务能力。
 
-方案依据：docs/20261119-tensorrt-project-migration/README.md及01～07。文档含方法/证据/出口，change的spec定义实现契约，tasks管理实施；变更范围或方法时同步两处，不让原实验任务被本迁移状态覆盖。当前主spec目录无正式规范，不将归档中旧头姿和接口格式带回现代码。
+方案依据：docs/20261119-tensorrt-project-migration/README.md及01～07。文档含方法/证据/出口，change的spec定义实现契约，tasks管理实施；执行中每个子任务开始、实质检查点、完成或阻塞时同步源05的状态、数量、北京时间和证据/run_id，聚合任务全件完成才勾选；README更新当前阶段、07按实际证据更新出口。变更范围或方法时同步两处，不让原实验任务被本迁移状态覆盖。当前主spec目录无正式规范，不将归档中旧头姿和接口格式带回现代码。
 
 ## Goals / Non-Goals
 
