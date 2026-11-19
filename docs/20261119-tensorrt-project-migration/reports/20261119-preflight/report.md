@@ -17,3 +17,9 @@ trt-migration-20261119-reference-r1/evidence.tar.gz：1593570673字节，SHA2dc9
 当前环境采集于target-environment.json，原始build-manifest完整嵌入新manifest，未将新采集的环境信息伪称为历史完整构建记录。源PT与原manifest一致；四Engine静态复用完成，已放入本机项目model/，新私有发布包run_id为trt-migration-20261119-model-release-r1。实际GPU校验/服务器项目放置尚待执行，不因此标记模型产物最终通过。
 
 core/engine_artifacts.py、inference_runtime.py及离线构建/校验命令已写；settings默认TRT FP16、保留UUID映射、逐模型预测锁/NMS默认隔离已实现。保护工具全件检查、独立临时目录已写，尚待GPU/完整失败矩阵验证。15项新增CPU测试通过（均先验证缺失能力或旧错误路径再实现），原32项benchmark回归亦通过；不将CPU测试冒称真实Engine验证。
+
+## 真实GPU检查点（2026-11-19T17:09:33+08:00）
+
+服务器在旧42轮全部cleanup、GPU空闲及tracked clean后FF同步e90b31f→e7a217aeaea31b3dfdc28c0abdf93f10ef2e235a，不涉及线上服务。四Engine已复制至服务器项目model/，SHA与本机及历史Engine一致；独立verify命令真实反序列化、实际HALF I/O及四模型warmup均通过，返回码0。服务器15项新增CPU测试亦通过。
+
+新core/settings实际加载冒烟返回0，输出backend=tensorrt、fp16=true、models_loaded=4；私有config中外部注册地址置空，未启动HTTP监听。trt-migration-20261119-gpu-check-r1及trt-migration-20261119-runtime-smoke-r1日志已复制本机私有备份。TensorRT给出多Runtime使用不同logger的warning，Engine实际加载/warmup成功；保留原日志，不当成CUDA失败或抹去。100张、HTTP业务、并发和稳定性未据此通过。

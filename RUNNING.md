@@ -6,35 +6,28 @@
 
 `vision_orchestrator` 负责 Kafka 消费、课程任务编排、VBAS 调度、指标聚合和入库。VBAS 不消费 Kafka，也不写课堂质量结果表。
 
-## 运行前准备
+## TensorRT 服务端运行前准备
 
-从仓库根目录执行：
+本分支正式模型只运行TensorRT FP16，保留torch/torchvision供Ultralytics预处理和NMS。Mac可做CPU工具测试，不能启动GPU推理服务。本轮不部署；下方历史Docker章节仅供后续部署评审，现有CUDA11.8镜像尚未针对本Engine验证，不能直接使用。
 
-```bash
-conda activate jy-vbas
-pip install -r requirements.txt
-```
+在指定服务器使用已核验的用户环境 `/home/zhangs/.conda/envs/vbas-trt`，不要在jy-tias/vbas基线环境升级依赖。完整依赖以私有发布清单和验证记录为准，单独 `pip install -r requirements.txt` 不足以建立已验证的TensorRT环境。
 
-Mac 本地 CPU 环境可按需使用：
+项目根 `model/` 必须有person_count.engine、face_count.engine、student.engine、teacher_behavior.engine和manifest.json，来自可信私有发布包；源PT仅用于离线构建/对照和旧版本恢复，不是新服务必需文件。
 
-```bash
-pip install -r requirements_mac.txt
-```
-
-准备配置文件：
+先执行静态校验，显式GPU检查另开：
 
 ```bash
-cp config.toml.example config.toml
+/home/zhangs/.conda/envs/vbas-trt/bin/python scripts/verify_tensorrt_models.py --root model
+/home/zhangs/.conda/envs/vbas-trt/bin/python scripts/verify_tensorrt_models.py --root model --gpu --device GPU-8c6b7efd-2b4f-04f3-db71-b50d2482fc49
 ```
 
-确认模型文件在 `models/` 下：
+复制配置示例到一个新的私有文件（不要覆盖现有config.toml），修改IMAGE_ROOT等本机值；保持InferenceBackend=tensorrt、InferenceHalf=true，EngineRoot默认指向项目model/。独立测试设置 `[VBAS].VisionOrchestratorBaseUrl=""`，关闭外部注册；旧接口测试可仅在该私有配置中打开VbasExposeLegacySyncTasks。
 
-| 文件 | 说明 |
-| --- | --- |
-| `person_count.pt` | 人数检测 |
-| `face_count.pt` | 人脸/抬头检测 |
-| `student.pt` | 学生行为 |
-| `teacher_behavior.pt` | 教师行为 |
+```bash
+CONFIG_PATH=/绝对路径/私有测试配置.toml CUDA_VISIBLE_DEVICES=GPU-8c6b7efd-2b4f-04f3-db71-b50d2482fc49 /home/zhangs/.conda/envs/vbas-trt/bin/python -m uvicorn main:app --host 127.0.0.1 --port 18981
+```
+
+使用未占用的独立测试端口。所有Engine加载并warmup后才接收服务；缺件/校验不符/无CUDA/不兼容后端明确启动失败，不退PT或CPU，不在线导出/下载。模型固定batch1不限制HTTP请求图片数量，既有逐图和批次准入语义保留。
 
 ## 配置说明
 
@@ -44,7 +37,7 @@ VBAS 通过环境变量 `CONFIG_PATH` 读取配置。未设置时默认读取 `c
 
 | 配置 | 说明 |
 | --- | --- |
-| `GPU_ID` | `cpu` 表示 CPU；GPU 环境可配置为 `"0"` |
+| `GPU_ID` | CUDA GPU序号或UUID，推荐UUID；不支持CPU |
 | `IMAGE_ROOT` | 相对路径图片读取根目录 |
 | `INSTANCE_COUNT` | `start.sh` 多实例数量 |
 | `WORKERS_PER_INSTANCE` | 每个 Uvicorn 实例 worker 数 |
@@ -98,7 +91,7 @@ VBAS 启动后会读取 `VisionOrchestratorBaseUrl` 并自动调用：
 | POST | `/api/instances/heartbeat` | 周期心跳 |
 | POST | `/api/instances/unregister` | 关闭注销 |
 
-如果只想单独调试 VBAS 推理接口，可以不启动 vision_orchestrator；此时注册和心跳会失败重试，但本地推理接口仍可用于调试。
+独立验证必须设置VisionOrchestratorBaseUrl为空字符串，明确关闭注册，而非依赖连接失败重试。
 
 ## 本地单实例启动
 

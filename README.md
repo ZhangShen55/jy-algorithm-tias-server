@@ -8,10 +8,10 @@
 
 | 能力 | 说明 | 主要模型 / 逻辑 |
 |------|------|------------------|
-| **人数检测** | 在指定多边形 ROI 内检测头部相关目标并计数 | `person_count_*.pt`（类别：Head、Top_Head、Hat、Headphones、Shoulder） |
-| **抬头 / 人脸** | ROI 内人脸框检测，用于抬头率等统计 | `face_count_*.pt` |
-| **学生行为** | 玩手机、举手、睡觉、站立、阅读等 | `student_*.pt` + 与人脸/人数并行 |
-| **老师行为** | 讲台区域人物、站/坐、板书、讲授（同主体多标签聚合） | `teacher_behavior.pt` |
+| **人数检测** | 在指定多边形 ROI 内检测头部相关目标并计数 | `model/person_count.engine`（类别：Head、Top_Head、Hat、Headphones、Shoulder） |
+| **抬头 / 人脸** | ROI 内人脸框检测，用于抬头率等统计 | `model/face_count.engine` |
+| **学生行为** | 玩手机、举手、睡觉、站立、阅读等 | `model/student.engine` + 与人脸/人数并行 |
+| **老师行为** | 讲台区域人物、站/坐、板书、讲授（同主体多标签聚合） | `model/teacher_behavior.engine` |
 
 - **IAS 同步任务**（`/AE/SyncTasks`）：按任务下发的多边形列表，对本地或挂载目录中的图片做人数 + 人脸，可选输出画框结果图。
 - **学生 / 老师 REST 接口**（`/ImageDetect/...`）：支持 Base64、`data:` URL、HTTP(S) 图片 URL、或 `IMAGE_ROOT` 下的相对路径；可选多边形遮罩。
@@ -51,18 +51,13 @@ vbas/
 
 ---
 
-## 模型文件
+## TensorRT 模型文件
 
-请将训练好的权重放到 **`models/`**（与 `settings.py` 中路径一致）。当前代码中约定的文件名包括：
+当前分支四模型统一使用TensorRT FP16 Engine，放在项目根 `model/`：person_count.engine、face_count.engine、student.engine、teacher_behavior.engine，以及manifest.json。静态校验使用 `python scripts/verify_tensorrt_models.py --root model`；真实GPU校验和直接启动命令见RUNNING.md。
 
-| 变量 | 路径（相对 `core/settings.py`） |
-|------|--------------------------------------|
-| 人数 | `models/person_count_20251222_1920p.pt` |
-| 人脸 | `models/face_count_20251212.pt` |
-| 学生行为 | `models/student_20250819.pt`（若与仓库实际文件名不一致，请同步修改 `STUDENT_MODEL_PATH`） |
-| 老师行为 | `models/teacher_behavior.pt` |
+Engine及私有manifest不提交Git。源PT/ONNX留存私有构建和回退区。正式服务不使用PT模型，也不自动降级CPU；torch/torchvision仍为Ultralytics调用层依赖。固定输入为前三模型1088×1920、教师384×640，FP16 I/O、batch1；输入几何与业务兼容性以本轮实际验证记录为准，不宣称任意环境通用。
 
-`models/READEME.md` 中说明该目录用于存放模型。
+当前工作仅项目改造与服务器验证，不部署；旧Docker说明不代表当前Engine已通过容器验证。进度和完整出口见 docs/20261119-tensorrt-project-migration/。
 
 ---
 
@@ -131,7 +126,7 @@ vbas/
 - `204`：站立
 - `205`：阅读
 
-**老师行为 `ObjectType` 编码**（`teacher_behavior.pt` + 同主体 IoU 聚合）：
+**老师行为 `ObjectType` 编码**（`model/teacher_behavior.engine` + 同主体 IoU 聚合）：
 
 - `100`：讲台区域检测到老师主体
 - `201`：坐着（`sit`）
@@ -165,24 +160,9 @@ vbas/
 
 ---
 
-## 本地运行（开发）
+## 服务端直接运行
 
-1. 安装 **PyTorch**（需与 CUDA 版本匹配，或使用 CPU）。
-2. 安装依赖：
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. 将模型放入 `models/`，并按需修改 `core/settings.py` 中的路径或 `config.toml`。
-4. 从仓库根目录启动：
-
-   ```bash
-   export CONFIG_PATH="/绝对路径/config.toml"
-   uvicorn main:app --host 0.0.0.0 --port 8881 --reload
-   ```
-
-服务启动后不再向 IAS 执行注册、注销或保活请求，推理接口可直接在本地或容器内使用。
+使用已验证的TensorRT/CUDA/torch/Ultralytics环境，配置 `InferenceBackend="tensorrt"`、`InferenceHalf=true`、GPU及项目model路径。模型全部加载warmup成功后才就绪。完整静态/GPU检查、独立端口启动和关闭外部注册的方法见RUNNING.md；Mac仅做CPU工具回归，不运行推理服务。
 
 ### 视觉任务编排服务
 

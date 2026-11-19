@@ -9,8 +9,12 @@ SAVE_RESULT_IMAGE = 0
 INSTANCE_COUNT = 1
 WORKERS_PER_INSTANCE = 1
 
-# 主模型推理设备。CPU 环境使用 "cpu"，NVIDIA GPU 环境可配置为 "0"。
-GPU_ID = "cpu"
+# 正式模型只使用 TensorRT FP16；请在本机选择GPU UUID，外层可见性映射将被保留。
+GPU_ID = "0"
+InferenceBackend = "tensorrt"
+InferenceHalf = true
+# 空字符串表示项目根目录 model/，不依赖启动cwd。
+EngineRoot = ""
 
 [VBAS]
 # VBAS 实例身份和对外访问地址。
@@ -18,7 +22,7 @@ InstanceId = "vbas-8981"
 BaseUrl = "http://127.0.0.1:8981"
 
 # vision_orchestrator 统一入口。多 vision_orchestrator 实例时配置负载均衡地址或服务名。
-VisionOrchestratorBaseUrl = "http://127.0.0.1:9000"
+VisionOrchestratorBaseUrl = "" # 独立验证不向外部服务注册；部署时另行配置
 
 # 是否暴露旧 IAS 同步任务接口。
 VbasExposeLegacySyncTasks = false
