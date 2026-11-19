@@ -42,13 +42,15 @@
 
 ## 对应 OpenSpec change
 
-已根据本索引及01～07生成 `migrate-vbas-to-tensorrt-engine-20261119`，当前仅规划产物就绪，未实施。
+已根据本索引及01～07生成 `20261119-migrate-vbas-to-tensorrt-engine`，当前仅规划产物就绪，未实施。
 
-- [proposal：动机与范围](../../openspec/changes/migrate-vbas-to-tensorrt-engine-20261119/proposal.md)
-- [design：技术设计与取舍](../../openspec/changes/migrate-vbas-to-tensorrt-engine-20261119/design.md)
-- [tasks：实施与验证清单](../../openspec/changes/migrate-vbas-to-tensorrt-engine-20261119/tasks.md)
+- [proposal：动机与范围](../../openspec/changes/20261119-migrate-vbas-to-tensorrt-engine/proposal.md)
+- [design：技术设计与取舍](../../openspec/changes/20261119-migrate-vbas-to-tensorrt-engine/design.md)
+- [tasks：实施与验证清单](../../openspec/changes/20261119-migrate-vbas-to-tensorrt-engine/tasks.md)
 - 三项能力规范位于该change的specs/：模型产物、推理运行时、迁移验证。
 
 OpenSpec的planning complete只表示文档齐备，不表示05/07实施或完成出口通过；修改范围或协议时两处同步。
 
 执行期间按[05任务清单](05-tasks.md)的映射表同步标注每个子任务的状态、完成数量和证据；开始、实质检查点、完成或阻塞均更新，不等结项统一回填。
+
+命名说明：按用户要求，change使用日期前缀 `20261119-migrate-vbas-to-tensorrt-engine`。当前安装的OpenSpec `status`命令要求名称以字母开头，因此无法通过该命令查看此名称的状态；文档保留，不能将该命名限制当成实施已完成或规范内容不合格。`validate`须独立核验。
