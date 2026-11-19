@@ -39,3 +39,14 @@
 ## 尚未确定
 
 目录及不部署范围已确认；方案整体待评审。目标仅覆盖已授权 3090 环境；其他部署硬件和生产延迟 SLO 未指定，不承诺跨机可用或生产验收。真实准确率仍无人工标注；已存在的 PT/TRT 差异必须在采用复核中保留。
+
+## 对应 OpenSpec change
+
+已根据本索引及01～07生成 `migrate-vbas-to-tensorrt-engine`，当前仅规划产物就绪，未实施。
+
+- [proposal：动机与范围](../../openspec/changes/migrate-vbas-to-tensorrt-engine/proposal.md)
+- [design：技术设计与取舍](../../openspec/changes/migrate-vbas-to-tensorrt-engine/design.md)
+- [tasks：实施与验证清单](../../openspec/changes/migrate-vbas-to-tensorrt-engine/tasks.md)
+- 三项能力规范位于该change的specs/：模型产物、推理运行时、迁移验证。
+
+OpenSpec的planning complete只表示文档齐备，不表示05/07实施或完成出口通过；修改范围或协议时两处同步。
