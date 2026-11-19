@@ -4,7 +4,7 @@ from pydantic import Field
 from pydantic_settings import BaseSettings
 from typing import Any, Dict, Union, Literal
 from .config_loader import load_config
-from .inference_runtime import configure_device, load_models, resolve_engine_root
+from .inference_runtime import configure_device, load_models, resolve_engine_root, validate_runtime_options
 from .model_protection import ModelPathResolver, ModelProtectionConfig
 
 CONFIG_PATH = os.getenv("CONFIG_PATH",os.path.abspath(os.path.join(os.path.dirname(__file__), "../config.toml")))
@@ -77,6 +77,7 @@ _cfg = {
 }
 settings = Settings(**_cfg)
 
+validate_runtime_options(settings)
 configure_device(settings.GPU_ID)
 # GPU libraries are imported only after preserving the external visibility mapping.
 import torch

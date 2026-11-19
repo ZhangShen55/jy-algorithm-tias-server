@@ -37,3 +37,15 @@ class RuntimeTests(unittest.TestCase):
         with self.assertRaises(ValueError): model.predict('image',stream=True)
 
 if __name__=='__main__':unittest.main()
+
+class RuntimeOptionTests(unittest.TestCase):
+    def test_teacher_image_size_is_640_or_explicit_startup_error(self):
+        from types import SimpleNamespace
+        from core import inference_runtime as api
+        self.assertTrue(hasattr(api,'validate_runtime_options'),'runtime configuration validation is missing')
+        for value in [640,640.0,'640']:
+            api.validate_runtime_options(SimpleNamespace(InferenceBackend='tensorrt',InferenceHalf=True,Teacher_Behavior_Thresd={'ImageSize':value}))
+        for value in [1280,320,640.5,'invalid',None]:
+            with self.subTest(value=value):
+                with self.assertRaisesRegex(ValueError,'ImageSize.*640'):
+                    api.validate_runtime_options(SimpleNamespace(InferenceBackend='tensorrt',InferenceHalf=True,Teacher_Behavior_Thresd={'ImageSize':value}))

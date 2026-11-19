@@ -55,3 +55,14 @@
 #### Scenario: 保护关闭
 - **WHEN** 关闭ModelProtection并正常启动
 - **THEN** 直接读取项目明文Engine，不退回.pt，不要求生产密钥挂载
+
+### Requirement: 教师配置仅支持明确的固定推理尺寸
+运行时 MUST 按用户确认仅支持Teacher_Behavior_Thresd.ImageSize=640，非640或无效值在CUDA初始化和模型解密前明确启动失败；不得静默覆盖。该约束不限制原图分辨率。
+
+#### Scenario: 不支持的教师推理尺寸
+- **WHEN** 配置ImageSize为1280、320、非整数640.5、空值或无效字符串
+- **THEN** 明确报告ImageSize必须为640，不初始化CUDA或解密/加载模型，不退回其他后端
+
+#### Scenario: 支持不同原图分辨率
+- **WHEN** ImageSize配置为640而输入横图、竖图或其他分辨率
+- **THEN** 仍按固定384×640Engine预处理并正确还原坐标，保持HTTP业务语义，通过几何对照证明兼容性

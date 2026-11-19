@@ -27,6 +27,8 @@
 CONFIG_PATH=/绝对路径/私有测试配置.toml CUDA_VISIBLE_DEVICES=GPU-8c6b7efd-2b4f-04f3-db71-b50d2482fc49 /home/zhangs/.conda/envs/vbas-trt/bin/python -m uvicorn main:app --host 127.0.0.1 --port 18981
 ```
 
+教师Teacher_Behavior_Thresd.ImageSize仅支持640，其他配置值会在加载前报错；原图分辨率可变化，内部预处理到384×640。
+
 使用未占用的独立测试端口。所有Engine加载并warmup后才接收服务；缺件/校验不符/无CUDA/不兼容后端明确启动失败，不退PT或CPU，不在线导出/下载。模型固定batch1不限制HTTP请求图片数量，既有逐图和批次准入语义保留。
 
 ## 配置说明

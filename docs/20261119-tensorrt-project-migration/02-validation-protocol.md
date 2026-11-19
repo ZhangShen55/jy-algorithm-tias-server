@@ -22,7 +22,7 @@
 
 规范化只去 TimeStamp、UseTimeMs、FreeCapacity 等已约定动态字段，并按历史规则排序；不取整浮点或删异常。模型原始输出数值检查 NaN/Inf、类别、置信度、框序和边界，完整记录对 PT 的既有差异。
 
-固定 shape 的 batch1 不等于 HTTP 请求只能含一张，也不等于 MaxConcurrentBatches=1；现有业务逐图处理及准入语义必须保留。教师 ImageSize 请求/配置覆盖与静态 engine 不兼容时，在实施前列明受支持语义，不能偷偷忽略或新增 API 拒绝行为来通过测试。
+固定 shape 的 batch1 不等于 HTTP 请求只能含一张，也不等于 MaxConcurrentBatches=1；现有业务逐图处理及准入语义必须保留。用户已确认教师Teacher_Behavior_Thresd.ImageSize只支持640，其他值加载前明确启动失败；原图分辨率可变化。以默认640完成不同图片尺寸/ROI对照，另验证1280、320、非整数和无效配置均明确失败；不静默覆盖，不改变HTTP请求/响应或阈值语义。
 
 ## 四模型各100张的一致性对比（用户2026-11-19补充）
 

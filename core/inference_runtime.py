@@ -45,6 +45,18 @@ def isolate_predictions(model, shape):
     return model
 
 
+def validate_runtime_options(settings):
+    if settings.InferenceBackend != 'tensorrt' or not settings.InferenceHalf:
+        raise ValueError('This service requires InferenceBackend=tensorrt and InferenceHalf=true; use the old release for PyTorch')
+    value = getattr(settings, 'Teacher_Behavior_Thresd', {}).get('ImageSize', 640)
+    try:
+        supported = float(value) == 640
+    except (TypeError, ValueError):
+        supported = False
+    if not supported:
+        raise ValueError('Teacher_Behavior_Thresd.ImageSize must be 640 for the fixed TensorRT Engine; input image resolution may vary')
+
+
 def load_models(settings, resolver):
     try:
         return _load_models(settings, resolver)
@@ -55,8 +67,7 @@ def load_models(settings, resolver):
 
 
 def _load_models(settings, resolver):
-    if settings.InferenceBackend != 'tensorrt' or not settings.InferenceHalf:
-        raise ValueError('This service requires InferenceBackend=tensorrt and InferenceHalf=true; use the old release for PyTorch')
+    validate_runtime_options(settings)
     root = resolve_engine_root(settings.EngineRoot)
     paths = {name: resolver.prepare_model_path(root / f'{name}.engine') for name in MODEL_SPECS}
     manifest = validate_bundle(root, prepared_paths=paths)

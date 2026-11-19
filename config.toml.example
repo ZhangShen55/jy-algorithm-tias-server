@@ -60,6 +60,7 @@ read = 0.5
 [Teacher_Behavior_Thresd]
 MergeIoU = 0.8
 SubjectClusterIoU = 0.45
+# 当前固定Engine仅支持640；其他值启动时报错，原图分辨率仍可变化。
 ImageSize = 640
 sit = 0.4
 stand = 0.4
