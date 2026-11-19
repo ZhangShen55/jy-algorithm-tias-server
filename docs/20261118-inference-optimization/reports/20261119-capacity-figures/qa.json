@@ -1,0 +1,17 @@
+{
+  "data_rows_verified": 145,
+  "exploration_points_per_search_figure": 83,
+  "search_point_bounds_asserted": true,
+  "visual_review": [
+    "search-throughput.png",
+    "search-latency-p95.png",
+    "teacher-open-backlog.png",
+    "sync-c256-backlog.png"
+  ],
+  "png_identical_to_visually_reviewed_r2": true,
+  "svg_xml_geometry_preserved": true,
+  "csv_lf_values_unchanged": true,
+  "result": "r3 accepted; r1 clipping rejected; r2 images preserved and unchanged by export normalization",
+  "scope": "excludes ongoing paired and all pending audit/trace/dual-generator results",
+  "unix_time": 1795055042.329825
+}

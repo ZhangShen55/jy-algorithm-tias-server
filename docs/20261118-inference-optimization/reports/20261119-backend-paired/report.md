@@ -1,6 +1,6 @@
 # 同配置后端配对测量
 
-状态：18组固定普通load.py测量已启动，当前尚无完成的配对结果；不作性能增益结论。
+状态：18组固定普通load.py测量进行中，最终三轮配对尚未归集；不提前作正式性能增益结论。
 
 按02既定协议，三个接口分别使用各自全量Base64请求池，I1/C1/b1、seed20261118、30秒预热/300秒发送、HTTP timeout60秒、无重试。每接口依次PT/TRT各3轮，实际顺序为r1 PT→TRT、r2 PT→TRT、r3 PT→TRT，接口依次人数、学生、教师。每次独立实例并完成cleanup后才进入下一轮；固定相同业务/输入/shape/FP16条件，记录两后端不同模型初始化和内存策略，不能用各自最佳配置代替此配对。
 
@@ -8,6 +8,6 @@
 
 只用指定GPU1，保留每轮GPU空闲检查和I1主机可用内存至少9.5GiB预算。服务b1/queue0不调整；旧人数路由的b无准入作用，师生路由的b1有效。每轮任何HTTP/业务/传输失败均保留并停止后续，调查后再推进，不删除异常或自动重跑已有case。
 
-服务器run_id：backend-paired-i1-c1-20261119。控制进程485407，脚本及日志environment-20261118/backend-paired-i1-c1-20261119.py/.log；当前首轮sync-r1-pytorch，实例管理485413。实时状态以进程、requests新鲜度、events、case-result/journal及controller-error为准，不重复启动。
+服务器run_id：backend-paired-i1-c1-20261119。控制进程485407，脚本及日志environment-20261118/backend-paired-i1-c1-20261119.py/.log；启动检查点为首轮sync-r1-pytorch、实例管理485413。后续实时状态以进程、requests新鲜度、events、case-result/journal及controller-error为准，不操作旧子PID或重复启动。
 
 18组plan.json SHA4e5c3d901c4c910320f41c38f9f812b60e41e96c03d4226131304b348c98af5b；控制脚本SHA79c56d7ac43c31ddc0480f31ec97da862650bd16da639ddcb444ab3910efe4fe。各轮另存精确命令、代码提交、GPU/主机保护值、完整配置/请求/资源/事件/日志及摘要。完成后归集三轮分位数、平均单图时间、吞吐与资源，不把平均产出间隔当单图延迟；完整原始备份仍待序列结束。

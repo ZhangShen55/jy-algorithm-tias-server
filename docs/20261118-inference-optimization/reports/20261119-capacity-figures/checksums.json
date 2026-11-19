@@ -1,0 +1,54 @@
+{
+  "search-throughput.png": {
+    "bytes": 250917,
+    "sha256": "78e6199d676f3bc050516155b158ee8400afb1be5deae65526aac8c979760018"
+  },
+  "search-throughput.svg": {
+    "bytes": 83318,
+    "sha256": "b666cd94a9c3ed98fa09e408e969b0c401cada24c2e666f21300bcd79f51d311"
+  },
+  "search-latency-p95.png": {
+    "bytes": 285629,
+    "sha256": "0ab81d296059925eeb0c7693452604cd41a14babd65a5c14edfd6805fcd52376"
+  },
+  "search-latency-p95.svg": {
+    "bytes": 84484,
+    "sha256": "c656f9039907a38262d71916789df420707c78ba4e0c4c5628a269e380b4d878"
+  },
+  "teacher-open-backlog.png": {
+    "bytes": 302074,
+    "sha256": "0dfcd448fd287de844fb2edfe87b9fe8ebe1577829cc7a686293d8bfa5c0dfd9"
+  },
+  "teacher-open-backlog.svg": {
+    "bytes": 90488,
+    "sha256": "a736c7e2d9b0fadda4e98086fe5761c84ff4f6371bd6ac6e5d173e86cda6811e"
+  },
+  "sync-c256-backlog.png": {
+    "bytes": 166324,
+    "sha256": "4834f89c1bedbb8a828c2902b6ecd75bae02a62859a52572b5ef91c118900b3d"
+  },
+  "sync-c256-backlog.svg": {
+    "bytes": 39472,
+    "sha256": "0298775d77ccd463f6020fe433c51b26eed42ca466d08051349dd9178a63670f"
+  },
+  "case-metrics.csv": {
+    "bytes": 26182,
+    "sha256": "8ad6e266f6dc43deffa661095a4f77d70336d31c3dec76a08b36158fbd7138f1"
+  },
+  "plot.py": {
+    "bytes": 12979,
+    "sha256": "5d24ea75096fc8a8d300d5304c6f96821476c4026ed41928906137aeaad79a72"
+  },
+  "requirements.txt": {
+    "bytes": 185,
+    "sha256": "471041f77f98ac53e215b2c764cf8cd658a7c4ecdfa09f7184f9a49813e87a2f"
+  },
+  "manifest.json": {
+    "bytes": 2750,
+    "sha256": "c20ed04b52a68decb7fa1a6feb9af48cc7a41e1e0275e89167c4090c489320c5"
+  },
+  "qa.json": {
+    "bytes": 615,
+    "sha256": "c72490ad97030550b818f0568fc3836a13ffb23bc65bf8ecfa516f5479774179"
+  }
+}
