@@ -8,4 +8,4 @@
 
 每轮资源检查：指定GPU无任务遗留且空闲；主机可用内存至少 `8 + 1.5 × 实际模型worker总数` GiB，父管理进程不冒充模型worker。GPU预算参考既有每worker1567～1611MiB并保留余量，实际装载与预热逐步观察，未知错误/资源不足停下留证，不强行16worker、不换其他卡、不删除其他服务进程。只读估算不是实际GPU装载上限。
 
-现有instances.py固定--workers1，只采父PID；每实例多worker路线需要补足子进程/PID覆盖、就绪和进程组清理，CPU验证后才可GPU。SSH恢复、worker语义和准入上限确认均是正式启动依赖。
+现有instances.py固定--workers1，只采父PID；每实例多worker路线需要补足子进程/PID覆盖、就绪和进程组清理，CPU验证后才可GPU。worker语义与准入上限已确认；正式启动仍需SSH恢复及实时资源/版本/输入预检。
