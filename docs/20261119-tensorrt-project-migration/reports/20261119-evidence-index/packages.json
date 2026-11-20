@@ -58,5 +58,15 @@
     },
     "source_unchanged": true,
     "local_all_files_verified": true
+  },
+  {
+    "directory": "trt-migration-20261119-export-checkpoint-r1",
+    "files": 44,
+    "package": {
+      "bytes": 2346343050,
+      "sha256": "f86ac31678760364f7e1dc191be557cf297b74a55f556cb30137b1b0a4db004b"
+    },
+    "source_unchanged": true,
+    "local_all_files_verified": true
   }
 ]
