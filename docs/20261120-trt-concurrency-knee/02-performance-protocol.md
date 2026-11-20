@@ -28,3 +28,8 @@
 ## 当前路由准入差异（运行中只读核查补充）
 
 api/tasks.py的SyncTasks2直接调用sync_tasks_data，没有通过BatchAdmissionController；b512在所有测试配置中一致保存，但对该旧人数路由不形成批次准入约束。师生接口经controller.admit，b512对其生效。本轮测现有实现，不添加/删除准入层。SyncTasks2中模型调用是同步处理；客户端并发不能等同同一worker内GPU并发数，HTTP/EventLoop/模型处理等待共同进入端到端时延。不得根据WorkerStatus.running_batches=0推断该旧路由没有工作负载。
+
+
+## 首三轮调查后的诊断继续规则（2026-11-21）
+
+I1/C200人数轮实测10次ReadError且异常链errno104、196次ReadTimeout，无429/严重CUDA日志，完整cleanup。原轮和首三轮50文件证据已封存并本机核验，不重跑；[阶段归因](reports/20261121-first03/report.md)保留未证明的TCP触发原因。r2仅执行尚未运行24轮，同一I/W/C/b512/queue0、180/60和输入不变；上述两类已观察失败按诊断记录（不判零失败配置），新未知类型或严重日志仍停止调查。允许完成原定有限矩阵不等于已证明全部底层根因，也不授权重试、扩C或改服务。
