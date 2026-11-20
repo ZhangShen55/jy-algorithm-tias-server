@@ -1,6 +1,8 @@
 # 项目统一 TensorRT Engine 迁移方案
 
-状态：恢复执行中（31/37），用户已调用openspec-apply-change授权；只读预检通过，回退资产、本机/服务器Engine及新运行入口GPU检查完成，100张对比及备份完成、采用待复核；顺序/并发全量11802次一致，几何/输入/混合、保护与恢复验证完成；离线新构建工具验证中、性能与稳定性待验，未部署。创建日期：2026-11-19（北京时间）。
+状态：约定工作完成（37/37，2026-11-20）。用户缩减重复配对后14配对+三稳定性全部完成；最终main192调用一致，十个证据包全部本机核验。服务RSS增长、PT/TRT差异及类别覆盖如实保留，用户采用/部署仍待定，未部署。任务目录创建日期保留2026-11-19。
+
+最终入口：[完成交接](reports/20261119-final/report.md)、[效率检查点](reports/20261120-efficiency-checkpoint/report.md)、[有限性能/资源](reports/20261120-performance/report.md)、[完整备份索引](reports/20261119-evidence-index/report.md)。
 
 ## 目标和边界
 
@@ -42,7 +44,7 @@
 
 ## 对应 OpenSpec change
 
-已根据本索引及01～07生成 `20261119-migrate-vbas-to-tensorrt-engine`，当前实施中，真实进度以本索引状态和05映射为准。
+已根据本索引及01～07生成 `20261119-migrate-vbas-to-tensorrt-engine`，当前约定工作完成，真实状态以本索引和05最终记录为准。
 
 - [proposal：动机与范围](../../openspec/changes/20261119-migrate-vbas-to-tensorrt-engine/proposal.md)
 - [design：技术设计与取舍](../../openspec/changes/20261119-migrate-vbas-to-tensorrt-engine/design.md)
@@ -70,3 +72,5 @@ OpenSpec的planning complete只表示文档齐备，不表示05/07实施或完�
 2026-11-20恢复检查点：构建包整包/44文件本机核验已完成，见[构建工具报告](reports/20261119-export-tool/report.md)。性能与稳定性独立run_id trt-migration-20261120-performance-r1已启动；整体仍30/37，未部署。
 
 用户2026-11-20范围更新：2026-11-20用户明确不需要很多组重复对比：保留已完成的人数/学生各三对、教师一对（14轮），取消其余教师重复配对；缩减时正在执行的teacher-r2-new自然收尾，单列非配对观察，不进入逐对比值。三接口各30分钟稳定性保留。原21轮计划和全部记录原样留存，取消不伪记为完成。 当前完成31/37；稳定性及最终交接未完成。
+
+2026-11-20最终检查点：37/37约定工作完成，详见顶部交接入口；以下前序检查点是执行历史，不作为当前状态。工作完成不等于采用/部署，未自动归档。

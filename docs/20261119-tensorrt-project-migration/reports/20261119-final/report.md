@@ -1,6 +1,6 @@
-# TensorRT项目迁移交接（验证进行中）
+# TensorRT项目迁移完成交接
 
-当前31/37，性能/稳定性及最终完整性尚未完成。本文件持续补齐，不能作为部署批准或整体完成声明。
+状态：2026-11-20，用户缩减重复配对后的约定实施、验证、报告与完整备份已齐备。工作完成与用户精度采用/部署分开；RSS增长及覆盖限制如实列示。
 
 ## 交付行为
 
@@ -26,9 +26,11 @@
 
 模型一致性是相对PT的输出比较，不是人工标注准确率/mAP。每模型80随机+20历史差异富集，无偏精度估计不成立。47张私有叠框图和逐图逐框差异保留；Other没有模型输出覆盖，举手/站立最终业务正例不足。用户差异接受/采用尚待复核。
 
-## 尚待完成
+## 有限性能及最终验证
 
-用户缩减后的14轮旧/新TRT完整配对已完成；3接口各30分钟闭环稳定性、全部结果完整备份及最终清理交接仍在进行。性能协议I1/C1/b1、queue0、warm30秒、HTTP60秒、seed20261118，普通load无trace/重试。新旧配对不是重新证明TRT/PT后端加速，不能把历史+50%～77%当成本次目录迁移收益。
+用户缩减后14配对+3稳定性必需轮共208050次正常请求成功、零失败；另13562次已开始的教师未配对观察独立保留。三30分钟窗口人数26383、学生23357、教师82579次成功，服务端RSS有小幅增长、GPU显存稳定，未作无泄漏/长期稳定性或生产验收结论。详细分位数、CPU/RSS趋势、窗口和收益限制见[性能报告](../20261120-performance/report.md)。当前迁移前后TRT吞吐人数三对中位+0.54%、学生+2.94%、教师单对+3.86%，不把历史后端收益重新归因于目录迁移。
+
+最终直接main:app从/tmp、项目model/、I1/C1/b1、queue0、独立18983端口完成三接口各64图共192次，全部与独立TRT参考一致；Health/WorkerStatus/Drain通过，测试服务已退出。完整handoff包25文件含四Engine、manifest、代码bundle、配置/日志/响应和环境记录，本机整包及全文件核验通过。两用户环境freeze与起点相同，既有pip check声明冲突仍存在，没有安装升级；不称依赖声明无冲突。
 
 ## 启动及整版恢复边界
 
@@ -45,3 +47,25 @@
 原优化任务与本迁移独立：旧42轮已自然结束，但其未完成的总归集/部分补证仍不能由本迁移结项代替。已删除vbas定时器，不重建、不自动归档聊天。所有旧环境、原始资产和已核验备份保留。
 
 已完成效率结果见[独立检查点](../20261120-efficiency-checkpoint/report.md)，配对按用户要求缩减，稳定性继续；不增加对比组。
+
+## 可复核启动与恢复命令
+
+下面是已验证的私有配置（注册关闭、Sync开关为验证打开、b1/queue0）；不会自动启动常驻服务。需要使用时在授权服务器执行：
+
+```bash
+CONFIG_PATH=/home/zhangs/workspace/vbas-benchmarks/trt-migration-20261119-handoff-r1/direct-server-config.json CUDA_VISIBLE_DEVICES=GPU-8c6b7efd-2b4f-04f3-db71-b50d2482fc49 /home/zhangs/.conda/envs/vbas-trt/bin/python -m uvicorn main:app --app-dir /home/zhangs/workspace/vbas --host 127.0.0.1 --port 18983 --workers 1
+```
+
+旧PT整版恢复的独立验证配置和代码单元仍保留：
+
+```bash
+CONFIG_PATH=/home/zhangs/workspace/vbas-benchmarks/trt-migration-20261119-functional-r2/old-pytorch-recovery/config.toml CUDA_VISIBLE_DEVICES=GPU-8c6b7efd-2b4f-04f3-db71-b50d2482fc49 /home/zhangs/.conda/envs/vbas/bin/python -m uvicorn main:app --app-dir /home/zhangs/workspace/vbas-benchmarks/trt-migration-reference-code-20261119 --host 127.0.0.1 --port 18979 --workers 1
+```
+
+原恢复采集使用委托main:app的私有probe wrapper以采PID；上述main入口与原工作区/配置/环境相同，不对新TRT服务提供PT开关。照片相对路径根需按实际场景配置；Base64验证不依赖生产图片路径。启动前核对空闲端口/GPU及可信模型清单，不切换线上实例。
+
+## 完整性与退出
+
+完整十个证据包及SHA见[证据索引](../20261119-evidence-index/report.md)，包含模型100张/47私有图、所有阶段失败分类与恢复、全量图片/payload、请求/响应/资源/OpenAPI、源PT/Engine/ONNX、配置和测量代码bundle。现有原始报告与旧备份保留。
+
+最终核对指定GPU3MiB/0%、无本任务服务/发生器进程、驱动580.126.09未变；受保护Docker/启动脚本/main_910b_npu无差异，旧环境保留，没有停止/部署其他服务。该核对不是全机其他服务业务验收。代码及脱敏文档提交perf；最终提交由Git记录与交接状态关联，测量实现f5a7f3a，后续仅文档及配置示例注释变化。用户AGENTS.md保留且仅本机忽略，模型/私有资料按既定忽略规则保留；不使用git clean删除用户文件，不重建定时器或归档聊天。

@@ -68,5 +68,35 @@
     },
     "source_unchanged": true,
     "local_all_files_verified": true
+  },
+  {
+    "directory": "trt-migration-20261120-completion-checkpoint-r1",
+    "files": 6155,
+    "package": {
+      "bytes": 1614726185,
+      "sha256": "23c4eb98c1f9774ddc0f27cc67f238b2ca5d95733d113419ed7b50e1be12664f"
+    },
+    "source_unchanged": true,
+    "local_all_files_verified": true
+  },
+  {
+    "directory": "trt-migration-20261120-handoff-checkpoint-r1",
+    "files": 25,
+    "package": {
+      "bytes": 340661533,
+      "sha256": "18435a887ff695a299633134f2a48752f480d574c7cbc85f21e8899e19a0317f"
+    },
+    "source_unchanged": true,
+    "local_all_files_verified": true
+  },
+  {
+    "directory": "trt-migration-20261120-exit-checkpoint-r1",
+    "files": 3,
+    "package": {
+      "bytes": 1817,
+      "sha256": "63e3a6a9c0e9838c2258fcafb914c9f262481a4867d4895461e92b08559a238b"
+    },
+    "source_unchanged": true,
+    "local_all_files_verified": true
   }
 ]
