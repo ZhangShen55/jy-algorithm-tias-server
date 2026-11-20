@@ -1,0 +1,5639 @@
+{
+  "schema_version": 1,
+  "run_id": "trt-concurrency-knee-20261120-r1",
+  "continuation_runs": [
+    "trt-concurrency-knee-20261121-r2",
+    "trt-concurrency-knee-20261121-r3"
+  ],
+  "planned_cases": 27,
+  "completed_cases": 27,
+  "complete": true,
+  "code": "3f77bfdcb197fd7bb957e45104342389ed3daca7",
+  "plan_sha256": "5589a9d0f720ee15feae0f585018c803afc34ded38c137e16fa805c317f61a61",
+  "analyzer_sha256": "002d7be322978c6e13a7283274da08c21d10038e9fde80c7e1bc2b7d0f6e3fcf",
+  "runtime_openapi_files": 63,
+  "runtime_openapi_contract_equal": true,
+  "method": "closed_loop_single_image_total_C_success_completed_in_180s_no_retries",
+  "b512_user_authorized": true,
+  "statistics_scope": "success_latency_all_sent_in_formal_window_including_drain; resources_formal_window_only",
+  "cases": [
+    {
+      "label": "sync-i1-w1-c50-b512",
+      "interface": "sync",
+      "endpoint": "/AE/SyncTasks2",
+      "instances": 1,
+      "workers_per_instance": 1,
+      "total_workers": 1,
+      "C": 50,
+      "b": 512,
+      "queue": 0,
+      "window_seconds": 180,
+      "started_unix": 1795190213.5974555,
+      "requests": 2775,
+      "successful": 2775,
+      "failed": 0,
+      "completed_in_window": 2725,
+      "inflight_at_window_end": 50,
+      "successful_tps": 15.13888888888889,
+      "success_fraction": 1.0,
+      "latency_ms": {
+        "p50": 3240.894217044115,
+        "p95": 3501.444626878947,
+        "p99": 3792.8032375406474,
+        "mean": 3253.7625518433647
+      },
+      "failed_latency_ms_p95": null,
+      "status_counts": {
+        "200": 2775
+      },
+      "errors": {},
+      "failure_evidence": {},
+      "drain_seconds": 1.148530281148851,
+      "unique_images": 2162,
+      "pool_images": 2162,
+      "image_frequency": {
+        "min": 1,
+        "max": 2
+      },
+      "resource_samples": 180,
+      "gpu_memory_mib": {
+        "samples": 180,
+        "mean": 1571.0,
+        "median": 1571.0,
+        "min": 1571.0,
+        "max": 1571.0
+      },
+      "gpu_utilization": {
+        "samples": 180,
+        "mean": 49.78888888888889,
+        "median": 59.0,
+        "min": 0.0,
+        "max": 66.0
+      },
+      "gpu_temperature_c": {
+        "samples": 180,
+        "mean": 76.66111111111111,
+        "median": 78.0,
+        "min": 63.0,
+        "max": 81.0
+      },
+      "gpu_power_w": {
+        "samples": 180,
+        "mean": 291.0962777777778,
+        "median": 294.34000000000003,
+        "min": 152.74,
+        "max": 324.79
+      },
+      "server_cpu_sum_one_core_100": {
+        "samples": 180,
+        "mean": 99.45981014316007,
+        "median": 99.82038945476367,
+        "min": 53.971153712900424,
+        "max": 101.19349207698542
+      },
+      "server_rss_sum_mib": {
+        "samples": 180,
+        "mean": 1888.5223307291667,
+        "median": 1892.8828125,
+        "min": 1631.421875,
+        "max": 1913.10546875
+      },
+      "generator_cpu_one_core_100": {
+        "samples": 180,
+        "mean": 9.494354105605755,
+        "median": 4.4938058152073665,
+        "min": 0.0,
+        "max": 48.046240187888365
+      },
+      "generator_rss_mib": {
+        "samples": 180,
+        "mean": 1004.2779947916666,
+        "median": 1027.09765625,
+        "min": 814.9921875,
+        "max": 1096.5546875
+      },
+      "per_pid": {
+        "1259548": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 99.45981014316007,
+            "median": 99.82038945476367,
+            "min": 53.971153712900424,
+            "max": 101.19349207698542
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1888.5223307291667,
+            "median": 1892.8828125,
+            "min": 1631.421875,
+            "max": 1913.10546875
+          }
+        },
+        "1259847": {
+          "role": "load_generator",
+          "cpu": {
+            "samples": 180,
+            "mean": 9.494354105605755,
+            "median": 4.4938058152073665,
+            "min": 0.0,
+            "max": 48.046240187888365
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1004.2779947916666,
+            "median": 1027.09765625,
+            "min": 814.9921875,
+            "max": 1096.5546875
+          }
+        }
+      },
+      "per_instance": {
+        "http://127.0.0.1:19081": {
+          "requests": 2775,
+          "successful": 2775,
+          "failed": 0
+        }
+      },
+      "access_log_check": {
+        "http://127.0.0.1:19081": {
+          "http_200_including_prefill_and_warmup": 3210,
+          "formal_success": 2775
+        }
+      },
+      "requests_sha256": "44880b2ba12d3fae15b04bbbea859bf116ed1c8fe70bf5aeca57268ff9f16624",
+      "summary_sha256": "334a86596f1cb45c8cb55259080510bcbe7aab9fa30bfd4203b6baf2c4d267d6",
+      "case_result_sha256": "be25396f678cd5e1fb71e4125a4062e7e0d1f384f926e5dc0692d7790586afe8",
+      "resources_sha256": "47f4e53f3fdfb43234100ffbfd912e8fe0975d9aa6263f282e90fee027376883"
+    },
+    {
+      "label": "sync-i1-w1-c100-b512",
+      "interface": "sync",
+      "endpoint": "/AE/SyncTasks2",
+      "instances": 1,
+      "workers_per_instance": 1,
+      "total_workers": 1,
+      "C": 100,
+      "b": 512,
+      "queue": 0,
+      "window_seconds": 180,
+      "started_unix": 1795190433.688048,
+      "requests": 2829,
+      "successful": 2829,
+      "failed": 0,
+      "completed_in_window": 2729,
+      "inflight_at_window_end": 100,
+      "successful_tps": 15.161111111111111,
+      "success_fraction": 1.0,
+      "latency_ms": {
+        "p50": 6508.686674991623,
+        "p95": 7221.477530291304,
+        "p99": 9154.104055613278,
+        "mean": 6506.162908761941
+      },
+      "failed_latency_ms_p95": null,
+      "status_counts": {
+        "200": 2829
+      },
+      "errors": {},
+      "failure_evidence": {},
+      "drain_seconds": 5.113820250844583,
+      "unique_images": 2162,
+      "pool_images": 2162,
+      "image_frequency": {
+        "min": 1,
+        "max": 2
+      },
+      "resource_samples": 180,
+      "gpu_memory_mib": {
+        "samples": 180,
+        "mean": 1571.0,
+        "median": 1571.0,
+        "min": 1571.0,
+        "max": 1571.0
+      },
+      "gpu_utilization": {
+        "samples": 180,
+        "mean": 51.583333333333336,
+        "median": 60.0,
+        "min": 0.0,
+        "max": 69.0
+      },
+      "gpu_temperature_c": {
+        "samples": 180,
+        "mean": 79.22222222222223,
+        "median": 80.0,
+        "min": 74.0,
+        "max": 81.0
+      },
+      "gpu_power_w": {
+        "samples": 180,
+        "mean": 292.8818888888889,
+        "median": 294.115,
+        "min": 164.53,
+        "max": 327.16
+      },
+      "server_cpu_sum_one_core_100": {
+        "samples": 180,
+        "mean": 99.30025691587788,
+        "median": 99.88888776621772,
+        "min": 49.84466840512685,
+        "max": 101.28243507119812
+      },
+      "server_rss_sum_mib": {
+        "samples": 180,
+        "mean": 2075.429253472222,
+        "median": 2084.59765625,
+        "min": 1686.31640625,
+        "max": 2258.76953125
+      },
+      "generator_cpu_one_core_100": {
+        "samples": 180,
+        "mean": 13.969671793088269,
+        "median": 6.992746309811167,
+        "min": 0.0,
+        "max": 100.90456768013232
+      },
+      "generator_rss_mib": {
+        "samples": 180,
+        "mean": 1114.8306206597222,
+        "median": 1146.76953125,
+        "min": 835.24609375,
+        "max": 1239.23046875
+      },
+      "per_pid": {
+        "1260990": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 99.30025691587788,
+            "median": 99.88888776621772,
+            "min": 49.84466840512685,
+            "max": 101.28243507119812
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 2075.429253472222,
+            "median": 2084.59765625,
+            "min": 1686.31640625,
+            "max": 2258.76953125
+          }
+        },
+        "1261438": {
+          "role": "load_generator",
+          "cpu": {
+            "samples": 180,
+            "mean": 13.969671793088269,
+            "median": 6.992746309811167,
+            "min": 0.0,
+            "max": 100.90456768013232
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1114.8306206597222,
+            "median": 1146.76953125,
+            "min": 835.24609375,
+            "max": 1239.23046875
+          }
+        }
+      },
+      "per_instance": {
+        "http://127.0.0.1:19081": {
+          "requests": 2829,
+          "successful": 2829,
+          "failed": 0
+        }
+      },
+      "access_log_check": {
+        "http://127.0.0.1:19081": {
+          "http_200_including_prefill_and_warmup": 3288,
+          "formal_success": 2829
+        }
+      },
+      "requests_sha256": "e6c696d06ffc71d023f55ee43a5f3fc0d47d364c4e830cc8fafc2464057bf7cb",
+      "summary_sha256": "a2b3f0b20d6c58c816da0d767d92e99b70c7811ee6d1635d09d61da66c2c1881",
+      "case_result_sha256": "8653ec63d5a75821c4a5346a8496bdad0a34a24d4a5dd8f1be6a5c0fc526c061",
+      "resources_sha256": "39596a97e2a2c5486987b65b19e3da071dbe58a8dcb351d3760b5d1f1ddca0d7"
+    },
+    {
+      "label": "sync-i1-w1-c200-b512",
+      "interface": "sync",
+      "endpoint": "/AE/SyncTasks2",
+      "instances": 1,
+      "workers_per_instance": 1,
+      "total_workers": 1,
+      "C": 200,
+      "b": 512,
+      "queue": 0,
+      "window_seconds": 180,
+      "started_unix": 1795190657.8380294,
+      "requests": 2978,
+      "successful": 2772,
+      "failed": 206,
+      "completed_in_window": 2572,
+      "inflight_at_window_end": 200,
+      "successful_tps": 14.28888888888889,
+      "success_fraction": 0.9308260577568838,
+      "latency_ms": {
+        "p50": 6999.879194423556,
+        "p95": 24751.82397579771,
+        "p99": 54973.40492503252,
+        "mean": 9173.09642225772
+      },
+      "failed_latency_ms_p95": 65172.27001476567,
+      "status_counts": {
+        "200": 2772,
+        "None": 206
+      },
+      "errors": {
+        "ReadError('')": 10,
+        "ReadTimeout('')": 196
+      },
+      "failure_evidence": {
+        "httpx.ReadError|errno=104": {
+          "count": 10,
+          "completed_offset_s": {
+            "samples": 10,
+            "mean": 14.924335277220234,
+            "median": 14.915266164112836,
+            "min": 14.889925629133359,
+            "max": 14.984737906139344
+          },
+          "latency_ms": {
+            "samples": 10,
+            "mean": 2795.361980609596,
+            "median": 2786.7421419359744,
+            "min": 2767.181450035423,
+            "max": 2857.947097159922
+          },
+          "per_instance": {
+            "http://127.0.0.1:19081": 10
+          },
+          "reachable_chain_types": {
+            "httpx.ReadError -> httpcore.ReadError -> anyio.BrokenResourceError -> builtins.ConnectionResetError": 10
+          }
+        },
+        "httpx.ReadTimeout|errno=unavailable": {
+          "count": 196,
+          "completed_offset_s": {
+            "samples": 196,
+            "mean": 110.90628370592889,
+            "median": 110.91606576158665,
+            "min": 80.34242453612387,
+            "max": 141.40891723707318
+          },
+          "latency_ms": {
+            "samples": 196,
+            "mean": 62387.53788679487,
+            "median": 61009.530910872854,
+            "min": 60163.567315088585,
+            "max": 65675.66386493854
+          },
+          "per_instance": {
+            "http://127.0.0.1:19081": 196
+          },
+          "reachable_chain_types": {
+            "httpx.ReadTimeout -> httpcore.ReadTimeout -> builtins.TimeoutError -> asyncio.exceptions.CancelledError": 196
+          }
+        }
+      },
+      "drain_seconds": 17.45283982111141,
+      "unique_images": 2162,
+      "pool_images": 2162,
+      "image_frequency": {
+        "min": 1,
+        "max": 2
+      },
+      "resource_samples": 179,
+      "gpu_memory_mib": {
+        "samples": 179,
+        "mean": 1571.0,
+        "median": 1571.0,
+        "min": 1571.0,
+        "max": 1571.0
+      },
+      "gpu_utilization": {
+        "samples": 179,
+        "mean": 48.90502793296089,
+        "median": 60.0,
+        "min": 0.0,
+        "max": 65.0
+      },
+      "gpu_temperature_c": {
+        "samples": 179,
+        "mean": 78.41340782122904,
+        "median": 79.0,
+        "min": 72.0,
+        "max": 81.0
+      },
+      "gpu_power_w": {
+        "samples": 179,
+        "mean": 289.28972067039103,
+        "median": 291.34,
+        "min": 147.04,
+        "max": 324.64
+      },
+      "server_cpu_sum_one_core_100": {
+        "samples": 179,
+        "mean": 97.98378401870008,
+        "median": 99.85357102785464,
+        "min": 13.994507464267695,
+        "max": 101.14416006752181
+      },
+      "server_rss_sum_mib": {
+        "samples": 179,
+        "mean": 2754.3458013268155,
+        "median": 2778.71484375,
+        "min": 1624.484375,
+        "max": 2902.21875
+      },
+      "generator_cpu_one_core_100": {
+        "samples": 179,
+        "mean": 15.464759847995891,
+        "median": 12.982012098903775,
+        "min": 0.0,
+        "max": 100.02108793606462
+      },
+      "generator_rss_mib": {
+        "samples": 179,
+        "mean": 1123.255215607542,
+        "median": 1092.93359375,
+        "min": 874.28515625,
+        "max": 1365.1484375
+      },
+      "per_pid": {
+        "1262682": {
+          "role": "server",
+          "cpu": {
+            "samples": 179,
+            "mean": 97.98378401870008,
+            "median": 99.85357102785464,
+            "min": 13.994507464267695,
+            "max": 101.14416006752181
+          },
+          "rss_mib": {
+            "samples": 179,
+            "mean": 2754.3458013268155,
+            "median": 2778.71484375,
+            "min": 1624.484375,
+            "max": 2902.21875
+          }
+        },
+        "1263049": {
+          "role": "load_generator",
+          "cpu": {
+            "samples": 179,
+            "mean": 15.464759847995891,
+            "median": 12.982012098903775,
+            "min": 0.0,
+            "max": 100.02108793606462
+          },
+          "rss_mib": {
+            "samples": 179,
+            "mean": 1123.255215607542,
+            "median": 1092.93359375,
+            "min": 874.28515625,
+            "max": 1365.1484375
+          }
+        }
+      },
+      "per_instance": {
+        "http://127.0.0.1:19081": {
+          "requests": 2978,
+          "successful": 2772,
+          "failed": 206
+        }
+      },
+      "access_log_check": {
+        "http://127.0.0.1:19081": {
+          "http_200_including_prefill_and_warmup": 3350,
+          "formal_success": 2772
+        }
+      },
+      "requests_sha256": "7722dfe34942308e3a01750bb9da1ef15e0e4375118ef2280e8a832728deb7b5",
+      "summary_sha256": "3efc351de5866f20ddc353218a615823759fe9af560d3bc6c4889da58fa6a50c",
+      "case_result_sha256": "6096e9b1503a22b8f477db7402709d19ddc782b9bf58c649a1a6bf03974a261a",
+      "resources_sha256": "750651c15044ecbf5d3ed246ca6a0a8a50a9cd4c25492c3e4ae78f7eae951754"
+    },
+    {
+      "label": "sync-i2-w1-c50-b512",
+      "interface": "sync",
+      "endpoint": "/AE/SyncTasks2",
+      "instances": 2,
+      "workers_per_instance": 1,
+      "total_workers": 2,
+      "C": 50,
+      "b": 512,
+      "queue": 0,
+      "window_seconds": 180,
+      "started_unix": 1795191430.0724208,
+      "requests": 3800,
+      "successful": 3800,
+      "failed": 0,
+      "completed_in_window": 3750,
+      "inflight_at_window_end": 50,
+      "successful_tps": 20.833333333333332,
+      "success_fraction": 1.0,
+      "latency_ms": {
+        "p50": 2391.007207450457,
+        "p95": 2510.6893592048436,
+        "p99": 2688.1162728834897,
+        "mean": 2377.5226080006505
+      },
+      "failed_latency_ms_p95": null,
+      "status_counts": {
+        "200": 3800
+      },
+      "errors": {},
+      "failure_evidence": {},
+      "drain_seconds": 1.2813034439459443,
+      "unique_images": 2162,
+      "pool_images": 2162,
+      "image_frequency": {
+        "min": 1,
+        "max": 2
+      },
+      "resource_samples": 180,
+      "gpu_memory_mib": {
+        "samples": 180,
+        "mean": 3138.0,
+        "median": 3138.0,
+        "min": 3138.0,
+        "max": 3138.0
+      },
+      "gpu_utilization": {
+        "samples": 180,
+        "mean": 74.44444444444444,
+        "median": 78.0,
+        "min": 34.0,
+        "max": 86.0
+      },
+      "gpu_temperature_c": {
+        "samples": 180,
+        "mean": 79.38888888888889,
+        "median": 81.0,
+        "min": 67.0,
+        "max": 83.0
+      },
+      "gpu_power_w": {
+        "samples": 180,
+        "mean": 321.7605,
+        "median": 323.03499999999997,
+        "min": 151.34,
+        "max": 336.6
+      },
+      "server_cpu_sum_one_core_100": {
+        "samples": 180,
+        "mean": 198.62422706516358,
+        "median": 199.74675852432676,
+        "min": 45.83667554178524,
+        "max": 202.8921313762288
+      },
+      "server_rss_sum_mib": {
+        "samples": 180,
+        "mean": 3337.5162977430555,
+        "median": 3345.712890625,
+        "min": 3221.08984375,
+        "max": 3460.9921875
+      },
+      "generator_cpu_one_core_100": {
+        "samples": 180,
+        "mean": 12.064453145467512,
+        "median": 10.992943414352794,
+        "min": 0.0,
+        "max": 77.72305852737497
+      },
+      "generator_rss_mib": {
+        "samples": 180,
+        "mean": 1031.1605685763889,
+        "median": 1060.66796875,
+        "min": 815.23046875,
+        "max": 1100.54296875
+      },
+      "per_pid": {
+        "1266061": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 99.24257503744195,
+            "median": 99.92285518217577,
+            "min": 22.91833777089262,
+            "max": 101.90210663404157
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1659.1880642361111,
+            "median": 1668.775390625,
+            "min": 1614.09765625,
+            "max": 1722.76953125
+          }
+        },
+        "1266185": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 99.38165202772163,
+            "median": 99.9312993261729,
+            "min": 22.91833777089262,
+            "max": 102.11366516723184
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1678.3282335069443,
+            "median": 1671.5390625,
+            "min": 1594.9765625,
+            "max": 1739.1171875
+          }
+        },
+        "1266552": {
+          "role": "load_generator",
+          "cpu": {
+            "samples": 180,
+            "mean": 12.064453145467512,
+            "median": 10.992943414352794,
+            "min": 0.0,
+            "max": 77.72305852737497
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1031.1605685763889,
+            "median": 1060.66796875,
+            "min": 815.23046875,
+            "max": 1100.54296875
+          }
+        }
+      },
+      "per_instance": {
+        "http://127.0.0.1:19081": {
+          "requests": 1884,
+          "successful": 1884,
+          "failed": 0
+        },
+        "http://127.0.0.1:19082": {
+          "requests": 1916,
+          "successful": 1916,
+          "failed": 0
+        }
+      },
+      "access_log_check": {
+        "http://127.0.0.1:19081": {
+          "http_200_including_prefill_and_warmup": 2182,
+          "formal_success": 1884
+        },
+        "http://127.0.0.1:19082": {
+          "http_200_including_prefill_and_warmup": 2214,
+          "formal_success": 1916
+        }
+      },
+      "requests_sha256": "3b4c50108367bb2be5e102eb70da63a0ac80bf4f99505607604da8add1601737",
+      "summary_sha256": "fd23b03f120f8c7e3fef2264a7a53dd8b451a9180758a1593aafcf0d85797c28",
+      "case_result_sha256": "7afb14a8b42405a63ba843da42a4511624476a70b1414ccee1e2e8220364c7b5",
+      "resources_sha256": "b73e48ff8fce2a970b41cd5519dd31c027ee6644c0abd2d2d3b79e0cdcce9605"
+    },
+    {
+      "label": "sync-i2-w1-c100-b512",
+      "interface": "sync",
+      "endpoint": "/AE/SyncTasks2",
+      "instances": 2,
+      "workers_per_instance": 1,
+      "total_workers": 2,
+      "C": 100,
+      "b": 512,
+      "queue": 0,
+      "window_seconds": 180,
+      "started_unix": 1795191657.4667118,
+      "requests": 3779,
+      "successful": 3779,
+      "failed": 0,
+      "completed_in_window": 3679,
+      "inflight_at_window_end": 100,
+      "successful_tps": 20.43888888888889,
+      "success_fraction": 1.0,
+      "latency_ms": {
+        "p50": 4822.731119114906,
+        "p95": 5083.551097335294,
+        "p99": 5914.751597796566,
+        "mean": 4801.9656183417555
+      },
+      "failed_latency_ms_p95": null,
+      "status_counts": {
+        "200": 3779
+      },
+      "errors": {},
+      "failure_evidence": {},
+      "drain_seconds": 2.7131081169936806,
+      "unique_images": 2162,
+      "pool_images": 2162,
+      "image_frequency": {
+        "min": 1,
+        "max": 2
+      },
+      "resource_samples": 180,
+      "gpu_memory_mib": {
+        "samples": 180,
+        "mean": 3138.0,
+        "median": 3138.0,
+        "min": 3138.0,
+        "max": 3138.0
+      },
+      "gpu_utilization": {
+        "samples": 180,
+        "mean": 74.31111111111112,
+        "median": 79.0,
+        "min": 0.0,
+        "max": 88.0
+      },
+      "gpu_temperature_c": {
+        "samples": 180,
+        "mean": 81.17777777777778,
+        "median": 82.0,
+        "min": 72.0,
+        "max": 83.0
+      },
+      "gpu_power_w": {
+        "samples": 180,
+        "mean": 320.5278333333333,
+        "median": 323.695,
+        "min": 146.9,
+        "max": 331.83
+      },
+      "server_cpu_sum_one_core_100": {
+        "samples": 180,
+        "mean": 197.9055663542779,
+        "median": 199.42430386628575,
+        "min": 4.994978288542264,
+        "max": 202.8604460174494
+      },
+      "server_rss_sum_mib": {
+        "samples": 180,
+        "mean": 3678.2176432291667,
+        "median": 3681.2421875,
+        "min": 3191.65625,
+        "max": 3819.5390625
+      },
+      "generator_cpu_one_core_100": {
+        "samples": 180,
+        "mean": 14.222328171809808,
+        "median": 10.021920165536438,
+        "min": 0.0,
+        "max": 99.89956577084527
+      },
+      "generator_rss_mib": {
+        "samples": 180,
+        "mean": 1142.5678385416666,
+        "median": 1228.29296875,
+        "min": 835.40625,
+        "max": 1270.57421875
+      },
+      "per_pid": {
+        "1267905": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 98.89165950466261,
+            "median": 99.91223007216064,
+            "min": 1.9979913154169058,
+            "max": 101.33230307352332
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1857.3182725694444,
+            "median": 1859.44140625,
+            "min": 1607.27734375,
+            "max": 1917.7578125
+          }
+        },
+        "1268035": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 99.01390684961531,
+            "median": 99.9155435457548,
+            "min": 2.9969869731253587,
+            "max": 102.05255901254951
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1820.8993706597223,
+            "median": 1821.80078125,
+            "min": 1584.37890625,
+            "max": 1901.78125
+          }
+        },
+        "1268402": {
+          "role": "load_generator",
+          "cpu": {
+            "samples": 180,
+            "mean": 14.222328171809808,
+            "median": 10.021920165536438,
+            "min": 0.0,
+            "max": 99.89956577084527
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1142.5678385416666,
+            "median": 1228.29296875,
+            "min": 835.40625,
+            "max": 1270.57421875
+          }
+        }
+      },
+      "per_instance": {
+        "http://127.0.0.1:19081": {
+          "requests": 1884,
+          "successful": 1884,
+          "failed": 0
+        },
+        "http://127.0.0.1:19082": {
+          "requests": 1895,
+          "successful": 1895,
+          "failed": 0
+        }
+      },
+      "access_log_check": {
+        "http://127.0.0.1:19081": {
+          "http_200_including_prefill_and_warmup": 2177,
+          "formal_success": 1884
+        },
+        "http://127.0.0.1:19082": {
+          "http_200_including_prefill_and_warmup": 2188,
+          "formal_success": 1895
+        }
+      },
+      "requests_sha256": "de0854ee3927697b3d9586878f3af60283a8e06166e1e7856d18ccbee1f3e48b",
+      "summary_sha256": "d8713b0d3c8bdc1675a344bec838e37c95effeedc88f423dfdccd64852f7fcce",
+      "case_result_sha256": "2cfb1f0c6bb100e6b7c4de45d136d3ce95909748bc156aa3910a2167e53101cf",
+      "resources_sha256": "2683c417a73c4ea680ea903c87627bf78a3ef4342fc008cdeee383277493b1bf"
+    },
+    {
+      "label": "sync-i2-w1-c200-b512",
+      "interface": "sync",
+      "endpoint": "/AE/SyncTasks2",
+      "instances": 2,
+      "workers_per_instance": 1,
+      "total_workers": 2,
+      "C": 200,
+      "b": 512,
+      "queue": 0,
+      "window_seconds": 180,
+      "started_unix": 1795191885.9210742,
+      "requests": 3796,
+      "successful": 3755,
+      "failed": 41,
+      "completed_in_window": 3555,
+      "inflight_at_window_end": 200,
+      "successful_tps": 19.75,
+      "success_fraction": 0.9891991570073762,
+      "latency_ms": {
+        "p50": 8479.767485987395,
+        "p95": 12004.441883391699,
+        "p99": 46337.04464948737,
+        "mean": 9160.140325392742
+      },
+      "failed_latency_ms_p95": 66020.17669612542,
+      "status_counts": {
+        "200": 3755,
+        "None": 41
+      },
+      "errors": {
+        "ReadError('')": 3,
+        "ReadTimeout('')": 38
+      },
+      "failure_evidence": {
+        "httpx.ReadError|errno=32": {
+          "count": 1,
+          "completed_offset_s": {
+            "samples": 1,
+            "mean": 15.938267661025748,
+            "median": 15.938267661025748,
+            "min": 15.938267661025748,
+            "max": 15.938267661025748
+          },
+          "latency_ms": {
+            "samples": 1,
+            "mean": 5139.318838017061,
+            "median": 5139.318838017061,
+            "min": 5139.318838017061,
+            "max": 5139.318838017061
+          },
+          "per_instance": {
+            "http://127.0.0.1:19081": 1
+          },
+          "reachable_chain_types": {
+            "httpx.ReadError -> httpcore.ReadError -> anyio.BrokenResourceError -> builtins.BrokenPipeError": 1
+          }
+        },
+        "httpx.ReadError|errno=104": {
+          "count": 2,
+          "completed_offset_s": {
+            "samples": 2,
+            "mean": 16.38521144562401,
+            "median": 16.38521144562401,
+            "min": 16.382045631064102,
+            "max": 16.388377260183915
+          },
+          "latency_ms": {
+            "samples": 2,
+            "mean": 2489.5646105287597,
+            "median": 2489.5646105287597,
+            "min": 645.5387310124934,
+            "max": 4333.590490045026
+          },
+          "per_instance": {
+            "http://127.0.0.1:19082": 2
+          },
+          "reachable_chain_types": {
+            "httpx.ReadError -> httpcore.ReadError -> anyio.BrokenResourceError -> builtins.ConnectionResetError": 2
+          }
+        },
+        "httpx.ReadTimeout|errno=unavailable": {
+          "count": 38,
+          "completed_offset_s": {
+            "samples": 38,
+            "mean": 76.77891772377035,
+            "median": 76.78683660214301,
+            "min": 76.65865282621235,
+            "max": 76.88890801207162
+          },
+          "latency_ms": {
+            "samples": 38,
+            "mean": 64325.902560290786,
+            "median": 63864.011094439775,
+            "min": 60400.94007900916,
+            "max": 66035.55131191388
+          },
+          "per_instance": {
+            "http://127.0.0.1:19081": 19,
+            "http://127.0.0.1:19082": 19
+          },
+          "reachable_chain_types": {
+            "httpx.ReadTimeout -> httpcore.ReadTimeout -> builtins.TimeoutError -> asyncio.exceptions.CancelledError": 38
+          }
+        }
+      },
+      "drain_seconds": 6.388411223189905,
+      "unique_images": 2162,
+      "pool_images": 2162,
+      "image_frequency": {
+        "min": 1,
+        "max": 2
+      },
+      "resource_samples": 180,
+      "gpu_memory_mib": {
+        "samples": 180,
+        "mean": 3138.0,
+        "median": 3138.0,
+        "min": 3138.0,
+        "max": 3138.0
+      },
+      "gpu_utilization": {
+        "samples": 180,
+        "mean": 73.75,
+        "median": 79.0,
+        "min": 0.0,
+        "max": 89.0
+      },
+      "gpu_temperature_c": {
+        "samples": 180,
+        "mean": 81.27222222222223,
+        "median": 82.0,
+        "min": 72.0,
+        "max": 83.0
+      },
+      "gpu_power_w": {
+        "samples": 180,
+        "mean": 318.4867777777778,
+        "median": 325.025,
+        "min": 132.71,
+        "max": 332.95
+      },
+      "server_cpu_sum_one_core_100": {
+        "samples": 180,
+        "mean": 194.51806696062167,
+        "median": 199.41096174114713,
+        "min": 0.0,
+        "max": 202.03129523871843
+      },
+      "server_rss_sum_mib": {
+        "samples": 180,
+        "mean": 4261.164583333333,
+        "median": 4266.75390625,
+        "min": 3210.66796875,
+        "max": 4548.08203125
+      },
+      "generator_cpu_one_core_100": {
+        "samples": 180,
+        "mean": 20.839337398144384,
+        "median": 17.006413393167303,
+        "min": 0.0,
+        "max": 101.0243885080319
+      },
+      "generator_rss_mib": {
+        "samples": 180,
+        "mean": 1273.387673611111,
+        "median": 1229.166015625,
+        "min": 830.39453125,
+        "max": 1598.1015625
+      },
+      "per_pid": {
+        "1269818": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 97.44472119672287,
+            "median": 99.90849986819183,
+            "min": 0.0,
+            "max": 101.7142087945498
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 2076.044379340278,
+            "median": 2078.421875,
+            "min": 1605.18359375,
+            "max": 2268.0703125
+          }
+        },
+        "1269945": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 97.07334576389879,
+            "median": 99.86105294610815,
+            "min": 0.0,
+            "max": 101.91545511163645
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 2185.1202039930554,
+            "median": 2188.328125,
+            "min": 1605.484375,
+            "max": 2280.640625
+          }
+        },
+        "1270316": {
+          "role": "load_generator",
+          "cpu": {
+            "samples": 180,
+            "mean": 20.839337398144384,
+            "median": 17.006413393167303,
+            "min": 0.0,
+            "max": 101.0243885080319
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1273.387673611111,
+            "median": 1229.166015625,
+            "min": 830.39453125,
+            "max": 1598.1015625
+          }
+        }
+      },
+      "per_instance": {
+        "http://127.0.0.1:19081": {
+          "requests": 1905,
+          "successful": 1885,
+          "failed": 20
+        },
+        "http://127.0.0.1:19082": {
+          "requests": 1891,
+          "successful": 1870,
+          "failed": 21
+        }
+      },
+      "access_log_check": {
+        "http://127.0.0.1:19081": {
+          "http_200_including_prefill_and_warmup": 2189,
+          "formal_success": 1885
+        },
+        "http://127.0.0.1:19082": {
+          "http_200_including_prefill_and_warmup": 2171,
+          "formal_success": 1870
+        }
+      },
+      "requests_sha256": "446e454204ef7da9ed48b6d2e4097c39c30aabadd6938a1726a6d1c7888a10f6",
+      "summary_sha256": "7a1359d22bb9252beb470ee4a26c6d20ac379a38840fba8e628566b365d84341",
+      "case_result_sha256": "daa0e8a12057f6692b169cdc8bddce0780269a1a79d389ec6ae3eb9a4e1d17e4",
+      "resources_sha256": "e0c67336e4dd8867e6f6312f605c018ac6bcfa48309c19d319dcf78d43155ab6"
+    },
+    {
+      "label": "sync-i4-w1-c50-b512",
+      "interface": "sync",
+      "endpoint": "/AE/SyncTasks2",
+      "instances": 4,
+      "workers_per_instance": 1,
+      "total_workers": 4,
+      "C": 50,
+      "b": 512,
+      "queue": 0,
+      "window_seconds": 180,
+      "started_unix": 1795192555.014362,
+      "requests": 4556,
+      "successful": 4556,
+      "failed": 0,
+      "completed_in_window": 4506,
+      "inflight_at_window_end": 50,
+      "successful_tps": 25.033333333333335,
+      "success_fraction": 1.0,
+      "latency_ms": {
+        "p50": 1984.7105925437063,
+        "p95": 2179.8338891821913,
+        "p99": 2272.6640054374,
+        "mean": 1987.8666797976637
+      },
+      "failed_latency_ms_p95": null,
+      "status_counts": {
+        "200": 4556
+      },
+      "errors": {},
+      "failure_evidence": {},
+      "drain_seconds": 1.5277338300365955,
+      "unique_images": 2162,
+      "pool_images": 2162,
+      "image_frequency": {
+        "min": 2,
+        "max": 3
+      },
+      "resource_samples": 180,
+      "gpu_memory_mib": {
+        "samples": 180,
+        "mean": 6273.0,
+        "median": 6273.0,
+        "min": 6273.0,
+        "max": 6273.0
+      },
+      "gpu_utilization": {
+        "samples": 180,
+        "mean": 93.34444444444445,
+        "median": 93.0,
+        "min": 64.0,
+        "max": 100.0
+      },
+      "gpu_temperature_c": {
+        "samples": 180,
+        "mean": 81.59444444444445,
+        "median": 83.0,
+        "min": 71.0,
+        "max": 85.0
+      },
+      "gpu_power_w": {
+        "samples": 180,
+        "mean": 342.6576111111111,
+        "median": 343.77,
+        "min": 176.94,
+        "max": 349.86
+      },
+      "server_cpu_sum_one_core_100": {
+        "samples": 180,
+        "mean": 397.6072609582711,
+        "median": 399.12864260469814,
+        "min": 128.5373294869296,
+        "max": 402.17816525380977
+      },
+      "server_rss_sum_mib": {
+        "samples": 180,
+        "mean": 6513.336436631945,
+        "median": 6517.6171875,
+        "min": 6387.765625,
+        "max": 6619.546875
+      },
+      "generator_cpu_one_core_100": {
+        "samples": 180,
+        "mean": 13.674825460229702,
+        "median": 13.012130002305305,
+        "min": 0.997942741985555,
+        "max": 67.75611166752878
+      },
+      "generator_rss_mib": {
+        "samples": 180,
+        "mean": 1038.6919704861111,
+        "median": 1083.5234375,
+        "min": 814.90234375,
+        "max": 1096.98828125
+      },
+      "per_pid": {
+        "1273001": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 99.35038149943428,
+            "median": 99.91236859111908,
+            "min": 31.885229020013544,
+            "max": 101.81064472091101
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1625.8362847222222,
+            "median": 1624.8046875,
+            "min": 1583.09765625,
+            "max": 1656.1953125
+          }
+        },
+        "1273129": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 99.41697538153859,
+            "median": 99.91613520379428,
+            "min": 31.885229020013544,
+            "max": 101.21099011003696
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1624.6036241319443,
+            "median": 1626.6640625,
+            "min": 1583.375,
+            "max": 1655.0078125
+          }
+        },
+        "1273253": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 99.43387773223728,
+            "median": 99.93987187150736,
+            "min": 32.881642426888966,
+            "max": 101.17498182628262
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1638.7787977430555,
+            "median": 1648.353515625,
+            "min": 1591.66796875,
+            "max": 1663.890625
+          }
+        },
+        "1273380": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 99.406026345061,
+            "median": 99.93270083314309,
+            "min": 31.885229020013544,
+            "max": 102.02864872245479
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1624.1177300347222,
+            "median": 1626.09765625,
+            "min": 1583.1953125,
+            "max": 1649.87109375
+          }
+        },
+        "1273820": {
+          "role": "load_generator",
+          "cpu": {
+            "samples": 180,
+            "mean": 13.674825460229702,
+            "median": 13.012130002305305,
+            "min": 0.997942741985555,
+            "max": 67.75611166752878
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1038.6919704861111,
+            "median": 1083.5234375,
+            "min": 814.90234375,
+            "max": 1096.98828125
+          }
+        }
+      },
+      "per_instance": {
+        "http://127.0.0.1:19081": {
+          "requests": 1123,
+          "successful": 1123,
+          "failed": 0
+        },
+        "http://127.0.0.1:19082": {
+          "requests": 1157,
+          "successful": 1157,
+          "failed": 0
+        },
+        "http://127.0.0.1:19083": {
+          "requests": 1141,
+          "successful": 1141,
+          "failed": 0
+        },
+        "http://127.0.0.1:19084": {
+          "requests": 1135,
+          "successful": 1135,
+          "failed": 0
+        }
+      },
+      "access_log_check": {
+        "http://127.0.0.1:19081": {
+          "http_200_including_prefill_and_warmup": 1289,
+          "formal_success": 1123
+        },
+        "http://127.0.0.1:19082": {
+          "http_200_including_prefill_and_warmup": 1323,
+          "formal_success": 1157
+        },
+        "http://127.0.0.1:19083": {
+          "http_200_including_prefill_and_warmup": 1307,
+          "formal_success": 1141
+        },
+        "http://127.0.0.1:19084": {
+          "http_200_including_prefill_and_warmup": 1301,
+          "formal_success": 1135
+        }
+      },
+      "requests_sha256": "8bad350cc67220d63ecb2044ac1a908a6deaeafab6a62966ad4bbeea0fe83fe7",
+      "summary_sha256": "7745de31b0c01b266a0d50b48ff61e22e1187ab7faa4eeb568a1066b84d68465",
+      "case_result_sha256": "dab04a6ed474621fc0ce3f6c98167a427334678f46b270a1a0d865b4506cab4b",
+      "resources_sha256": "8731a6c22033575acad81327ecddd579a46f3e5c2c9270f4e771402799b80e42"
+    },
+    {
+      "label": "sync-i4-w1-c100-b512",
+      "interface": "sync",
+      "endpoint": "/AE/SyncTasks2",
+      "instances": 4,
+      "workers_per_instance": 1,
+      "total_workers": 4,
+      "C": 100,
+      "b": 512,
+      "queue": 0,
+      "window_seconds": 180,
+      "started_unix": 1795192795.9284606,
+      "requests": 4499,
+      "successful": 4499,
+      "failed": 0,
+      "completed_in_window": 4399,
+      "inflight_at_window_end": 100,
+      "successful_tps": 24.43888888888889,
+      "success_fraction": 1.0,
+      "latency_ms": {
+        "p50": 4047.9267770424485,
+        "p95": 4345.574752055109,
+        "p99": 4962.884087571866,
+        "mean": 4027.1800026058686
+      },
+      "failed_latency_ms_p95": null,
+      "status_counts": {
+        "200": 4499
+      },
+      "errors": {},
+      "failure_evidence": {},
+      "drain_seconds": 2.30247156904079,
+      "unique_images": 2162,
+      "pool_images": 2162,
+      "image_frequency": {
+        "min": 2,
+        "max": 3
+      },
+      "resource_samples": 180,
+      "gpu_memory_mib": {
+        "samples": 180,
+        "mean": 6273.0,
+        "median": 6273.0,
+        "min": 6273.0,
+        "max": 6273.0
+      },
+      "gpu_utilization": {
+        "samples": 180,
+        "mean": 91.33333333333333,
+        "median": 93.0,
+        "min": 0.0,
+        "max": 100.0
+      },
+      "gpu_temperature_c": {
+        "samples": 180,
+        "mean": 83.62777777777778,
+        "median": 84.0,
+        "min": 72.0,
+        "max": 85.0
+      },
+      "gpu_power_w": {
+        "samples": 180,
+        "mean": 339.3466111111111,
+        "median": 340.765,
+        "min": 146.73,
+        "max": 349.02
+      },
+      "server_cpu_sum_one_core_100": {
+        "samples": 180,
+        "mean": 396.36907599534817,
+        "median": 398.92727160995287,
+        "min": 28.808893378909627,
+        "max": 402.84956385335477
+      },
+      "server_rss_sum_mib": {
+        "samples": 180,
+        "mean": 6733.283897569445,
+        "median": 6736.91015625,
+        "min": 6357.90234375,
+        "max": 6930.73828125
+      },
+      "generator_cpu_one_core_100": {
+        "samples": 180,
+        "mean": 16.015340969872074,
+        "median": 12.012242252530292,
+        "min": 0.0,
+        "max": 99.89348905291503
+      },
+      "generator_rss_mib": {
+        "samples": 180,
+        "mean": 1178.3355034722222,
+        "median": 1239.546875,
+        "min": 835.4140625,
+        "max": 1346.7578125
+      },
+      "per_pid": {
+        "1275312": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 99.18947064593748,
+            "median": 99.90705307453433,
+            "min": 7.947280932112999,
+            "max": 102.01106900968102
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1691.8998480902778,
+            "median": 1699.8671875,
+            "min": 1610.3515625,
+            "max": 1747.48046875
+          }
+        },
+        "1275441": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 98.78980014912193,
+            "median": 99.8760548607481,
+            "min": 6.953870815598876,
+            "max": 102.15528041954474
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1702.7307074652779,
+            "median": 1726.04296875,
+            "min": 1582.6171875,
+            "max": 1726.91796875
+          }
+        },
+        "1275632": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 99.15616220270518,
+            "median": 99.8985674372679,
+            "min": 6.953870815598876,
+            "max": 101.96192434998062
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1669.2785590277779,
+            "median": 1673.24609375,
+            "min": 1583.76953125,
+            "max": 1726.9765625
+          }
+        },
+        "1275759": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 99.23364299758362,
+            "median": 99.92922549440047,
+            "min": 6.953870815598876,
+            "max": 101.18142728981726
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1669.374782986111,
+            "median": 1690.1796875,
+            "min": 1581.1640625,
+            "max": 1730.49609375
+          }
+        },
+        "1276133": {
+          "role": "load_generator",
+          "cpu": {
+            "samples": 180,
+            "mean": 16.015340969872074,
+            "median": 12.012242252530292,
+            "min": 0.0,
+            "max": 99.89348905291503
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1178.3355034722222,
+            "median": 1239.546875,
+            "min": 835.4140625,
+            "max": 1346.7578125
+          }
+        }
+      },
+      "per_instance": {
+        "http://127.0.0.1:19081": {
+          "requests": 1127,
+          "successful": 1127,
+          "failed": 0
+        },
+        "http://127.0.0.1:19082": {
+          "requests": 1110,
+          "successful": 1110,
+          "failed": 0
+        },
+        "http://127.0.0.1:19083": {
+          "requests": 1135,
+          "successful": 1135,
+          "failed": 0
+        },
+        "http://127.0.0.1:19084": {
+          "requests": 1127,
+          "successful": 1127,
+          "failed": 0
+        }
+      },
+      "access_log_check": {
+        "http://127.0.0.1:19081": {
+          "http_200_including_prefill_and_warmup": 1301,
+          "formal_success": 1127
+        },
+        "http://127.0.0.1:19082": {
+          "http_200_including_prefill_and_warmup": 1284,
+          "formal_success": 1110
+        },
+        "http://127.0.0.1:19083": {
+          "http_200_including_prefill_and_warmup": 1312,
+          "formal_success": 1135
+        },
+        "http://127.0.0.1:19084": {
+          "http_200_including_prefill_and_warmup": 1305,
+          "formal_success": 1127
+        }
+      },
+      "requests_sha256": "83138936d67ea33d0bc9e1e7e6bf7fa4380ff93b9d1c438f764bed3f4965ca70",
+      "summary_sha256": "83786203cdbef5f11814244ee1b61590bcd08a7872c77785a0506857087ded2e",
+      "case_result_sha256": "b800cebd1406eda1b4b8f27f0eeac21a112ac989da1fca81f52add07d2726765",
+      "resources_sha256": "881212e8129dc8e645f1b9de05dbc09a97bf25eae0ebed4df34d3ab071f9252e"
+    },
+    {
+      "label": "sync-i4-w1-c200-b512",
+      "interface": "sync",
+      "endpoint": "/AE/SyncTasks2",
+      "instances": 4,
+      "workers_per_instance": 1,
+      "total_workers": 4,
+      "C": 200,
+      "b": 512,
+      "queue": 0,
+      "window_seconds": 180,
+      "started_unix": 1795193037.6598022,
+      "requests": 4472,
+      "successful": 4469,
+      "failed": 3,
+      "completed_in_window": 4269,
+      "inflight_at_window_end": 200,
+      "successful_tps": 23.716666666666665,
+      "success_fraction": 0.9993291592128801,
+      "latency_ms": {
+        "p50": 8167.680304963142,
+        "p95": 9950.24969684891,
+        "p99": 27010.54959981674,
+        "mean": 8209.124609465229
+      },
+      "failed_latency_ms_p95": 4671.346321259625,
+      "status_counts": {
+        "200": 4469,
+        "None": 3
+      },
+      "errors": {
+        "ReadError('')": 3
+      },
+      "failure_evidence": {
+        "httpx.ReadError|errno=unavailable": {
+          "count": 2,
+          "completed_offset_s": {
+            "samples": 2,
+            "mean": 12.423504785983823,
+            "median": 12.423504785983823,
+            "min": 12.319834264926612,
+            "max": 12.527175307041034
+          },
+          "latency_ms": {
+            "samples": 2,
+            "mean": 1819.9384585022926,
+            "median": 1819.9384585022926,
+            "min": 1709.1796349268407,
+            "max": 1930.6972820777446
+          },
+          "per_instance": {
+            "http://127.0.0.1:19083": 2
+          },
+          "reachable_chain_types": {
+            "httpx.ReadError -> httpcore.ReadError -> anyio.ClosedResourceError": 2
+          }
+        },
+        "httpx.ReadError|errno=32": {
+          "count": 1,
+          "completed_offset_s": {
+            "samples": 1,
+            "mean": 15.06229773699306,
+            "median": 15.06229773699306,
+            "min": 15.06229773699306,
+            "max": 15.06229773699306
+          },
+          "latency_ms": {
+            "samples": 1,
+            "mean": 4975.862881168723,
+            "median": 4975.862881168723,
+            "min": 4975.862881168723,
+            "max": 4975.862881168723
+          },
+          "per_instance": {
+            "http://127.0.0.1:19082": 1
+          },
+          "reachable_chain_types": {
+            "httpx.ReadError -> httpcore.ReadError -> anyio.BrokenResourceError -> builtins.BrokenPipeError": 1
+          }
+        }
+      },
+      "drain_seconds": 5.494120575953275,
+      "unique_images": 2162,
+      "pool_images": 2162,
+      "image_frequency": {
+        "min": 2,
+        "max": 3
+      },
+      "resource_samples": 180,
+      "gpu_memory_mib": {
+        "samples": 180,
+        "mean": 6273.0,
+        "median": 6273.0,
+        "min": 6273.0,
+        "max": 6273.0
+      },
+      "gpu_utilization": {
+        "samples": 180,
+        "mean": 90.32222222222222,
+        "median": 92.5,
+        "min": 0.0,
+        "max": 100.0
+      },
+      "gpu_temperature_c": {
+        "samples": 180,
+        "mean": 83.63888888888889,
+        "median": 84.0,
+        "min": 73.0,
+        "max": 85.0
+      },
+      "gpu_power_w": {
+        "samples": 180,
+        "mean": 335.99188888888887,
+        "median": 339.565,
+        "min": 149.96,
+        "max": 346.34
+      },
+      "server_cpu_sum_one_core_100": {
+        "samples": 180,
+        "mean": 388.1951015823494,
+        "median": 398.8303901029809,
+        "min": 2.997365327917387,
+        "max": 402.5287414405191
+      },
+      "server_rss_sum_mib": {
+        "samples": 180,
+        "mean": 7221.380989583334,
+        "median": 7171.720703125,
+        "min": 6388.73046875,
+        "max": 7669.77734375
+      },
+      "generator_cpu_one_core_100": {
+        "samples": 180,
+        "mean": 21.13104445930857,
+        "median": 17.992741223205364,
+        "min": 0.0,
+        "max": 100.02217241797385
+      },
+      "generator_rss_mib": {
+        "samples": 180,
+        "mean": 1362.8714192708333,
+        "median": 1408.8984375,
+        "min": 851.3203125,
+        "max": 1643.63671875
+      },
+      "per_pid": {
+        "1277573": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 97.918887977016,
+            "median": 99.88929417168573,
+            "min": 0.9991217759724622,
+            "max": 101.1719036092691
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1836.4064236111112,
+            "median": 1822.109375,
+            "min": 1610.33984375,
+            "max": 1929.05859375
+          }
+        },
+        "1277768": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 96.60685174880977,
+            "median": 99.87229429250854,
+            "min": 0.9984345672795338,
+            "max": 101.03055589517255
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1780.4088541666667,
+            "median": 1789.1015625,
+            "min": 1612.44140625,
+            "max": 1930.40625
+          }
+        },
+        "1277892": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 96.61847170850255,
+            "median": 99.88335621302087,
+            "min": 0.0,
+            "max": 101.20639314759374
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1792.3131944444444,
+            "median": 1764.5546875,
+            "min": 1583.74609375,
+            "max": 1901.234375
+          }
+        },
+        "1278019": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 97.0508901480211,
+            "median": 99.8862271558796,
+            "min": 0.0,
+            "max": 101.1702556670389
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1812.2525173611111,
+            "median": 1770.41796875,
+            "min": 1582.203125,
+            "max": 1910.125
+          }
+        },
+        "1278391": {
+          "role": "load_generator",
+          "cpu": {
+            "samples": 180,
+            "mean": 21.13104445930857,
+            "median": 17.992741223205364,
+            "min": 0.0,
+            "max": 100.02217241797385
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1362.8714192708333,
+            "median": 1408.8984375,
+            "min": 851.3203125,
+            "max": 1643.63671875
+          }
+        }
+      },
+      "per_instance": {
+        "http://127.0.0.1:19081": {
+          "requests": 1152,
+          "successful": 1152,
+          "failed": 0
+        },
+        "http://127.0.0.1:19082": {
+          "requests": 1099,
+          "successful": 1098,
+          "failed": 1
+        },
+        "http://127.0.0.1:19083": {
+          "requests": 1101,
+          "successful": 1099,
+          "failed": 2
+        },
+        "http://127.0.0.1:19084": {
+          "requests": 1120,
+          "successful": 1120,
+          "failed": 0
+        }
+      },
+      "access_log_check": {
+        "http://127.0.0.1:19081": {
+          "http_200_including_prefill_and_warmup": 1330,
+          "formal_success": 1152
+        },
+        "http://127.0.0.1:19082": {
+          "http_200_including_prefill_and_warmup": 1271,
+          "formal_success": 1098
+        },
+        "http://127.0.0.1:19083": {
+          "http_200_including_prefill_and_warmup": 1272,
+          "formal_success": 1099
+        },
+        "http://127.0.0.1:19084": {
+          "http_200_including_prefill_and_warmup": 1304,
+          "formal_success": 1120
+        }
+      },
+      "requests_sha256": "075c2a33a0c8611609b9daa24b45ab9220d3e843152137855450aa3ccc984484",
+      "summary_sha256": "f54f5e6c010e5211f64d623349265a7d1b44424398688823b5472eec74be24a9",
+      "case_result_sha256": "dbf12d7a6d86c7b01a41986ccda766a32265dd8ad4101b58d29d592c891d00db",
+      "resources_sha256": "30fe67c5f0bf5cca1ba0889bbf079849ff2048c6c880404e0742529fa8012d2c"
+    },
+    {
+      "label": "student-i1-w1-c50-b512",
+      "interface": "student",
+      "endpoint": "/ImageDetect/student/v1.0.0",
+      "instances": 1,
+      "workers_per_instance": 1,
+      "total_workers": 1,
+      "C": 50,
+      "b": 512,
+      "queue": 0,
+      "window_seconds": 180,
+      "started_unix": 1795193263.0371644,
+      "requests": 3043,
+      "successful": 3043,
+      "failed": 0,
+      "completed_in_window": 2993,
+      "inflight_at_window_end": 50,
+      "successful_tps": 16.627777777777776,
+      "success_fraction": 1.0,
+      "latency_ms": {
+        "p50": 3000.5821022205055,
+        "p95": 3023.9525655517355,
+        "p99": 3048.260587709956,
+        "mean": 2981.2304744455014
+      },
+      "failed_latency_ms_p95": null,
+      "status_counts": {
+        "200": 3043
+      },
+      "errors": {},
+      "failure_evidence": {},
+      "drain_seconds": 2.977004118030891,
+      "unique_images": 2162,
+      "pool_images": 2162,
+      "image_frequency": {
+        "min": 1,
+        "max": 2
+      },
+      "resource_samples": 180,
+      "gpu_memory_mib": {
+        "samples": 180,
+        "mean": 1611.0,
+        "median": 1611.0,
+        "min": 1611.0,
+        "max": 1611.0
+      },
+      "gpu_utilization": {
+        "samples": 180,
+        "mean": 77.23333333333333,
+        "median": 75.0,
+        "min": 67.0,
+        "max": 89.0
+      },
+      "gpu_temperature_c": {
+        "samples": 180,
+        "mean": 82.2,
+        "median": 82.0,
+        "min": 78.0,
+        "max": 84.0
+      },
+      "gpu_power_w": {
+        "samples": 180,
+        "mean": 327.53405555555554,
+        "median": 328.15,
+        "min": 221.3,
+        "max": 334.29
+      },
+      "server_cpu_sum_one_core_100": {
+        "samples": 180,
+        "mean": 290.69842036059157,
+        "median": 290.954870709568,
+        "min": 250.35139736796546,
+        "max": 297.1083409233303
+      },
+      "server_rss_sum_mib": {
+        "samples": 180,
+        "mean": 2514.986892361111,
+        "median": 2515.390625,
+        "min": 2300.1015625,
+        "max": 2519.0625
+      },
+      "generator_cpu_one_core_100": {
+        "samples": 180,
+        "mean": 10.548350717158836,
+        "median": 10.042287476544512,
+        "min": 8.007782339090543,
+        "max": 32.91472555036996
+      },
+      "generator_rss_mib": {
+        "samples": 180,
+        "mean": 986.1386501736112,
+        "median": 994.099609375,
+        "min": 813.51953125,
+        "max": 1096.47265625
+      },
+      "per_pid": {
+        "1279788": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 290.69842036059157,
+            "median": 290.954870709568,
+            "min": 250.35139736796546,
+            "max": 297.1083409233303
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 2514.986892361111,
+            "median": 2515.390625,
+            "min": 2300.1015625,
+            "max": 2519.0625
+          }
+        },
+        "1280159": {
+          "role": "load_generator",
+          "cpu": {
+            "samples": 180,
+            "mean": 10.548350717158836,
+            "median": 10.042287476544512,
+            "min": 8.007782339090543,
+            "max": 32.91472555036996
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 986.1386501736112,
+            "median": 994.099609375,
+            "min": 813.51953125,
+            "max": 1096.47265625
+          }
+        }
+      },
+      "per_instance": {
+        "http://127.0.0.1:19081": {
+          "requests": 3043,
+          "successful": 3043,
+          "failed": 0
+        }
+      },
+      "access_log_check": {
+        "http://127.0.0.1:19081": {
+          "http_200_including_prefill_and_warmup": 3461,
+          "formal_success": 3043
+        }
+      },
+      "requests_sha256": "520ec3c9df9b46f760118fb76c1a88b570ffcd7fa9be4a9ccb4057e14b3f2c2c",
+      "summary_sha256": "ac5159d0df957ff285a56b008699890a4c60c0baa11854e4295090d2ffca70b8",
+      "case_result_sha256": "861b3b3055bdddd51f8fc5ad7c65d42de0df6586e3aa33d1dac3a90cd56e599c",
+      "resources_sha256": "b67f7ceee86d37ede5b3c43adc53c1aa13cbb0042482f8cfa6d1e2198ab7c531"
+    },
+    {
+      "label": "student-i1-w1-c100-b512",
+      "interface": "student",
+      "endpoint": "/ImageDetect/student/v1.0.0",
+      "instances": 1,
+      "workers_per_instance": 1,
+      "total_workers": 1,
+      "C": 100,
+      "b": 512,
+      "queue": 0,
+      "window_seconds": 180,
+      "started_unix": 1795193485.1223857,
+      "requests": 3080,
+      "successful": 3080,
+      "failed": 0,
+      "completed_in_window": 2980,
+      "inflight_at_window_end": 100,
+      "successful_tps": 16.555555555555557,
+      "success_fraction": 1.0,
+      "latency_ms": {
+        "p50": 6019.15415097028,
+        "p95": 6063.01575814141,
+        "p99": 6074.390184720978,
+        "mean": 5936.014390670598
+      },
+      "failed_latency_ms_p95": null,
+      "status_counts": {
+        "200": 3080
+      },
+      "errors": {},
+      "failure_evidence": {},
+      "drain_seconds": 5.9461213268805295,
+      "unique_images": 2162,
+      "pool_images": 2162,
+      "image_frequency": {
+        "min": 1,
+        "max": 2
+      },
+      "resource_samples": 180,
+      "gpu_memory_mib": {
+        "samples": 180,
+        "mean": 1611.0,
+        "median": 1611.0,
+        "min": 1611.0,
+        "max": 1611.0
+      },
+      "gpu_utilization": {
+        "samples": 180,
+        "mean": 76.68333333333334,
+        "median": 75.0,
+        "min": 0.0,
+        "max": 90.0
+      },
+      "gpu_temperature_c": {
+        "samples": 180,
+        "mean": 81.73333333333333,
+        "median": 82.0,
+        "min": 74.0,
+        "max": 84.0
+      },
+      "gpu_power_w": {
+        "samples": 180,
+        "mean": 323.3251111111111,
+        "median": 324.88,
+        "min": 179.34,
+        "max": 329.45
+      },
+      "server_cpu_sum_one_core_100": {
+        "samples": 180,
+        "mean": 288.7416694081296,
+        "median": 290.6328368797081,
+        "min": 0.0,
+        "max": 343.740367442094
+      },
+      "server_rss_sum_mib": {
+        "samples": 180,
+        "mean": 2857.2204644097224,
+        "median": 2869.45703125,
+        "min": 1640.61328125,
+        "max": 2869.51171875
+      },
+      "generator_cpu_one_core_100": {
+        "samples": 180,
+        "mean": 11.875372484214227,
+        "median": 11.002514194827754,
+        "min": 8.995195756072723,
+        "max": 99.96047372183588
+      },
+      "generator_rss_mib": {
+        "samples": 180,
+        "mean": 1138.4469835069444,
+        "median": 1149.19921875,
+        "min": 786.94140625,
+        "max": 1323.99609375
+      },
+      "per_pid": {
+        "1281611": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 288.7416694081296,
+            "median": 290.6328368797081,
+            "min": 0.0,
+            "max": 343.740367442094
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 2857.2204644097224,
+            "median": 2869.45703125,
+            "min": 1640.61328125,
+            "max": 2869.51171875
+          }
+        },
+        "1281983": {
+          "role": "load_generator",
+          "cpu": {
+            "samples": 180,
+            "mean": 11.875372484214227,
+            "median": 11.002514194827754,
+            "min": 8.995195756072723,
+            "max": 99.96047372183588
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1138.4469835069444,
+            "median": 1149.19921875,
+            "min": 786.94140625,
+            "max": 1323.99609375
+          }
+        }
+      },
+      "per_instance": {
+        "http://127.0.0.1:19081": {
+          "requests": 3080,
+          "successful": 3080,
+          "failed": 0
+        }
+      },
+      "access_log_check": {
+        "http://127.0.0.1:19081": {
+          "http_200_including_prefill_and_warmup": 3498,
+          "formal_success": 3080
+        }
+      },
+      "requests_sha256": "9e6b9b9573835bb1b88add0e6719f42bc1b0b6ab59bd6ba9fe9be048b02806a0",
+      "summary_sha256": "0d8c433831f7e6868da00dd5d086b5d2d96a971b058b473239bb065221db3f52",
+      "case_result_sha256": "4a386c9d8477d258188bbfbe63c14f6a0b276225799f01aade8a75ef58fad928",
+      "resources_sha256": "557a9c16cd096c50ab0aa3e55db13bbf1a55d74f12028582d19e0b99e0894705"
+    },
+    {
+      "label": "student-i1-w1-c200-b512",
+      "interface": "student",
+      "endpoint": "/ImageDetect/student/v1.0.0",
+      "instances": 1,
+      "workers_per_instance": 1,
+      "total_workers": 1,
+      "C": 200,
+      "b": 512,
+      "queue": 0,
+      "window_seconds": 180,
+      "started_unix": 1795193710.3282967,
+      "requests": 3166,
+      "successful": 3166,
+      "failed": 0,
+      "completed_in_window": 2966,
+      "inflight_at_window_end": 200,
+      "successful_tps": 16.477777777777778,
+      "success_fraction": 1.0,
+      "latency_ms": {
+        "p50": 12055.005824542604,
+        "p95": 12172.91088780621,
+        "p99": 12192.374505556654,
+        "mean": 11729.407394050568
+      },
+      "failed_latency_ms_p95": null,
+      "status_counts": {
+        "200": 3166
+      },
+      "errors": {},
+      "failure_evidence": {},
+      "drain_seconds": 11.970336521044374,
+      "unique_images": 2162,
+      "pool_images": 2162,
+      "image_frequency": {
+        "min": 1,
+        "max": 2
+      },
+      "resource_samples": 179,
+      "gpu_memory_mib": {
+        "samples": 179,
+        "mean": 1611.0,
+        "median": 1611.0,
+        "min": 1611.0,
+        "max": 1611.0
+      },
+      "gpu_utilization": {
+        "samples": 179,
+        "mean": 77.09497206703911,
+        "median": 75.0,
+        "min": 66.0,
+        "max": 93.0
+      },
+      "gpu_temperature_c": {
+        "samples": 179,
+        "mean": 81.57541899441341,
+        "median": 82.0,
+        "min": 75.0,
+        "max": 83.0
+      },
+      "gpu_power_w": {
+        "samples": 179,
+        "mean": 324.3077094972067,
+        "median": 325.18,
+        "min": 144.78,
+        "max": 331.14
+      },
+      "server_cpu_sum_one_core_100": {
+        "samples": 179,
+        "mean": 289.76998527128677,
+        "median": 290.1899307896999,
+        "min": 35.91363134852589,
+        "max": 359.538906222848
+      },
+      "server_rss_sum_mib": {
+        "samples": 179,
+        "mean": 3552.4665459148046,
+        "median": 3569.67578125,
+        "min": 1744.41015625,
+        "max": 3570.62109375
+      },
+      "generator_cpu_one_core_100": {
+        "samples": 179,
+        "mean": 12.740350178692381,
+        "median": 11.99771514275846,
+        "min": 0.0,
+        "max": 99.00934489355319
+      },
+      "generator_rss_mib": {
+        "samples": 179,
+        "mean": 1276.4155464385474,
+        "median": 1407.8359375,
+        "min": 868.47265625,
+        "max": 1491.9296875
+      },
+      "per_pid": {
+        "1283379": {
+          "role": "server",
+          "cpu": {
+            "samples": 179,
+            "mean": 289.76998527128677,
+            "median": 290.1899307896999,
+            "min": 35.91363134852589,
+            "max": 359.538906222848
+          },
+          "rss_mib": {
+            "samples": 179,
+            "mean": 3552.4665459148046,
+            "median": 3569.67578125,
+            "min": 1744.41015625,
+            "max": 3570.62109375
+          }
+        },
+        "1283749": {
+          "role": "load_generator",
+          "cpu": {
+            "samples": 179,
+            "mean": 12.740350178692381,
+            "median": 11.99771514275846,
+            "min": 0.0,
+            "max": 99.00934489355319
+          },
+          "rss_mib": {
+            "samples": 179,
+            "mean": 1276.4155464385474,
+            "median": 1407.8359375,
+            "min": 868.47265625,
+            "max": 1491.9296875
+          }
+        }
+      },
+      "per_instance": {
+        "http://127.0.0.1:19081": {
+          "requests": 3166,
+          "successful": 3166,
+          "failed": 0
+        }
+      },
+      "access_log_check": {
+        "http://127.0.0.1:19081": {
+          "http_200_including_prefill_and_warmup": 3584,
+          "formal_success": 3166
+        }
+      },
+      "requests_sha256": "9bf7a9b6acf8798363d2226a2fabae5ceb5bbbd106bda80ed241e6e2d33fcabc",
+      "summary_sha256": "5a2489634104612384a1d86fa3153d1feabe56830e5d3940ffba1d6cc274c0fe",
+      "case_result_sha256": "35028df574c6636ceaa663dd86b8b892446e3d598dafc9e5adfa191d324fdcbd",
+      "resources_sha256": "b926fd72e88b53d69902342efa9f12b7754522eb62319016d89a61f869e0bd42"
+    },
+    {
+      "label": "student-i2-w1-c50-b512",
+      "interface": "student",
+      "endpoint": "/ImageDetect/student/v1.0.0",
+      "instances": 2,
+      "workers_per_instance": 1,
+      "total_workers": 2,
+      "C": 50,
+      "b": 512,
+      "queue": 0,
+      "window_seconds": 180,
+      "started_unix": 1795193947.8175552,
+      "requests": 3193,
+      "successful": 3193,
+      "failed": 0,
+      "completed_in_window": 3143,
+      "inflight_at_window_end": 50,
+      "successful_tps": 17.461111111111112,
+      "success_fraction": 1.0,
+      "latency_ms": {
+        "p50": 2854.686350096017,
+        "p95": 2916.8436699546874,
+        "p99": 2949.279947541654,
+        "mean": 2835.668765074077
+      },
+      "failed_latency_ms_p95": null,
+      "status_counts": {
+        "200": 3193
+      },
+      "errors": {},
+      "failure_evidence": {},
+      "drain_seconds": 2.080807713791728,
+      "unique_images": 2162,
+      "pool_images": 2162,
+      "image_frequency": {
+        "min": 1,
+        "max": 2
+      },
+      "resource_samples": 180,
+      "gpu_memory_mib": {
+        "samples": 180,
+        "mean": 3218.0,
+        "median": 3218.0,
+        "min": 3218.0,
+        "max": 3218.0
+      },
+      "gpu_utilization": {
+        "samples": 180,
+        "mean": 92.83888888888889,
+        "median": 93.0,
+        "min": 81.0,
+        "max": 100.0
+      },
+      "gpu_temperature_c": {
+        "samples": 180,
+        "mean": 83.75555555555556,
+        "median": 84.0,
+        "min": 78.0,
+        "max": 85.0
+      },
+      "gpu_power_w": {
+        "samples": 180,
+        "mean": 339.87227777777775,
+        "median": 340.78499999999997,
+        "min": 197.39,
+        "max": 347.33
+      },
+      "server_cpu_sum_one_core_100": {
+        "samples": 180,
+        "mean": 575.3989542706648,
+        "median": 576.9344139678418,
+        "min": 284.64744076238355,
+        "max": 597.9589052223664
+      },
+      "server_rss_sum_mib": {
+        "samples": 180,
+        "mean": 4679.041015625,
+        "median": 4687.109375,
+        "min": 3763.953125,
+        "max": 4691.78125
+      },
+      "generator_cpu_one_core_100": {
+        "samples": 180,
+        "mean": 11.462969040166222,
+        "median": 11.005062902191693,
+        "min": 8.983197254412271,
+        "max": 62.7020586294761
+      },
+      "generator_rss_mib": {
+        "samples": 180,
+        "mean": 992.2411675347222,
+        "median": 1005.10546875,
+        "min": 811.89453125,
+        "max": 1112.234375
+      },
+      "per_pid": {
+        "1285247": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 286.89986980203895,
+            "median": 287.5421402123259,
+            "min": 140.3331788373989,
+            "max": 298.17596855133024
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 2341.000021701389,
+            "median": 2346.22265625,
+            "min": 1875.3671875,
+            "max": 2347.234375
+          }
+        },
+        "1285375": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 288.4990844686258,
+            "median": 290.00135374013934,
+            "min": 144.31426192498466,
+            "max": 302.9791777297275
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 2338.040993923611,
+            "median": 2340.88671875,
+            "min": 1888.5859375,
+            "max": 2344.546875
+          }
+        },
+        "1285747": {
+          "role": "load_generator",
+          "cpu": {
+            "samples": 180,
+            "mean": 11.462969040166222,
+            "median": 11.005062902191693,
+            "min": 8.983197254412271,
+            "max": 62.7020586294761
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 992.2411675347222,
+            "median": 1005.10546875,
+            "min": 811.89453125,
+            "max": 1112.234375
+          }
+        }
+      },
+      "per_instance": {
+        "http://127.0.0.1:19081": {
+          "requests": 1596,
+          "successful": 1596,
+          "failed": 0
+        },
+        "http://127.0.0.1:19082": {
+          "requests": 1597,
+          "successful": 1597,
+          "failed": 0
+        }
+      },
+      "access_log_check": {
+        "http://127.0.0.1:19081": {
+          "http_200_including_prefill_and_warmup": 1835,
+          "formal_success": 1596
+        },
+        "http://127.0.0.1:19082": {
+          "http_200_including_prefill_and_warmup": 1836,
+          "formal_success": 1597
+        }
+      },
+      "requests_sha256": "fec4c51e64ca48e2fbe2a2396b253e7f3f6ccc9cb3048874190e8f82530773e8",
+      "summary_sha256": "2358e55c2c41a7ff57a516c0e4ba44f365823d953c4e7d57972571f3a737099f",
+      "case_result_sha256": "49975248bef8b51edc743a347645d7e39f441cff9b1e4418193984f17f81fbe8",
+      "resources_sha256": "685bcdfb871f7dccc68f0a8f07fe5a93783b3179e322c91112df9d4a6dc4059f"
+    },
+    {
+      "label": "student-i2-w1-c100-b512",
+      "interface": "student",
+      "endpoint": "/ImageDetect/student/v1.0.0",
+      "instances": 2,
+      "workers_per_instance": 1,
+      "total_workers": 2,
+      "C": 100,
+      "b": 512,
+      "queue": 0,
+      "window_seconds": 180,
+      "started_unix": 1795194176.0025585,
+      "requests": 3245,
+      "successful": 3245,
+      "failed": 0,
+      "completed_in_window": 3145,
+      "inflight_at_window_end": 100,
+      "successful_tps": 17.47222222222222,
+      "success_fraction": 1.0,
+      "latency_ms": {
+        "p50": 5711.479326011613,
+        "p95": 5768.929139105603,
+        "p99": 5790.554659022018,
+        "mean": 5626.745805746943
+      },
+      "failed_latency_ms_p95": null,
+      "status_counts": {
+        "200": 3245
+      },
+      "errors": {},
+      "failure_evidence": {},
+      "drain_seconds": 5.107253895839676,
+      "unique_images": 2162,
+      "pool_images": 2162,
+      "image_frequency": {
+        "min": 1,
+        "max": 2
+      },
+      "resource_samples": 180,
+      "gpu_memory_mib": {
+        "samples": 180,
+        "mean": 3218.0,
+        "median": 3218.0,
+        "min": 3218.0,
+        "max": 3218.0
+      },
+      "gpu_utilization": {
+        "samples": 180,
+        "mean": 93.21111111111111,
+        "median": 93.0,
+        "min": 88.0,
+        "max": 100.0
+      },
+      "gpu_temperature_c": {
+        "samples": 180,
+        "mean": 83.45,
+        "median": 84.0,
+        "min": 78.0,
+        "max": 85.0
+      },
+      "gpu_power_w": {
+        "samples": 180,
+        "mean": 336.64627777777775,
+        "median": 337.77,
+        "min": 166.74,
+        "max": 343.02
+      },
+      "server_cpu_sum_one_core_100": {
+        "samples": 180,
+        "mean": 577.6182783174534,
+        "median": 580.8928286255752,
+        "min": 129.4790729331491,
+        "max": 618.0217549631063
+      },
+      "server_rss_sum_mib": {
+        "samples": 180,
+        "mean": 5019.5592664930555,
+        "median": 5030.1640625,
+        "min": 3570.63671875,
+        "max": 5033.83203125
+      },
+      "generator_cpu_one_core_100": {
+        "samples": 180,
+        "mean": 12.112747566826442,
+        "median": 11.98770691502295,
+        "min": 8.993922384486151,
+        "max": 80.67542236603906
+      },
+      "generator_rss_mib": {
+        "samples": 180,
+        "mean": 1151.1342447916666,
+        "median": 1177.09765625,
+        "min": 829.45703125,
+        "max": 1321.44140625
+      },
+      "per_pid": {
+        "1287188": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 289.379253352668,
+            "median": 290.89937937445984,
+            "min": 56.77159351684229,
+            "max": 336.01182794110633
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 2514.514127604167,
+            "median": 2519.2734375,
+            "min": 1763.1171875,
+            "max": 2521.1015625
+          }
+        },
+        "1287316": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 288.2390249647854,
+            "median": 289.9551819209611,
+            "min": 72.7074794163068,
+            "max": 299.58343922840027
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 2505.0451388888887,
+            "median": 2510.890625,
+            "min": 1807.51953125,
+            "max": 2512.73046875
+          }
+        },
+        "1287688": {
+          "role": "load_generator",
+          "cpu": {
+            "samples": 180,
+            "mean": 12.112747566826442,
+            "median": 11.98770691502295,
+            "min": 8.993922384486151,
+            "max": 80.67542236603906
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1151.1342447916666,
+            "median": 1177.09765625,
+            "min": 829.45703125,
+            "max": 1321.44140625
+          }
+        }
+      },
+      "per_instance": {
+        "http://127.0.0.1:19081": {
+          "requests": 1623,
+          "successful": 1623,
+          "failed": 0
+        },
+        "http://127.0.0.1:19082": {
+          "requests": 1622,
+          "successful": 1622,
+          "failed": 0
+        }
+      },
+      "access_log_check": {
+        "http://127.0.0.1:19081": {
+          "http_200_including_prefill_and_warmup": 1862,
+          "formal_success": 1623
+        },
+        "http://127.0.0.1:19082": {
+          "http_200_including_prefill_and_warmup": 1861,
+          "formal_success": 1622
+        }
+      },
+      "requests_sha256": "920423c78394ac658c4940805d9acd9a74d6feb5f9f0533c0165f6d2eeb0b311",
+      "summary_sha256": "68763d40c0b8690fb8b49ae021b5d2842ac3905da8479e9f2e2c733cf01a7d09",
+      "case_result_sha256": "e1b797192db32a56f6ebb7f2317e4d51bf9585ec3cc3a9d2b414187eafe195c2",
+      "resources_sha256": "07f96771cbfc3e09286a17f653141ea655d3ad251efc677fb238be46912b51d8"
+    },
+    {
+      "label": "student-i2-w1-c200-b512",
+      "interface": "student",
+      "endpoint": "/ImageDetect/student/v1.0.0",
+      "instances": 2,
+      "workers_per_instance": 1,
+      "total_workers": 2,
+      "C": 200,
+      "b": 512,
+      "queue": 0,
+      "window_seconds": 180,
+      "started_unix": 1795194407.1447873,
+      "requests": 3330,
+      "successful": 3330,
+      "failed": 0,
+      "completed_in_window": 3130,
+      "inflight_at_window_end": 200,
+      "successful_tps": 17.38888888888889,
+      "success_fraction": 1.0,
+      "latency_ms": {
+        "p50": 11419.295829022303,
+        "p95": 11571.344302222133,
+        "p99": 11650.399234120268,
+        "mean": 11125.638949418757
+      },
+      "failed_latency_ms_p95": null,
+      "status_counts": {
+        "200": 3330
+      },
+      "errors": {},
+      "failure_evidence": {},
+      "drain_seconds": 10.463771234964952,
+      "unique_images": 2162,
+      "pool_images": 2162,
+      "image_frequency": {
+        "min": 1,
+        "max": 2
+      },
+      "resource_samples": 180,
+      "gpu_memory_mib": {
+        "samples": 180,
+        "mean": 3218.0,
+        "median": 3218.0,
+        "min": 3218.0,
+        "max": 3218.0
+      },
+      "gpu_utilization": {
+        "samples": 180,
+        "mean": 92.22777777777777,
+        "median": 92.0,
+        "min": 0.0,
+        "max": 100.0
+      },
+      "gpu_temperature_c": {
+        "samples": 180,
+        "mean": 83.07222222222222,
+        "median": 83.0,
+        "min": 73.0,
+        "max": 85.0
+      },
+      "gpu_power_w": {
+        "samples": 180,
+        "mean": 335.8091111111111,
+        "median": 337.22,
+        "min": 150.1,
+        "max": 344.39
+      },
+      "server_cpu_sum_one_core_100": {
+        "samples": 180,
+        "mean": 571.9069489872035,
+        "median": 576.8827098364649,
+        "min": 0.0,
+        "max": 594.3313308236882
+      },
+      "server_rss_sum_mib": {
+        "samples": 180,
+        "mean": 5681.420442708333,
+        "median": 5711.2265625,
+        "min": 3256.41015625,
+        "max": 5729.6875
+      },
+      "generator_cpu_one_core_100": {
+        "samples": 180,
+        "mean": 12.836364465477882,
+        "median": 12.00463439071267,
+        "min": 8.999621457742887,
+        "max": 99.96970087321077
+      },
+      "generator_rss_mib": {
+        "samples": 180,
+        "mean": 1290.6671006944443,
+        "median": 1414.787109375,
+        "min": 856.49609375,
+        "max": 1546.80078125
+      },
+      "per_pid": {
+        "1289126": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 287.58182189250454,
+            "median": 289.69043724555655,
+            "min": 0.0,
+            "max": 335.1326243424659
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 2841.655837673611,
+            "median": 2851.92578125,
+            "min": 1627.2109375,
+            "max": 2860.6328125
+          }
+        },
+        "1289256": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 284.3251270946989,
+            "median": 287.9314827401631,
+            "min": 0.0,
+            "max": 303.16901218784096
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 2839.764605034722,
+            "median": 2859.30078125,
+            "min": 1629.19921875,
+            "max": 2871.0546875
+          }
+        },
+        "1289630": {
+          "role": "load_generator",
+          "cpu": {
+            "samples": 180,
+            "mean": 12.836364465477882,
+            "median": 12.00463439071267,
+            "min": 8.999621457742887,
+            "max": 99.96970087321077
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1290.6671006944443,
+            "median": 1414.787109375,
+            "min": 856.49609375,
+            "max": 1546.80078125
+          }
+        }
+      },
+      "per_instance": {
+        "http://127.0.0.1:19081": {
+          "requests": 1683,
+          "successful": 1683,
+          "failed": 0
+        },
+        "http://127.0.0.1:19082": {
+          "requests": 1647,
+          "successful": 1647,
+          "failed": 0
+        }
+      },
+      "access_log_check": {
+        "http://127.0.0.1:19081": {
+          "http_200_including_prefill_and_warmup": 1918,
+          "formal_success": 1683
+        },
+        "http://127.0.0.1:19082": {
+          "http_200_including_prefill_and_warmup": 1882,
+          "formal_success": 1647
+        }
+      },
+      "requests_sha256": "0f076f0b3725f6c725e66caefe48c3f1c05e35ce2e790292a8fee3304cad2b2d",
+      "summary_sha256": "5d44ce181f2cc62a7c6f4290a570340952b0f6d1b13fcbe2ff792a1b7e0d21dd",
+      "case_result_sha256": "b14c0ea06ac289b1e2b7fe1951ffcb0b7a2fc3ec82704cbe7ea9ac33be7eb565",
+      "resources_sha256": "883ccc8967c0687d9a75bc287db40e3e12b22bf5aa096f88f36ffd61830feae1"
+    },
+    {
+      "label": "student-i4-w1-c50-b512",
+      "interface": "student",
+      "endpoint": "/ImageDetect/student/v1.0.0",
+      "instances": 4,
+      "workers_per_instance": 1,
+      "total_workers": 4,
+      "C": 50,
+      "b": 512,
+      "queue": 0,
+      "window_seconds": 180,
+      "started_unix": 1795194656.147258,
+      "requests": 3201,
+      "successful": 3201,
+      "failed": 0,
+      "completed_in_window": 3151,
+      "inflight_at_window_end": 50,
+      "successful_tps": 17.505555555555556,
+      "success_fraction": 1.0,
+      "latency_ms": {
+        "p50": 2825.3024108707905,
+        "p95": 3170.4260259866714,
+        "p99": 3323.451481992379,
+        "mean": 2820.918128033474
+      },
+      "failed_latency_ms_p95": null,
+      "status_counts": {
+        "200": 3201
+      },
+      "errors": {},
+      "failure_evidence": {},
+      "drain_seconds": 1.1767462771385908,
+      "unique_images": 2162,
+      "pool_images": 2162,
+      "image_frequency": {
+        "min": 1,
+        "max": 2
+      },
+      "resource_samples": 180,
+      "gpu_memory_mib": {
+        "samples": 180,
+        "mean": 6433.0,
+        "median": 6433.0,
+        "min": 6433.0,
+        "max": 6433.0
+      },
+      "gpu_utilization": {
+        "samples": 180,
+        "mean": 98.32777777777778,
+        "median": 99.0,
+        "min": 63.0,
+        "max": 100.0
+      },
+      "gpu_temperature_c": {
+        "samples": 180,
+        "mean": 84.16666666666667,
+        "median": 85.0,
+        "min": 78.0,
+        "max": 86.0
+      },
+      "gpu_power_w": {
+        "samples": 180,
+        "mean": 345.33133333333336,
+        "median": 346.58500000000004,
+        "min": 209.73,
+        "max": 351.07
+      },
+      "server_cpu_sum_one_core_100": {
+        "samples": 180,
+        "mean": 1116.939803838301,
+        "median": 1120.9560455010126,
+        "min": 636.4430544070046,
+        "max": 1168.086082771138
+      },
+      "server_rss_sum_mib": {
+        "samples": 180,
+        "mean": 8965.887044270834,
+        "median": 8995.833984375,
+        "min": 7117.38671875,
+        "max": 9011.18359375
+      },
+      "generator_cpu_one_core_100": {
+        "samples": 180,
+        "mean": 11.122994365013481,
+        "median": 10.996371729679202,
+        "min": 7.998411283675079,
+        "max": 45.53091835571106
+      },
+      "generator_rss_mib": {
+        "samples": 180,
+        "mean": 992.2760199652778,
+        "median": 1004.0703125,
+        "min": 812.51953125,
+        "max": 1114.03515625
+      },
+      "per_pid": {
+        "1291092": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 279.8080708174507,
+            "median": 280.08051104504,
+            "min": 157.37860909908824,
+            "max": 301.3325056576655
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 2249.696484375,
+            "median": 2255.01171875,
+            "min": 1802.78515625,
+            "max": 2257.203125
+          }
+        },
+        "1291224": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 279.8594805663069,
+            "median": 281.0454170875784,
+            "min": 171.2358451203916,
+            "max": 300.5011740886585
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 2244.8991970486113,
+            "median": 2251.59765625,
+            "min": 1795.2734375,
+            "max": 2264.62109375
+          }
+        },
+        "1291351": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 278.55221507379184,
+            "median": 279.68914861054253,
+            "min": 153.41939880728725,
+            "max": 302.94011272999217
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 2233.6355251736113,
+            "median": 2240.50390625,
+            "min": 1755.94140625,
+            "max": 2250.3828125
+          }
+        },
+        "1291552": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 278.7200373807517,
+            "median": 280.11915793053316,
+            "min": 154.4092013802375,
+            "max": 300.2361530262374
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 2237.655837673611,
+            "median": 2248.72265625,
+            "min": 1763.38671875,
+            "max": 2248.77734375
+          }
+        },
+        "1291866": {
+          "role": "load_generator",
+          "cpu": {
+            "samples": 180,
+            "mean": 11.122994365013481,
+            "median": 10.996371729679202,
+            "min": 7.998411283675079,
+            "max": 45.53091835571106
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 992.2760199652778,
+            "median": 1004.0703125,
+            "min": 812.51953125,
+            "max": 1114.03515625
+          }
+        }
+      },
+      "per_instance": {
+        "http://127.0.0.1:19081": {
+          "requests": 807,
+          "successful": 807,
+          "failed": 0
+        },
+        "http://127.0.0.1:19082": {
+          "requests": 792,
+          "successful": 792,
+          "failed": 0
+        },
+        "http://127.0.0.1:19083": {
+          "requests": 806,
+          "successful": 806,
+          "failed": 0
+        },
+        "http://127.0.0.1:19084": {
+          "requests": 796,
+          "successful": 796,
+          "failed": 0
+        }
+      },
+      "access_log_check": {
+        "http://127.0.0.1:19081": {
+          "http_200_including_prefill_and_warmup": 937,
+          "formal_success": 807
+        },
+        "http://127.0.0.1:19082": {
+          "http_200_including_prefill_and_warmup": 922,
+          "formal_success": 792
+        },
+        "http://127.0.0.1:19083": {
+          "http_200_including_prefill_and_warmup": 936,
+          "formal_success": 806
+        },
+        "http://127.0.0.1:19084": {
+          "http_200_including_prefill_and_warmup": 926,
+          "formal_success": 796
+        }
+      },
+      "requests_sha256": "778df257c4a960d0c6ae6d100c22706b45c73ba0b5528faa69f2c59a0b39b772",
+      "summary_sha256": "9ac7cdb8d16d7bcfe2d90269306498d5cdf6042e3424beca9821aec7380a6bdc",
+      "case_result_sha256": "8b29e6380f1c89319e81fe3d509ad00b2a8ad235a9fb6d31afe7a0f91d0c248b",
+      "resources_sha256": "a125a908855d0dd85a823b76714f74fed4885ab655e184cc957a67e34de2e4e0"
+    },
+    {
+      "label": "student-i4-w1-c100-b512",
+      "interface": "student",
+      "endpoint": "/ImageDetect/student/v1.0.0",
+      "instances": 4,
+      "workers_per_instance": 1,
+      "total_workers": 4,
+      "C": 100,
+      "b": 512,
+      "queue": 0,
+      "window_seconds": 180,
+      "started_unix": 1795194896.3419356,
+      "requests": 3340,
+      "successful": 3340,
+      "failed": 0,
+      "completed_in_window": 3240,
+      "inflight_at_window_end": 100,
+      "successful_tps": 18.0,
+      "success_fraction": 1.0,
+      "latency_ms": {
+        "p50": 5516.957588028163,
+        "p95": 5832.956265110988,
+        "p99": 6041.406685758849,
+        "mean": 5455.381143386866
+      },
+      "failed_latency_ms_p95": null,
+      "status_counts": {
+        "200": 3340
+      },
+      "errors": {},
+      "failure_evidence": {},
+      "drain_seconds": 4.252112491987646,
+      "unique_images": 2162,
+      "pool_images": 2162,
+      "image_frequency": {
+        "min": 1,
+        "max": 2
+      },
+      "resource_samples": 180,
+      "gpu_memory_mib": {
+        "samples": 180,
+        "mean": 6433.0,
+        "median": 6433.0,
+        "min": 6433.0,
+        "max": 6433.0
+      },
+      "gpu_utilization": {
+        "samples": 180,
+        "mean": 97.00555555555556,
+        "median": 100.0,
+        "min": 75.0,
+        "max": 100.0
+      },
+      "gpu_temperature_c": {
+        "samples": 180,
+        "mean": 83.72222222222223,
+        "median": 84.0,
+        "min": 78.0,
+        "max": 86.0
+      },
+      "gpu_power_w": {
+        "samples": 180,
+        "mean": 342.50055555555554,
+        "median": 343.39,
+        "min": 183.52,
+        "max": 349.85
+      },
+      "server_cpu_sum_one_core_100": {
+        "samples": 180,
+        "mean": 1148.005461631517,
+        "median": 1157.7632757781603,
+        "min": 587.184816455903,
+        "max": 1188.4412827967592
+      },
+      "server_rss_sum_mib": {
+        "samples": 180,
+        "mean": 9298.391753472222,
+        "median": 9330.654296875,
+        "min": 7357.79296875,
+        "max": 9359.203125
+      },
+      "generator_cpu_one_core_100": {
+        "samples": 180,
+        "mean": 13.121096742037455,
+        "median": 12.950426586994467,
+        "min": 9.986117828031006,
+        "max": 63.69462415792847
+      },
+      "generator_rss_mib": {
+        "samples": 180,
+        "mean": 1156.0036675347221,
+        "median": 1181.46484375,
+        "min": 831.3671875,
+        "max": 1328.453125
+      },
+      "per_pid": {
+        "1293350": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 287.75356654998404,
+            "median": 290.6233580213237,
+            "min": 144.30813285780667,
+            "max": 304.05781262639
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 2322.5393663194445,
+            "median": 2329.61328125,
+            "min": 1842.80859375,
+            "max": 2331.68359375
+          }
+        },
+        "1293482": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 286.77992986616346,
+            "median": 288.9088953058555,
+            "min": 149.28427537014483,
+            "max": 303.50610528723746
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 2331.9361979166665,
+            "median": 2341.875,
+            "min": 1840.02734375,
+            "max": 2356.015625
+          }
+        },
+        "1293674": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 286.8302128421721,
+            "median": 289.5540102422947,
+            "min": 147.29381836520957,
+            "max": 299.8164425601728
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 2317.4631076388887,
+            "median": 2322.703125,
+            "min": 1834.109375,
+            "max": 2338.84765625
+          }
+        },
+        "1293804": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 286.6417523731973,
+            "median": 288.1854208181941,
+            "min": 146.29858986274195,
+            "max": 302.9023183010518
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 2326.453081597222,
+            "median": 2336.46875,
+            "min": 1840.84765625,
+            "max": 2348.4765625
+          }
+        },
+        "1294182": {
+          "role": "load_generator",
+          "cpu": {
+            "samples": 180,
+            "mean": 13.121096742037455,
+            "median": 12.950426586994467,
+            "min": 9.986117828031006,
+            "max": 63.69462415792847
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1156.0036675347221,
+            "median": 1181.46484375,
+            "min": 831.3671875,
+            "max": 1328.453125
+          }
+        }
+      },
+      "per_instance": {
+        "http://127.0.0.1:19081": {
+          "requests": 836,
+          "successful": 836,
+          "failed": 0
+        },
+        "http://127.0.0.1:19082": {
+          "requests": 835,
+          "successful": 835,
+          "failed": 0
+        },
+        "http://127.0.0.1:19083": {
+          "requests": 834,
+          "successful": 834,
+          "failed": 0
+        },
+        "http://127.0.0.1:19084": {
+          "requests": 835,
+          "successful": 835,
+          "failed": 0
+        }
+      },
+      "access_log_check": {
+        "http://127.0.0.1:19081": {
+          "http_200_including_prefill_and_warmup": 965,
+          "formal_success": 836
+        },
+        "http://127.0.0.1:19082": {
+          "http_200_including_prefill_and_warmup": 964,
+          "formal_success": 835
+        },
+        "http://127.0.0.1:19083": {
+          "http_200_including_prefill_and_warmup": 963,
+          "formal_success": 834
+        },
+        "http://127.0.0.1:19084": {
+          "http_200_including_prefill_and_warmup": 964,
+          "formal_success": 835
+        }
+      },
+      "requests_sha256": "7bedf95ccc7cdd46d42d9b7270d6936170d6c81f4868ec6601512aa9660df368",
+      "summary_sha256": "9ca88f718950ece5230f55efd383ff7ea56f1e0921747c07146c4df00fdb2039",
+      "case_result_sha256": "6cbf5d4aa8950f79ffb6a1e4ca12321ac0de8f226e8f0aaff3a5dff4dd614f6f",
+      "resources_sha256": "2a3618a57de6721ce470783b0f06d432346ff310d3130c392acda15ac633e4c3"
+    },
+    {
+      "label": "student-i4-w1-c200-b512",
+      "interface": "student",
+      "endpoint": "/ImageDetect/student/v1.0.0",
+      "instances": 4,
+      "workers_per_instance": 1,
+      "total_workers": 4,
+      "C": 200,
+      "b": 512,
+      "queue": 0,
+      "window_seconds": 180,
+      "started_unix": 1795195139.627308,
+      "requests": 3420,
+      "successful": 3420,
+      "failed": 0,
+      "completed_in_window": 3220,
+      "inflight_at_window_end": 200,
+      "successful_tps": 17.88888888888889,
+      "success_fraction": 1.0,
+      "latency_ms": {
+        "p50": 11052.571451407857,
+        "p95": 11555.811743298545,
+        "p99": 11855.911463119555,
+        "mean": 10813.224712242603
+      },
+      "failed_latency_ms_p95": null,
+      "status_counts": {
+        "200": 3420
+      },
+      "errors": {},
+      "failure_evidence": {},
+      "drain_seconds": 9.46635050792247,
+      "unique_images": 2162,
+      "pool_images": 2162,
+      "image_frequency": {
+        "min": 1,
+        "max": 2
+      },
+      "resource_samples": 180,
+      "gpu_memory_mib": {
+        "samples": 180,
+        "mean": 6433.0,
+        "median": 6433.0,
+        "min": 6433.0,
+        "max": 6433.0
+      },
+      "gpu_utilization": {
+        "samples": 180,
+        "mean": 96.47777777777777,
+        "median": 100.0,
+        "min": 0.0,
+        "max": 100.0
+      },
+      "gpu_temperature_c": {
+        "samples": 180,
+        "mean": 83.35555555555555,
+        "median": 84.0,
+        "min": 73.0,
+        "max": 85.0
+      },
+      "gpu_power_w": {
+        "samples": 180,
+        "mean": 341.49444444444447,
+        "median": 343.52,
+        "min": 149.68,
+        "max": 349.11
+      },
+      "server_cpu_sum_one_core_100": {
+        "samples": 180,
+        "mean": 1142.730877576361,
+        "median": 1155.1349174112993,
+        "min": 1.9972630665693987,
+        "max": 1196.0669181946173
+      },
+      "server_rss_sum_mib": {
+        "samples": 180,
+        "mean": 9973.094487847222,
+        "median": 10013.9765625,
+        "min": 6532.3359375,
+        "max": 10038.35546875
+      },
+      "generator_cpu_one_core_100": {
+        "samples": 180,
+        "mean": 14.82247368369402,
+        "median": 14.02159269079355,
+        "min": 9.032963942413883,
+        "max": 99.86315332846995
+      },
+      "generator_rss_mib": {
+        "samples": 180,
+        "mean": 1295.8051215277778,
+        "median": 1411.6015625,
+        "min": 867.16015625,
+        "max": 1592.15625
+      },
+      "per_pid": {
+        "1295693": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 285.9304162041986,
+            "median": 289.07699802988685,
+            "min": 0.0,
+            "max": 309.2719458280759
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 2494.7360460069444,
+            "median": 2506.43359375,
+            "min": 1639.78125,
+            "max": 2511.24609375
+          }
+        },
+        "1295823": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 286.34102558995164,
+            "median": 289.3113219487982,
+            "min": 0.9986315332846993,
+            "max": 311.62996964294155
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 2499.5161241319443,
+            "median": 2510.28125,
+            "min": 1642.890625,
+            "max": 2510.9140625
+          }
+        },
+        "1295951": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 285.01651027613013,
+            "median": 288.96995317351633,
+            "min": 0.9986315332846993,
+            "max": 300.26784557187045
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 2487.1604600694445,
+            "median": 2498.00390625,
+            "min": 1623.44140625,
+            "max": 2509.91796875
+          }
+        },
+        "1296082": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 285.44292550608066,
+            "median": 289.3729639807126,
+            "min": 0.0,
+            "max": 298.8140253615171
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 2491.6818576388887,
+            "median": 2499.234375,
+            "min": 1626.22265625,
+            "max": 2512.88671875
+          }
+        },
+        "1296458": {
+          "role": "load_generator",
+          "cpu": {
+            "samples": 180,
+            "mean": 14.82247368369402,
+            "median": 14.02159269079355,
+            "min": 9.032963942413883,
+            "max": 99.86315332846995
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1295.8051215277778,
+            "median": 1411.6015625,
+            "min": 867.16015625,
+            "max": 1592.15625
+          }
+        }
+      },
+      "per_instance": {
+        "http://127.0.0.1:19081": {
+          "requests": 845,
+          "successful": 845,
+          "failed": 0
+        },
+        "http://127.0.0.1:19082": {
+          "requests": 861,
+          "successful": 861,
+          "failed": 0
+        },
+        "http://127.0.0.1:19083": {
+          "requests": 859,
+          "successful": 859,
+          "failed": 0
+        },
+        "http://127.0.0.1:19084": {
+          "requests": 855,
+          "successful": 855,
+          "failed": 0
+        }
+      },
+      "access_log_check": {
+        "http://127.0.0.1:19081": {
+          "http_200_including_prefill_and_warmup": 977,
+          "formal_success": 845
+        },
+        "http://127.0.0.1:19082": {
+          "http_200_including_prefill_and_warmup": 993,
+          "formal_success": 861
+        },
+        "http://127.0.0.1:19083": {
+          "http_200_including_prefill_and_warmup": 991,
+          "formal_success": 859
+        },
+        "http://127.0.0.1:19084": {
+          "http_200_including_prefill_and_warmup": 987,
+          "formal_success": 855
+        }
+      },
+      "requests_sha256": "66edfcc9f2d04d0f76c6c18583ea0de835b871042cdea041bba529d810460928",
+      "summary_sha256": "7d424c400e16403fa6391a91e09ee273a1c3f4d8c143d1f3254e9717537db33a",
+      "case_result_sha256": "2f462c10df5b63ea0ef8d0fcbbf590179c642453c9b22d325a8dde70e81f4d3a",
+      "resources_sha256": "8c1e57c619e10b405d555cac57409ceda441adafddf93637933a52e0c1ab70e1"
+    },
+    {
+      "label": "teacher-i1-w1-c50-b512",
+      "interface": "teacher",
+      "endpoint": "/ImageDetect/teacher/v1.0.0",
+      "instances": 1,
+      "workers_per_instance": 1,
+      "total_workers": 1,
+      "C": 50,
+      "b": 512,
+      "queue": 0,
+      "window_seconds": 180,
+      "started_unix": 1795195368.025043,
+      "requests": 10627,
+      "successful": 10627,
+      "failed": 0,
+      "completed_in_window": 10577,
+      "inflight_at_window_end": 50,
+      "successful_tps": 58.76111111111111,
+      "success_fraction": 1.0,
+      "latency_ms": {
+        "p50": 873.8792550284415,
+        "p95": 954.1888894978911,
+        "p99": 1142.2409964585675,
+        "mean": 848.0471086231661
+      },
+      "failed_latency_ms_p95": null,
+      "status_counts": {
+        "200": 10627
+      },
+      "errors": {},
+      "failure_evidence": {},
+      "drain_seconds": 0.604418097063899,
+      "unique_images": 1577,
+      "pool_images": 1577,
+      "image_frequency": {
+        "min": 6,
+        "max": 7
+      },
+      "resource_samples": 180,
+      "gpu_memory_mib": {
+        "samples": 180,
+        "mean": 1571.0,
+        "median": 1571.0,
+        "min": 1571.0,
+        "max": 1571.0
+      },
+      "gpu_utilization": {
+        "samples": 180,
+        "mean": 10.222222222222221,
+        "median": 10.0,
+        "min": 9.0,
+        "max": 12.0
+      },
+      "gpu_temperature_c": {
+        "samples": 180,
+        "mean": 58.516666666666666,
+        "median": 58.0,
+        "min": 57.0,
+        "max": 63.0
+      },
+      "gpu_power_w": {
+        "samples": 180,
+        "mean": 118.5188888888889,
+        "median": 118.04,
+        "min": 117.2,
+        "max": 123.15
+      },
+      "server_cpu_sum_one_core_100": {
+        "samples": 180,
+        "mean": 99.28611925133974,
+        "median": 99.92276017439113,
+        "min": 32.99766045958335,
+        "max": 102.0533892509998
+      },
+      "server_rss_sum_mib": {
+        "samples": 180,
+        "mean": 1627.3840711805556,
+        "median": 1627.53125,
+        "min": 1625.5546875,
+        "max": 1627.5390625
+      },
+      "generator_cpu_one_core_100": {
+        "samples": 180,
+        "mean": 35.06778905635297,
+        "median": 34.501042762982664,
+        "min": 26.967218838681962,
+        "max": 69.99503733851013
+      },
+      "generator_rss_mib": {
+        "samples": 180,
+        "mean": 813.9852213541667,
+        "median": 847.0625,
+        "min": 561.8046875,
+        "max": 858.6796875
+      },
+      "per_pid": {
+        "1298006": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 99.28611925133974,
+            "median": 99.92276017439113,
+            "min": 32.99766045958335,
+            "max": 102.0533892509998
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1627.3840711805556,
+            "median": 1627.53125,
+            "min": 1625.5546875,
+            "max": 1627.5390625
+          }
+        },
+        "1298372": {
+          "role": "load_generator",
+          "cpu": {
+            "samples": 180,
+            "mean": 35.06778905635297,
+            "median": 34.501042762982664,
+            "min": 26.967218838681962,
+            "max": 69.99503733851013
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 813.9852213541667,
+            "median": 847.0625,
+            "min": 561.8046875,
+            "max": 858.6796875
+          }
+        }
+      },
+      "per_instance": {
+        "http://127.0.0.1:19081": {
+          "requests": 10627,
+          "successful": 10627,
+          "failed": 0
+        }
+      },
+      "access_log_check": {
+        "http://127.0.0.1:19081": {
+          "http_200_including_prefill_and_warmup": 12255,
+          "formal_success": 10627
+        }
+      },
+      "requests_sha256": "fd13b4370fdbc78cf3bcce206d3dbd3e069d0404895a30872acde0184d002576",
+      "summary_sha256": "5572072c9bd11877e815e9c3e56f915e59154adaa5fef9365b7737cb0d1491ed",
+      "case_result_sha256": "6c779541d82df51ca3331a45bcd34b05b2e80332dc5e9e788fd5108ca28db4e9",
+      "resources_sha256": "e88083f873e706761cb92845d5e2f3283f04a8d5ace409672996206bea124180"
+    },
+    {
+      "label": "teacher-i1-w1-c100-b512",
+      "interface": "teacher",
+      "endpoint": "/ImageDetect/teacher/v1.0.0",
+      "instances": 1,
+      "workers_per_instance": 1,
+      "total_workers": 1,
+      "C": 100,
+      "b": 512,
+      "queue": 0,
+      "window_seconds": 180,
+      "started_unix": 1795195587.2255907,
+      "requests": 10541,
+      "successful": 10541,
+      "failed": 0,
+      "completed_in_window": 10441,
+      "inflight_at_window_end": 100,
+      "successful_tps": 58.00555555555555,
+      "success_fraction": 1.0,
+      "latency_ms": {
+        "p50": 1740.8115239813924,
+        "p95": 1937.3367589432746,
+        "p99": 2993.5913063585895,
+        "mean": 1714.5198596834118
+      },
+      "failed_latency_ms_p95": null,
+      "status_counts": {
+        "200": 10541
+      },
+      "errors": {},
+      "failure_evidence": {},
+      "drain_seconds": 1.488782024011016,
+      "unique_images": 1577,
+      "pool_images": 1577,
+      "image_frequency": {
+        "min": 6,
+        "max": 7
+      },
+      "resource_samples": 180,
+      "gpu_memory_mib": {
+        "samples": 180,
+        "mean": 1571.0,
+        "median": 1571.0,
+        "min": 1571.0,
+        "max": 1571.0
+      },
+      "gpu_utilization": {
+        "samples": 180,
+        "mean": 9.9,
+        "median": 10.0,
+        "min": 3.0,
+        "max": 12.0
+      },
+      "gpu_temperature_c": {
+        "samples": 180,
+        "mean": 58.68333333333333,
+        "median": 59.0,
+        "min": 58.0,
+        "max": 60.0
+      },
+      "gpu_power_w": {
+        "samples": 180,
+        "mean": 118.26133333333334,
+        "median": 118.34,
+        "min": 111.49,
+        "max": 119.02
+      },
+      "server_cpu_sum_one_core_100": {
+        "samples": 180,
+        "mean": 98.56927704955515,
+        "median": 99.91400266551233,
+        "min": 23.97657861764021,
+        "max": 101.0467746611239
+      },
+      "server_rss_sum_mib": {
+        "samples": 180,
+        "mean": 1644.2385850694445,
+        "median": 1644.359375,
+        "min": 1643.3125,
+        "max": 1644.4609375
+      },
+      "generator_cpu_one_core_100": {
+        "samples": 180,
+        "mean": 58.86354750213184,
+        "median": 58.021478646648134,
+        "min": 32.994304125709526,
+        "max": 100.09551813980472
+      },
+      "generator_rss_mib": {
+        "samples": 180,
+        "mean": 967.6149522569444,
+        "median": 1052.640625,
+        "min": 583.125,
+        "max": 1061.40625
+      },
+      "per_pid": {
+        "1299701": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 98.56927704955515,
+            "median": 99.91400266551233,
+            "min": 23.97657861764021,
+            "max": 101.0467746611239
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1644.2385850694445,
+            "median": 1644.359375,
+            "min": 1643.3125,
+            "max": 1644.4609375
+          }
+        },
+        "1300067": {
+          "role": "load_generator",
+          "cpu": {
+            "samples": 180,
+            "mean": 58.86354750213184,
+            "median": 58.021478646648134,
+            "min": 32.994304125709526,
+            "max": 100.09551813980472
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 967.6149522569444,
+            "median": 1052.640625,
+            "min": 583.125,
+            "max": 1061.40625
+          }
+        }
+      },
+      "per_instance": {
+        "http://127.0.0.1:19081": {
+          "requests": 10541,
+          "successful": 10541,
+          "failed": 0
+        }
+      },
+      "access_log_check": {
+        "http://127.0.0.1:19081": {
+          "http_200_including_prefill_and_warmup": 12183,
+          "formal_success": 10541
+        }
+      },
+      "requests_sha256": "95414bf0961ba0ce3dabc87f4babf28ca316909600afc342af965c4dc253a24e",
+      "summary_sha256": "39f2aac15609f6bdae96da8adfe6b6d80520b8a21a9b77cb649ab87f9f0134b1",
+      "case_result_sha256": "309903b6c581c8bc18e40aade375a783a0f32b3f88cc61652c82275b008eb776",
+      "resources_sha256": "ae270fcca19387b9ccc31598a70c82998af29fff2d0c0ad82165e0f3b8f55fa8"
+    },
+    {
+      "label": "teacher-i1-w1-c200-b512",
+      "interface": "teacher",
+      "endpoint": "/ImageDetect/teacher/v1.0.0",
+      "instances": 1,
+      "workers_per_instance": 1,
+      "total_workers": 1,
+      "C": 200,
+      "b": 512,
+      "queue": 0,
+      "window_seconds": 180,
+      "started_unix": 1795195807.5340295,
+      "requests": 9710,
+      "successful": 9667,
+      "failed": 43,
+      "completed_in_window": 9467,
+      "inflight_at_window_end": 200,
+      "successful_tps": 52.59444444444444,
+      "success_fraction": 0.9955715756951596,
+      "latency_ms": {
+        "p50": 1345.2706921380013,
+        "p95": 23815.507296938416,
+        "p99": 35652.77894902045,
+        "mean": 3745.7719254155472
+      },
+      "failed_latency_ms_p95": 7491.098283743486,
+      "status_counts": {
+        "200": 9667,
+        "None": 43
+      },
+      "errors": {
+        "ReadError('')": 43
+      },
+      "failure_evidence": {
+        "httpx.ReadError|errno=104": {
+          "count": 33,
+          "completed_offset_s": {
+            "samples": 33,
+            "mean": 118.7522672462898,
+            "median": 114.4308480238542,
+            "min": 10.406956739956513,
+            "max": 172.83536066580564
+          },
+          "latency_ms": {
+            "samples": 33,
+            "mean": 3928.742057735552,
+            "median": 4287.217544158921,
+            "min": 274.9557609204203,
+            "max": 7768.672988982871
+          },
+          "per_instance": {
+            "http://127.0.0.1:19081": 33
+          },
+          "reachable_chain_types": {
+            "httpx.ReadError -> httpcore.ReadError -> anyio.BrokenResourceError -> builtins.ConnectionResetError": 33
+          }
+        },
+        "httpx.ReadError|errno=32": {
+          "count": 10,
+          "completed_offset_s": {
+            "samples": 10,
+            "mean": 98.87716514298226,
+            "median": 79.0791485334048,
+            "min": 47.58710351283662,
+            "max": 172.56878955382854
+          },
+          "latency_ms": {
+            "samples": 10,
+            "mean": 3409.319935273379,
+            "median": 3813.796769012697,
+            "min": 333.56436900794506,
+            "max": 7276.41228097491
+          },
+          "per_instance": {
+            "http://127.0.0.1:19081": 10
+          },
+          "reachable_chain_types": {
+            "httpx.ReadError -> httpcore.ReadError -> anyio.BrokenResourceError -> builtins.BrokenPipeError": 10
+          }
+        }
+      },
+      "drain_seconds": 4.6658086609095335,
+      "unique_images": 1577,
+      "pool_images": 1577,
+      "image_frequency": {
+        "min": 6,
+        "max": 7
+      },
+      "resource_samples": 180,
+      "gpu_memory_mib": {
+        "samples": 180,
+        "mean": 1571.0,
+        "median": 1571.0,
+        "min": 1571.0,
+        "max": 1571.0
+      },
+      "gpu_utilization": {
+        "samples": 180,
+        "mean": 8.977777777777778,
+        "median": 10.0,
+        "min": 0.0,
+        "max": 12.0
+      },
+      "gpu_temperature_c": {
+        "samples": 180,
+        "mean": 59.705555555555556,
+        "median": 60.0,
+        "min": 59.0,
+        "max": 60.0
+      },
+      "gpu_power_w": {
+        "samples": 180,
+        "mean": 117.98305555555555,
+        "median": 118.655,
+        "min": 111.12,
+        "max": 119.18
+      },
+      "server_cpu_sum_one_core_100": {
+        "samples": 180,
+        "mean": 90.68652336069496,
+        "median": 99.87217051151643,
+        "min": 0.0,
+        "max": 101.06014077123288
+      },
+      "server_rss_sum_mib": {
+        "samples": 180,
+        "mean": 1666.63125,
+        "median": 1667.8046875,
+        "min": 1614.765625,
+        "max": 1667.80859375
+      },
+      "generator_cpu_one_core_100": {
+        "samples": 180,
+        "mean": 72.30073671188921,
+        "median": 68.49606693127588,
+        "min": 24.991788549310293,
+        "max": 101.00219751413653
+      },
+      "generator_rss_mib": {
+        "samples": 180,
+        "mean": 981.5010633680556,
+        "median": 1056.46484375,
+        "min": 607.01953125,
+        "max": 1057.58984375
+      },
+      "per_pid": {
+        "1301345": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 90.68652336069496,
+            "median": 99.87217051151643,
+            "min": 0.0,
+            "max": 101.06014077123288
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1666.63125,
+            "median": 1667.8046875,
+            "min": 1614.765625,
+            "max": 1667.80859375
+          }
+        },
+        "1301719": {
+          "role": "load_generator",
+          "cpu": {
+            "samples": 180,
+            "mean": 72.30073671188921,
+            "median": 68.49606693127588,
+            "min": 24.991788549310293,
+            "max": 101.00219751413653
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 981.5010633680556,
+            "median": 1056.46484375,
+            "min": 607.01953125,
+            "max": 1057.58984375
+          }
+        }
+      },
+      "per_instance": {
+        "http://127.0.0.1:19081": {
+          "requests": 9710,
+          "successful": 9667,
+          "failed": 43
+        }
+      },
+      "access_log_check": {
+        "http://127.0.0.1:19081": {
+          "http_200_including_prefill_and_warmup": 11298,
+          "formal_success": 9667
+        }
+      },
+      "requests_sha256": "738b3d0810a4520064fe4c401ca0030a139180a94c1132a0c604cedefd603f11",
+      "summary_sha256": "b4dfc06b32f54f8ca850cfbf62c454f6e84381b9ce60adddd1ae2de1dd6d7775",
+      "case_result_sha256": "5924564311cb72d907787d88581e91198decacde1a5da3f93d4c1ae347a003cc",
+      "resources_sha256": "e97220b1750b614ce1cd9e884cc760199491f052d2ba5334dd14f1f4346ce347"
+    },
+    {
+      "label": "teacher-i2-w1-c50-b512",
+      "interface": "teacher",
+      "endpoint": "/ImageDetect/teacher/v1.0.0",
+      "instances": 2,
+      "workers_per_instance": 1,
+      "total_workers": 2,
+      "C": 50,
+      "b": 512,
+      "queue": 0,
+      "window_seconds": 180,
+      "started_unix": 1795196037.0539162,
+      "requests": 18566,
+      "successful": 18566,
+      "failed": 0,
+      "completed_in_window": 18516,
+      "inflight_at_window_end": 50,
+      "successful_tps": 102.86666666666666,
+      "success_fraction": 1.0,
+      "latency_ms": {
+        "p50": 497.9070699773729,
+        "p95": 583.4693544311449,
+        "p99": 738.0744681344366,
+        "mean": 485.19437009275345
+      },
+      "failed_latency_ms_p95": null,
+      "status_counts": {
+        "200": 18566
+      },
+      "errors": {},
+      "failure_evidence": {},
+      "drain_seconds": 0.45162161299958825,
+      "unique_images": 1577,
+      "pool_images": 1577,
+      "image_frequency": {
+        "min": 11,
+        "max": 12
+      },
+      "resource_samples": 180,
+      "gpu_memory_mib": {
+        "samples": 180,
+        "mean": 3138.0,
+        "median": 3138.0,
+        "min": 3138.0,
+        "max": 3138.0
+      },
+      "gpu_utilization": {
+        "samples": 180,
+        "mean": 29.316666666666666,
+        "median": 30.5,
+        "min": 19.0,
+        "max": 35.0
+      },
+      "gpu_temperature_c": {
+        "samples": 180,
+        "mean": 61.06666666666667,
+        "median": 61.0,
+        "min": 60.0,
+        "max": 62.0
+      },
+      "gpu_power_w": {
+        "samples": 180,
+        "mean": 127.71872222222223,
+        "median": 127.88,
+        "min": 112.92,
+        "max": 128.54
+      },
+      "server_cpu_sum_one_core_100": {
+        "samples": 180,
+        "mean": 197.98052990707936,
+        "median": 199.0408960832489,
+        "min": 32.99617438903375,
+        "max": 201.90735804042288
+      },
+      "server_rss_sum_mib": {
+        "samples": 180,
+        "mean": 3247.403689236111,
+        "median": 3247.96875,
+        "min": 3243.17578125,
+        "max": 3247.984375
+      },
+      "generator_cpu_one_core_100": {
+        "samples": 180,
+        "mean": 55.48804754260004,
+        "median": 53.086207131387184,
+        "min": 47.95827031471468,
+        "max": 100.08692269371264
+      },
+      "generator_rss_mib": {
+        "samples": 180,
+        "mean": 824.4034288194445,
+        "median": 847.73828125,
+        "min": 560.76171875,
+        "max": 854.421875
+      },
+      "per_pid": {
+        "1303080": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 99.02075681871614,
+            "median": 99.90491579054326,
+            "min": 15.99814515831939,
+            "max": 101.02402099014722
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1622.8321397569443,
+            "median": 1623.2265625,
+            "min": 1620.578125,
+            "max": 1623.234375
+          }
+        },
+        "1303205": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 98.95977308836324,
+            "median": 99.9080100954188,
+            "min": 16.998029230714355,
+            "max": 101.08297447961398
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1624.5715494791666,
+            "median": 1624.7421875,
+            "min": 1622.59765625,
+            "max": 1624.75
+          }
+        },
+        "1303572": {
+          "role": "load_generator",
+          "cpu": {
+            "samples": 180,
+            "mean": 55.48804754260004,
+            "median": 53.086207131387184,
+            "min": 47.95827031471468,
+            "max": 100.08692269371264
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 824.4034288194445,
+            "median": 847.73828125,
+            "min": 560.76171875,
+            "max": 854.421875
+          }
+        }
+      },
+      "per_instance": {
+        "http://127.0.0.1:19081": {
+          "requests": 9282,
+          "successful": 9282,
+          "failed": 0
+        },
+        "http://127.0.0.1:19082": {
+          "requests": 9284,
+          "successful": 9284,
+          "failed": 0
+        }
+      },
+      "access_log_check": {
+        "http://127.0.0.1:19081": {
+          "http_200_including_prefill_and_warmup": 10653,
+          "formal_success": 9282
+        },
+        "http://127.0.0.1:19082": {
+          "http_200_including_prefill_and_warmup": 10655,
+          "formal_success": 9284
+        }
+      },
+      "requests_sha256": "0d1c756e3f50644bd228f87a105b90ebd875f9ad4a4b0f7b6b6d18b179ccbf38",
+      "summary_sha256": "fe28287a82baade9d0055d1d16aa19694e712451117fd1c5973a5c471f278012",
+      "case_result_sha256": "21f26b8369eeb0bf581e1f75d21ac6ade16556d8979cc600566ab69956d41a7f",
+      "resources_sha256": "51d0382bb6bb18f942092b6050b887d04137b4e2d61ba92c98407e60006e8331"
+    },
+    {
+      "label": "teacher-i2-w1-c100-b512",
+      "interface": "teacher",
+      "endpoint": "/ImageDetect/teacher/v1.0.0",
+      "instances": 2,
+      "workers_per_instance": 1,
+      "total_workers": 2,
+      "C": 100,
+      "b": 512,
+      "queue": 0,
+      "window_seconds": 180,
+      "started_unix": 1795196262.5364473,
+      "requests": 14687,
+      "successful": 14658,
+      "failed": 29,
+      "completed_in_window": 14558,
+      "inflight_at_window_end": 100,
+      "successful_tps": 80.87777777777778,
+      "success_fraction": 0.9980254646966705,
+      "latency_ms": {
+        "p50": 772.3194375867024,
+        "p95": 4339.138241554609,
+        "p99": 7587.4986565066565,
+        "mean": 1229.7693682306801
+      },
+      "failed_latency_ms_p95": 4263.185083353892,
+      "status_counts": {
+        "200": 14658,
+        "None": 29
+      },
+      "errors": {
+        "ReadError('')": 29
+      },
+      "failure_evidence": {
+        "httpx.ReadError|errno=104": {
+          "count": 23,
+          "completed_offset_s": {
+            "samples": 23,
+            "mean": 102.6273346190523,
+            "median": 116.51683630910702,
+            "min": 6.930259522981942,
+            "max": 169.67261215718463
+          },
+          "latency_ms": {
+            "samples": 23,
+            "mean": 1427.2358271941218,
+            "median": 1054.4285529758781,
+            "min": 162.93208487331867,
+            "max": 4531.4702519681305
+          },
+          "per_instance": {
+            "http://127.0.0.1:19081": 10,
+            "http://127.0.0.1:19082": 13
+          },
+          "reachable_chain_types": {
+            "httpx.ReadError -> httpcore.ReadError -> anyio.BrokenResourceError -> builtins.ConnectionResetError": 23
+          }
+        },
+        "httpx.ReadError|errno=32": {
+          "count": 5,
+          "completed_offset_s": {
+            "samples": 5,
+            "mean": 120.82396591068246,
+            "median": 157.50196627015248,
+            "min": 48.69155760505237,
+            "max": 169.5485636680387
+          },
+          "latency_ms": {
+            "samples": 5,
+            "mean": 871.9893628265709,
+            "median": 636.4762680605054,
+            "min": 249.35047794133425,
+            "max": 2384.1590699739754
+          },
+          "per_instance": {
+            "http://127.0.0.1:19081": 3,
+            "http://127.0.0.1:19082": 2
+          },
+          "reachable_chain_types": {
+            "httpx.ReadError -> httpcore.ReadError -> anyio.BrokenResourceError -> builtins.BrokenPipeError": 5
+          }
+        },
+        "httpx.ReadError|errno=unavailable": {
+          "count": 1,
+          "completed_offset_s": {
+            "samples": 1,
+            "mean": 127.30912667303346,
+            "median": 127.30912667303346,
+            "min": 127.30912667303346,
+            "max": 127.30912667303346
+          },
+          "latency_ms": {
+            "samples": 1,
+            "mean": 538.3557118475437,
+            "median": 538.3557118475437,
+            "min": 538.3557118475437,
+            "max": 538.3557118475437
+          },
+          "per_instance": {
+            "http://127.0.0.1:19081": 1
+          },
+          "reachable_chain_types": {
+            "httpx.ReadError -> httpcore.ReadError -> anyio.ClosedResourceError": 1
+          }
+        }
+      },
+      "drain_seconds": 1.3805792371276766,
+      "unique_images": 1577,
+      "pool_images": 1577,
+      "image_frequency": {
+        "min": 9,
+        "max": 10
+      },
+      "resource_samples": 180,
+      "gpu_memory_mib": {
+        "samples": 180,
+        "mean": 3138.0,
+        "median": 3138.0,
+        "min": 3138.0,
+        "max": 3138.0
+      },
+      "gpu_utilization": {
+        "samples": 180,
+        "mean": 21.483333333333334,
+        "median": 26.0,
+        "min": 0.0,
+        "max": 34.0
+      },
+      "gpu_temperature_c": {
+        "samples": 180,
+        "mean": 60.47222222222222,
+        "median": 60.0,
+        "min": 60.0,
+        "max": 61.0
+      },
+      "gpu_power_w": {
+        "samples": 180,
+        "mean": 123.57877777777777,
+        "median": 126.8,
+        "min": 113.57,
+        "max": 127.88
+      },
+      "server_cpu_sum_one_core_100": {
+        "samples": 180,
+        "mean": 155.51728527292516,
+        "median": 197.9788857965167,
+        "min": 0.0,
+        "max": 201.12655386537028
+      },
+      "server_rss_sum_mib": {
+        "samples": 180,
+        "mean": 3261.379513888889,
+        "median": 3261.91015625,
+        "min": 3237.6484375,
+        "max": 3263.16796875
+      },
+      "generator_cpu_one_core_100": {
+        "samples": 180,
+        "mean": 84.29888246883291,
+        "median": 90.90576540406995,
+        "min": 32.98188261827747,
+        "max": 101.05337851853528
+      },
+      "generator_rss_mib": {
+        "samples": 180,
+        "mean": 937.1299262152778,
+        "median": 970.080078125,
+        "min": 579.72265625,
+        "max": 982.296875
+      },
+      "per_pid": {
+        "1304974": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 78.10619419183142,
+            "median": 98.92954765779177,
+            "min": 0.0,
+            "max": 101.06359174329552
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1630.139865451389,
+            "median": 1630.39453125,
+            "min": 1619.0703125,
+            "max": 1630.39453125
+          }
+        },
+        "1305100": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 77.41109108109374,
+            "median": 98.96066080228846,
+            "min": 0.0,
+            "max": 101.06687958136482
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1631.2396484375,
+            "median": 1631.515625,
+            "min": 1618.578125,
+            "max": 1632.7734375
+          }
+        },
+        "1305468": {
+          "role": "load_generator",
+          "cpu": {
+            "samples": 180,
+            "mean": 84.29888246883291,
+            "median": 90.90576540406995,
+            "min": 32.98188261827747,
+            "max": 101.05337851853528
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 937.1299262152778,
+            "median": 970.080078125,
+            "min": 579.72265625,
+            "max": 982.296875
+          }
+        }
+      },
+      "per_instance": {
+        "http://127.0.0.1:19081": {
+          "requests": 7376,
+          "successful": 7362,
+          "failed": 14
+        },
+        "http://127.0.0.1:19082": {
+          "requests": 7311,
+          "successful": 7296,
+          "failed": 15
+        }
+      },
+      "access_log_check": {
+        "http://127.0.0.1:19081": {
+          "http_200_including_prefill_and_warmup": 8728,
+          "formal_success": 7362
+        },
+        "http://127.0.0.1:19082": {
+          "http_200_including_prefill_and_warmup": 8662,
+          "formal_success": 7296
+        }
+      },
+      "requests_sha256": "66973fe18da379aa9a5b41874e4988291d71f0c33c0e4f2d47abf54334bd89b7",
+      "summary_sha256": "af8b7a9ff41b5eb12787f40af678aefa1a322b1ee90f4b004e079989106c5e9f",
+      "case_result_sha256": "d15e398f8b3adc2061dcc78cc15d555371816b2abaf63664f043d47b05a6a6f5",
+      "resources_sha256": "5c1a0f0f5f61c2ce73519b66d6011f6e20b97eba51cada4db1309b897f145927"
+    },
+    {
+      "label": "teacher-i2-w1-c200-b512",
+      "interface": "teacher",
+      "endpoint": "/ImageDetect/teacher/v1.0.0",
+      "instances": 2,
+      "workers_per_instance": 1,
+      "total_workers": 2,
+      "C": 200,
+      "b": 512,
+      "queue": 0,
+      "window_seconds": 180,
+      "started_unix": 1795196488.915843,
+      "requests": 10362,
+      "successful": 10333,
+      "failed": 29,
+      "completed_in_window": 10133,
+      "inflight_at_window_end": 200,
+      "successful_tps": 56.294444444444444,
+      "success_fraction": 0.9972013124879366,
+      "latency_ms": {
+        "p50": 2862.2733568772674,
+        "p95": 8659.931150404735,
+        "p99": 12591.837239218878,
+        "mean": 3505.2284819504034
+      },
+      "failed_latency_ms_p95": 8724.332405207677,
+      "status_counts": {
+        "200": 10333,
+        "None": 29
+      },
+      "errors": {
+        "ReadError('')": 29
+      },
+      "failure_evidence": {
+        "httpx.ReadError|errno=32": {
+          "count": 13,
+          "completed_offset_s": {
+            "samples": 13,
+            "mean": 83.61593525140331,
+            "median": 106.30837656185031,
+            "min": 15.731033600866795,
+            "max": 146.82501455792226
+          },
+          "latency_ms": {
+            "samples": 13,
+            "mean": 3514.859612207287,
+            "median": 3229.863795917481,
+            "min": 220.60288209468126,
+            "max": 8033.077738014981
+          },
+          "per_instance": {
+            "http://127.0.0.1:19082": 7,
+            "http://127.0.0.1:19081": 6
+          },
+          "reachable_chain_types": {
+            "httpx.ReadError -> httpcore.ReadError -> anyio.BrokenResourceError -> builtins.BrokenPipeError": 13
+          }
+        },
+        "httpx.ReadError|errno=104": {
+          "count": 13,
+          "completed_offset_s": {
+            "samples": 13,
+            "mean": 83.41275025418817,
+            "median": 83.65264714998193,
+            "min": 23.557944730855525,
+            "max": 146.9685658828821
+          },
+          "latency_ms": {
+            "samples": 13,
+            "mean": 3731.7942511827614,
+            "median": 3898.3666012063622,
+            "min": 220.49301792867482,
+            "max": 11326.882825931534
+          },
+          "per_instance": {
+            "http://127.0.0.1:19081": 9,
+            "http://127.0.0.1:19082": 4
+          },
+          "reachable_chain_types": {
+            "httpx.ReadError -> httpcore.ReadError -> anyio.BrokenResourceError -> builtins.ConnectionResetError": 13
+          }
+        },
+        "httpx.ReadError|errno=unavailable": {
+          "count": 3,
+          "completed_offset_s": {
+            "samples": 3,
+            "mean": 96.65016947624584,
+            "median": 98.39861781382933,
+            "min": 75.8724125509616,
+            "max": 115.67947806394659
+          },
+          "latency_ms": {
+            "samples": 3,
+            "mean": 3935.3398157594106,
+            "median": 4643.085831077769,
+            "min": 1984.2591870110482,
+            "max": 5178.674429189414
+          },
+          "per_instance": {
+            "http://127.0.0.1:19081": 3
+          },
+          "reachable_chain_types": {
+            "httpx.ReadError -> httpcore.ReadError -> anyio.ClosedResourceError": 3
+          }
+        }
+      },
+      "drain_seconds": 4.102161441929638,
+      "unique_images": 1577,
+      "pool_images": 1577,
+      "image_frequency": {
+        "min": 6,
+        "max": 7
+      },
+      "resource_samples": 180,
+      "gpu_memory_mib": {
+        "samples": 180,
+        "mean": 3138.0,
+        "median": 3138.0,
+        "min": 3138.0,
+        "max": 3138.0
+      },
+      "gpu_utilization": {
+        "samples": 180,
+        "mean": 14.294444444444444,
+        "median": 9.0,
+        "min": 0.0,
+        "max": 33.0
+      },
+      "gpu_temperature_c": {
+        "samples": 180,
+        "mean": 59.93333333333333,
+        "median": 60.0,
+        "min": 59.0,
+        "max": 60.0
+      },
+      "gpu_power_w": {
+        "samples": 180,
+        "mean": 119.61616666666667,
+        "median": 117.03999999999999,
+        "min": 111.86,
+        "max": 127.48
+      },
+      "server_cpu_sum_one_core_100": {
+        "samples": 180,
+        "mean": 108.12439788294299,
+        "median": 80.43009188848183,
+        "min": 0.0,
+        "max": 200.9153527583746
+      },
+      "server_rss_sum_mib": {
+        "samples": 180,
+        "mean": 3279.7048611111113,
+        "median": 3280.18359375,
+        "min": 3237.125,
+        "max": 3280.1953125
+      },
+      "generator_cpu_one_core_100": {
+        "samples": 180,
+        "mean": 98.84754666595248,
+        "median": 99.09188632473162,
+        "min": 59.02097375399564,
+        "max": 101.03465378573804
+      },
+      "generator_rss_mib": {
+        "samples": 180,
+        "mean": 1059.710177951389,
+        "median": 1108.3515625,
+        "min": 582.3984375,
+        "max": 1139.02734375
+      },
+      "per_pid": {
+        "1306818": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 54.47096160118888,
+            "median": 40.033369217767586,
+            "min": 0.0,
+            "max": 101.03019701496778
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1640.0320746527777,
+            "median": 1640.26953125,
+            "min": 1617.9375,
+            "max": 1640.27734375
+          }
+        },
+        "1306943": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 53.6534362817541,
+            "median": 39.970131091073476,
+            "min": 0.0,
+            "max": 101.06662694571243
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1639.6727864583333,
+            "median": 1639.9140625,
+            "min": 1619.1875,
+            "max": 1639.921875
+          }
+        },
+        "1307314": {
+          "role": "load_generator",
+          "cpu": {
+            "samples": 180,
+            "mean": 98.84754666595248,
+            "median": 99.09188632473162,
+            "min": 59.02097375399564,
+            "max": 101.03465378573804
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1059.710177951389,
+            "median": 1108.3515625,
+            "min": 582.3984375,
+            "max": 1139.02734375
+          }
+        }
+      },
+      "per_instance": {
+        "http://127.0.0.1:19081": {
+          "requests": 5233,
+          "successful": 5215,
+          "failed": 18
+        },
+        "http://127.0.0.1:19082": {
+          "requests": 5129,
+          "successful": 5118,
+          "failed": 11
+        }
+      },
+      "access_log_check": {
+        "http://127.0.0.1:19081": {
+          "http_200_including_prefill_and_warmup": 6589,
+          "formal_success": 5215
+        },
+        "http://127.0.0.1:19082": {
+          "http_200_including_prefill_and_warmup": 6492,
+          "formal_success": 5118
+        }
+      },
+      "requests_sha256": "13fdab0609a34fb42cd1b484441fa815a6b084cc4edc95f9299a4e2a2744bb7b",
+      "summary_sha256": "df2a412740c2207109caa7cb56fca546ef5fa133e3e4eae9a40579b5eddd3103",
+      "case_result_sha256": "bc0b965ae53e5e9b32f2a6aec42b0ac7d52e920fec295b7acd48492818dedd44",
+      "resources_sha256": "73a8f73e17593c5b13d329886ee8b3038b1dac64234485c720fd5f1fcd213de5"
+    },
+    {
+      "label": "teacher-i4-w1-c50-b512",
+      "interface": "teacher",
+      "endpoint": "/ImageDetect/teacher/v1.0.0",
+      "instances": 4,
+      "workers_per_instance": 1,
+      "total_workers": 4,
+      "C": 50,
+      "b": 512,
+      "queue": 0,
+      "window_seconds": 180,
+      "started_unix": 1795196730.741202,
+      "requests": 24902,
+      "successful": 24899,
+      "failed": 3,
+      "completed_in_window": 24849,
+      "inflight_at_window_end": 50,
+      "successful_tps": 138.05,
+      "success_fraction": 0.9998795277487752,
+      "latency_ms": {
+        "p50": 234.9831119645387,
+        "p95": 1128.9955220650872,
+        "p99": 2347.7599588455637,
+        "mean": 361.47845859843085
+      },
+      "failed_latency_ms_p95": 578.6011914955452,
+      "status_counts": {
+        "200": 24899,
+        "None": 3
+      },
+      "errors": {
+        "ReadError('')": 3
+      },
+      "failure_evidence": {
+        "httpx.ReadError|errno=32": {
+          "count": 3,
+          "completed_offset_s": {
+            "samples": 3,
+            "mean": 70.7399062057181,
+            "median": 61.81860121106729,
+            "min": 5.751521669095382,
+            "max": 144.6495957369916
+          },
+          "latency_ms": {
+            "samples": 3,
+            "mean": 447.8835583043595,
+            "median": 469.94553692638874,
+            "min": 283.03109598346055,
+            "max": 590.6740420032293
+          },
+          "per_instance": {
+            "http://127.0.0.1:19081": 2,
+            "http://127.0.0.1:19084": 1
+          },
+          "reachable_chain_types": {
+            "httpx.ReadError -> httpcore.ReadError -> anyio.BrokenResourceError -> builtins.BrokenPipeError": 3
+          }
+        }
+      },
+      "drain_seconds": 0.24719833815470338,
+      "unique_images": 1577,
+      "pool_images": 1577,
+      "image_frequency": {
+        "min": 15,
+        "max": 16
+      },
+      "resource_samples": 180,
+      "gpu_memory_mib": {
+        "samples": 180,
+        "mean": 6273.0,
+        "median": 6273.0,
+        "min": 6273.0,
+        "max": 6273.0
+      },
+      "gpu_utilization": {
+        "samples": 180,
+        "mean": 36.12777777777778,
+        "median": 38.0,
+        "min": 14.0,
+        "max": 49.0
+      },
+      "gpu_temperature_c": {
+        "samples": 180,
+        "mean": 65.33888888888889,
+        "median": 66.0,
+        "min": 63.0,
+        "max": 67.0
+      },
+      "gpu_power_w": {
+        "samples": 180,
+        "mean": 161.59877777777777,
+        "median": 167.225,
+        "min": 131.41,
+        "max": 181.71
+      },
+      "server_cpu_sum_one_core_100": {
+        "samples": 180,
+        "mean": 308.44171797235015,
+        "median": 288.0699711114428,
+        "min": 216.00497740614435,
+        "max": 401.80283380136876
+      },
+      "server_rss_sum_mib": {
+        "samples": 180,
+        "mean": 6484.002777777778,
+        "median": 6484.296875,
+        "min": 6469.625,
+        "max": 6487.953125
+      },
+      "generator_cpu_one_core_100": {
+        "samples": 180,
+        "mean": 95.15770349501396,
+        "median": 98.91847153081898,
+        "min": 79.92718864257023,
+        "max": 101.00232739824342
+      },
+      "generator_rss_mib": {
+        "samples": 180,
+        "mean": 830.9825954861111,
+        "median": 840.3984375,
+        "min": 591.34375,
+        "max": 861.65234375
+      },
+      "per_pid": {
+        "1308738": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 77.46163235213653,
+            "median": 72.9849219141671,
+            "min": 52.032497213241804,
+            "max": 100.94544523455147
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1622.0715711805556,
+            "median": 1621.828125,
+            "min": 1617.4140625,
+            "max": 1624.08203125
+          }
+        },
+        "1308863": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 77.49494518295423,
+            "median": 72.5217845608974,
+            "min": 51.93739133791596,
+            "max": 101.10371109335195
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1619.6649088541667,
+            "median": 1619.75,
+            "min": 1616.87890625,
+            "max": 1620.01953125
+          }
+        },
+        "1308986": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 77.083893019306,
+            "median": 71.51463837842127,
+            "min": 52.904603896737676,
+            "max": 101.94997275557118
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1622.4004557291667,
+            "median": 1622.64453125,
+            "min": 1618.9609375,
+            "max": 1622.9140625
+          }
+        },
+        "1309173": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 76.4012474179534,
+            "median": 73.03331403835362,
+            "min": 47.994460860663445,
+            "max": 101.00970812990518
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1619.8658420138888,
+            "median": 1620.07421875,
+            "min": 1616.37109375,
+            "max": 1620.9375
+          }
+        },
+        "1309494": {
+          "role": "load_generator",
+          "cpu": {
+            "samples": 180,
+            "mean": 95.15770349501396,
+            "median": 98.91847153081898,
+            "min": 79.92718864257023,
+            "max": 101.00232739824342
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 830.9825954861111,
+            "median": 840.3984375,
+            "min": 591.34375,
+            "max": 861.65234375
+          }
+        }
+      },
+      "per_instance": {
+        "http://127.0.0.1:19081": {
+          "requests": 6260,
+          "successful": 6258,
+          "failed": 2
+        },
+        "http://127.0.0.1:19082": {
+          "requests": 6253,
+          "successful": 6253,
+          "failed": 0
+        },
+        "http://127.0.0.1:19083": {
+          "requests": 6227,
+          "successful": 6227,
+          "failed": 0
+        },
+        "http://127.0.0.1:19084": {
+          "requests": 6162,
+          "successful": 6161,
+          "failed": 1
+        }
+      },
+      "access_log_check": {
+        "http://127.0.0.1:19081": {
+          "http_200_including_prefill_and_warmup": 7361,
+          "formal_success": 6258
+        },
+        "http://127.0.0.1:19082": {
+          "http_200_including_prefill_and_warmup": 7356,
+          "formal_success": 6253
+        },
+        "http://127.0.0.1:19083": {
+          "http_200_including_prefill_and_warmup": 7330,
+          "formal_success": 6227
+        },
+        "http://127.0.0.1:19084": {
+          "http_200_including_prefill_and_warmup": 7264,
+          "formal_success": 6161
+        }
+      },
+      "requests_sha256": "4aabfaecf0b4841e2a203c4f1e011efaa486df9768507bc50a9379ae80522ac5",
+      "summary_sha256": "e4e7883dc60bdab120b340aadd39fbb1aa65091f50c829e78cd49871a890bf6a",
+      "case_result_sha256": "5d68b756abc28740c57a0e2b81b8f2ead614d3011a2019ad64aa3f434b12747d",
+      "resources_sha256": "ec71a6348f06ab2022eb5a8ef48fdd89a020d7568c746bc5047fd4ffb62219ef"
+    },
+    {
+      "label": "teacher-i4-w1-c100-b512",
+      "interface": "teacher",
+      "endpoint": "/ImageDetect/teacher/v1.0.0",
+      "instances": 4,
+      "workers_per_instance": 1,
+      "total_workers": 4,
+      "C": 100,
+      "b": 512,
+      "queue": 0,
+      "window_seconds": 180,
+      "started_unix": 1795196969.3799214,
+      "requests": 23471,
+      "successful": 23470,
+      "failed": 1,
+      "completed_in_window": 23370,
+      "inflight_at_window_end": 100,
+      "successful_tps": 129.83333333333334,
+      "success_fraction": 0.9999573942311789,
+      "latency_ms": {
+        "p50": 435.8738465234637,
+        "p95": 2391.019504272844,
+        "p99": 3762.2269589453936,
+        "mean": 767.3367221803318
+      },
+      "failed_latency_ms_p95": 272.5623070728034,
+      "status_counts": {
+        "200": 23470,
+        "None": 1
+      },
+      "errors": {
+        "ReadError('')": 1
+      },
+      "failure_evidence": {
+        "httpx.ReadError|errno=32": {
+          "count": 1,
+          "completed_offset_s": {
+            "samples": 1,
+            "mean": 82.66191837796941,
+            "median": 82.66191837796941,
+            "min": 82.66191837796941,
+            "max": 82.66191837796941
+          },
+          "latency_ms": {
+            "samples": 1,
+            "mean": 272.5623070728034,
+            "median": 272.5623070728034,
+            "min": 272.5623070728034,
+            "max": 272.5623070728034
+          },
+          "per_instance": {
+            "http://127.0.0.1:19084": 1
+          },
+          "reachable_chain_types": {
+            "httpx.ReadError -> httpcore.ReadError -> anyio.BrokenResourceError -> builtins.BrokenPipeError": 1
+          }
+        }
+      },
+      "drain_seconds": 0.537484411848709,
+      "unique_images": 1577,
+      "pool_images": 1577,
+      "image_frequency": {
+        "min": 14,
+        "max": 15
+      },
+      "resource_samples": 180,
+      "gpu_memory_mib": {
+        "samples": 180,
+        "mean": 6273.0,
+        "median": 6273.0,
+        "min": 6273.0,
+        "max": 6273.0
+      },
+      "gpu_utilization": {
+        "samples": 180,
+        "mean": 33.083333333333336,
+        "median": 33.0,
+        "min": 7.0,
+        "max": 49.0
+      },
+      "gpu_temperature_c": {
+        "samples": 180,
+        "mean": 63.12777777777778,
+        "median": 63.0,
+        "min": 61.0,
+        "max": 65.0
+      },
+      "gpu_power_w": {
+        "samples": 180,
+        "mean": 148.8175,
+        "median": 146.70999999999998,
+        "min": 120.26,
+        "max": 175.44
+      },
+      "server_cpu_sum_one_core_100": {
+        "samples": 180,
+        "mean": 267.4347890522127,
+        "median": 271.20368747010866,
+        "min": 90.93296358177214,
+        "max": 350.43992232509464
+      },
+      "server_rss_sum_mib": {
+        "samples": 180,
+        "mean": 6479.472135416667,
+        "median": 6481.68359375,
+        "min": 6471.70703125,
+        "max": 6486.48828125
+      },
+      "generator_cpu_one_core_100": {
+        "samples": 180,
+        "mean": 99.01284568641988,
+        "median": 99.02067328928437,
+        "min": 76.93238328209677,
+        "max": 100.28918575387962
+      },
+      "generator_rss_mib": {
+        "samples": 180,
+        "mean": 981.3751302083333,
+        "median": 1010.0390625,
+        "min": 593.75390625,
+        "max": 1021.67578125
+      },
+      "per_pid": {
+        "1310850": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 67.01289691847757,
+            "median": 67.94792271773248,
+            "min": 24.0048937548272,
+            "max": 86.10537798736989
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1616.299826388889,
+            "median": 1615.03125,
+            "min": 1613.48828125,
+            "max": 1618.55859375
+          }
+        },
+        "1310975": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 68.08480120031098,
+            "median": 68.94158516699704,
+            "min": 22.98305672945889,
+            "max": 93.04726503426416
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1623.4780815972222,
+            "median": 1624.55859375,
+            "min": 1621.82421875,
+            "max": 1624.59765625
+          }
+        },
+        "1311162": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 66.41304079802623,
+            "median": 67.91187336682398,
+            "min": 16.987476713078312,
+            "max": 92.85160335109346
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1616.5708550347222,
+            "median": 1617.640625,
+            "min": 1614.859375,
+            "max": 1618.84765625
+          }
+        },
+        "1311285": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 65.92405013539793,
+            "median": 66.91915721155073,
+            "min": 22.00589903485153,
+            "max": 84.10292733650083
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1623.1233723958333,
+            "median": 1624.453125,
+            "min": 1621.53515625,
+            "max": 1624.484375
+          }
+        },
+        "1311600": {
+          "role": "load_generator",
+          "cpu": {
+            "samples": 180,
+            "mean": 99.01284568641988,
+            "median": 99.02067328928437,
+            "min": 76.93238328209677,
+            "max": 100.28918575387962
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 981.3751302083333,
+            "median": 1010.0390625,
+            "min": 593.75390625,
+            "max": 1021.67578125
+          }
+        }
+      },
+      "per_instance": {
+        "http://127.0.0.1:19081": {
+          "requests": 5883,
+          "successful": 5883,
+          "failed": 0
+        },
+        "http://127.0.0.1:19082": {
+          "requests": 5972,
+          "successful": 5972,
+          "failed": 0
+        },
+        "http://127.0.0.1:19083": {
+          "requests": 5835,
+          "successful": 5835,
+          "failed": 0
+        },
+        "http://127.0.0.1:19084": {
+          "requests": 5781,
+          "successful": 5780,
+          "failed": 1
+        }
+      },
+      "access_log_check": {
+        "http://127.0.0.1:19081": {
+          "http_200_including_prefill_and_warmup": 6992,
+          "formal_success": 5883
+        },
+        "http://127.0.0.1:19082": {
+          "http_200_including_prefill_and_warmup": 7082,
+          "formal_success": 5972
+        },
+        "http://127.0.0.1:19083": {
+          "http_200_including_prefill_and_warmup": 6944,
+          "formal_success": 5835
+        },
+        "http://127.0.0.1:19084": {
+          "http_200_including_prefill_and_warmup": 6890,
+          "formal_success": 5780
+        }
+      },
+      "requests_sha256": "e6c66752d83f229219fe9adade4caaa514a8961976aa30e4f27c2b75a79c614c",
+      "summary_sha256": "a37dd4e03e8353c12e2378fd4f43433f24797d67f88250c4d5010fe6975a6e2e",
+      "case_result_sha256": "d77ce1f3b2c79e17610adb3ebc5cb5edb60ec7347b80bcc715ed3b5ad3d1e22d",
+      "resources_sha256": "d702ad07cf909da5aea2cd89ac8b4bf7f5fec7071e9015730da6da7e8a597c07"
+    },
+    {
+      "label": "teacher-i4-w1-c200-b512",
+      "interface": "teacher",
+      "endpoint": "/ImageDetect/teacher/v1.0.0",
+      "instances": 4,
+      "workers_per_instance": 1,
+      "total_workers": 4,
+      "C": 200,
+      "b": 512,
+      "queue": 0,
+      "window_seconds": 180,
+      "started_unix": 1795197207.983161,
+      "requests": 19928,
+      "successful": 19925,
+      "failed": 3,
+      "completed_in_window": 19725,
+      "inflight_at_window_end": 200,
+      "successful_tps": 109.58333333333333,
+      "success_fraction": 0.9998494580489763,
+      "latency_ms": {
+        "p50": 1255.045240977779,
+        "p95": 5254.249629331752,
+        "p99": 8121.788744479394,
+        "mean": 1809.271527823409
+      },
+      "failed_latency_ms_p95": 3568.2942311745137,
+      "status_counts": {
+        "200": 19925,
+        "None": 3
+      },
+      "errors": {
+        "ReadError('')": 3
+      },
+      "failure_evidence": {
+        "httpx.ReadError|errno=32": {
+          "count": 3,
+          "completed_offset_s": {
+            "samples": 3,
+            "mean": 120.17174358611616,
+            "median": 174.96196319512092,
+            "min": 7.126516766147688,
+            "max": 178.42675079707988
+          },
+          "latency_ms": {
+            "samples": 3,
+            "mean": 2058.150362300997,
+            "median": 1374.6647059451789,
+            "min": 987.7555358689278,
+            "max": 3812.0308450888842
+          },
+          "per_instance": {
+            "http://127.0.0.1:19084": 1,
+            "http://127.0.0.1:19083": 1,
+            "http://127.0.0.1:19082": 1
+          },
+          "reachable_chain_types": {
+            "httpx.ReadError -> httpcore.ReadError -> anyio.BrokenResourceError -> builtins.BrokenPipeError": 3
+          }
+        }
+      },
+      "drain_seconds": 1.1582844119984657,
+      "unique_images": 1577,
+      "pool_images": 1577,
+      "image_frequency": {
+        "min": 12,
+        "max": 13
+      },
+      "resource_samples": 180,
+      "gpu_memory_mib": {
+        "samples": 180,
+        "mean": 6273.0,
+        "median": 6273.0,
+        "min": 6273.0,
+        "max": 6273.0
+      },
+      "gpu_utilization": {
+        "samples": 180,
+        "mean": 27.983333333333334,
+        "median": 28.0,
+        "min": 0.0,
+        "max": 48.0
+      },
+      "gpu_temperature_c": {
+        "samples": 180,
+        "mean": 60.93333333333333,
+        "median": 61.0,
+        "min": 60.0,
+        "max": 65.0
+      },
+      "gpu_power_w": {
+        "samples": 180,
+        "mean": 129.97922222222223,
+        "median": 129.085,
+        "min": 114.45,
+        "max": 164.78
+      },
+      "server_cpu_sum_one_core_100": {
+        "samples": 180,
+        "mean": 222.14507246694723,
+        "median": 228.8719149395113,
+        "min": 12.993407364150622,
+        "max": 397.9639601638708
+      },
+      "server_rss_sum_mib": {
+        "samples": 180,
+        "mean": 6501.0408203125,
+        "median": 6501.03125,
+        "min": 6486.1796875,
+        "max": 6503.7265625
+      },
+      "generator_cpu_one_core_100": {
+        "samples": 180,
+        "mean": 98.98071161400884,
+        "median": 99.0082895355817,
+        "min": 66.82602839844448,
+        "max": 100.45045571221117
+      },
+      "generator_rss_mib": {
+        "samples": 180,
+        "mean": 1164.0256727430556,
+        "median": 1216.8125,
+        "min": 616.8671875,
+        "max": 1225.578125
+      },
+      "per_pid": {
+        "1312957": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 55.403376935814535,
+            "median": 56.002613622766006,
+            "min": 0.0,
+            "max": 100.73774430213271
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1627.6715494791667,
+            "median": 1626.75390625,
+            "min": 1626.5859375,
+            "max": 1628.92578125
+          }
+        },
+        "1313147": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 55.33033473236861,
+            "median": 56.017059779533014,
+            "min": 3.9982372657014307,
+            "max": 99.74034089320071
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1631.7007595486111,
+            "median": 1632.578125,
+            "min": 1618.4140625,
+            "max": 1632.77734375
+          }
+        },
+        "1313269": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 55.74747289265429,
+            "median": 57.02347034820462,
+            "min": 1.998985748330865,
+            "max": 98.7429374842687
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1622.2530381944443,
+            "median": 1622.26953125,
+            "min": 1621.953125,
+            "max": 1622.421875
+          }
+        },
+        "1313392": {
+          "role": "server",
+          "cpu": {
+            "samples": 180,
+            "mean": 55.663887906109785,
+            "median": 56.96581278154948,
+            "min": 0.0,
+            "max": 98.7429374842687
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1619.4154730902778,
+            "median": 1619.4296875,
+            "min": 1619.2265625,
+            "max": 1619.6015625
+          }
+        },
+        "1313772": {
+          "role": "load_generator",
+          "cpu": {
+            "samples": 180,
+            "mean": 98.98071161400884,
+            "median": 99.0082895355817,
+            "min": 66.82602839844448,
+            "max": 100.45045571221117
+          },
+          "rss_mib": {
+            "samples": 180,
+            "mean": 1164.0256727430556,
+            "median": 1216.8125,
+            "min": 616.8671875,
+            "max": 1225.578125
+          }
+        }
+      },
+      "per_instance": {
+        "http://127.0.0.1:19081": {
+          "requests": 4971,
+          "successful": 4971,
+          "failed": 0
+        },
+        "http://127.0.0.1:19082": {
+          "requests": 4973,
+          "successful": 4972,
+          "failed": 1
+        },
+        "http://127.0.0.1:19083": {
+          "requests": 4987,
+          "successful": 4986,
+          "failed": 1
+        },
+        "http://127.0.0.1:19084": {
+          "requests": 4997,
+          "successful": 4996,
+          "failed": 1
+        }
+      },
+      "access_log_check": {
+        "http://127.0.0.1:19081": {
+          "http_200_including_prefill_and_warmup": 6067,
+          "formal_success": 4971
+        },
+        "http://127.0.0.1:19082": {
+          "http_200_including_prefill_and_warmup": 6068,
+          "formal_success": 4972
+        },
+        "http://127.0.0.1:19083": {
+          "http_200_including_prefill_and_warmup": 6082,
+          "formal_success": 4986
+        },
+        "http://127.0.0.1:19084": {
+          "http_200_including_prefill_and_warmup": 6092,
+          "formal_success": 4996
+        }
+      },
+      "requests_sha256": "d557f075ce7c798387ab8d1dedc62877fbd645b18201c93c1a2e91a6bb2abf20",
+      "summary_sha256": "9c0e54f181635ca527863696d477fbb384619f63980055e9bae0b9472e4bfaf0",
+      "case_result_sha256": "58b0d4dab579e306f4d0db47243e5e9129aed23e23a67512075179b4e5c8da1e",
+      "resources_sha256": "30976b4171e09592c4e276c78f37d4a5ea7d43e7b8790fdb63aa143785647de7"
+    }
+  ],
+  "marginal_gains": [
+    {
+      "interface": "sync",
+      "instances": 1,
+      "steps": [
+        {
+          "from_C": 50,
+          "to_C": 100,
+          "tps_gain_fraction": 0.0014678899082569696,
+          "p95_change_fraction": 1.0624280260939756,
+          "platform_candidate": true
+        },
+        {
+          "from_C": 100,
+          "to_C": 200,
+          "tps_gain_fraction": -0.05753023085379261,
+          "p95_change_fraction": 2.427529044018123,
+          "platform_candidate": true
+        }
+      ],
+      "scope": "single_run_grid_candidate_not_exact_knee_or_causal_peak"
+    },
+    {
+      "interface": "sync",
+      "instances": 2,
+      "steps": [
+        {
+          "from_C": 50,
+          "to_C": 100,
+          "tps_gain_fraction": -0.018933333333333247,
+          "p95_change_fraction": 1.0247630710257587,
+          "platform_candidate": true
+        },
+        {
+          "from_C": 100,
+          "to_C": 200,
+          "tps_gain_fraction": -0.033704811089970144,
+          "p95_change_fraction": 1.3614283900252744,
+          "platform_candidate": true
+        }
+      ],
+      "scope": "single_run_grid_candidate_not_exact_knee_or_causal_peak"
+    },
+    {
+      "interface": "sync",
+      "instances": 4,
+      "steps": [
+        {
+          "from_C": 50,
+          "to_C": 100,
+          "tps_gain_fraction": -0.02374611628939194,
+          "p95_change_fraction": 0.9935348164008215,
+          "platform_candidate": true
+        },
+        {
+          "from_C": 100,
+          "to_C": 200,
+          "tps_gain_fraction": -0.029552170947942824,
+          "p95_change_fraction": 1.2897430753304242,
+          "platform_candidate": true
+        }
+      ],
+      "scope": "single_run_grid_candidate_not_exact_knee_or_causal_peak"
+    },
+    {
+      "interface": "student",
+      "instances": 1,
+      "steps": [
+        {
+          "from_C": 50,
+          "to_C": 100,
+          "tps_gain_fraction": -0.004343468092214975,
+          "p95_change_fraction": 1.004996978858093,
+          "platform_candidate": true
+        },
+        {
+          "from_C": 100,
+          "to_C": 200,
+          "tps_gain_fraction": -0.004697986577181346,
+          "p95_change_fraction": 1.0077320220486712,
+          "platform_candidate": true
+        }
+      ],
+      "scope": "single_run_grid_candidate_not_exact_knee_or_causal_peak"
+    },
+    {
+      "interface": "student",
+      "instances": 2,
+      "steps": [
+        {
+          "from_C": 50,
+          "to_C": 100,
+          "tps_gain_fraction": 0.0006363347120583729,
+          "p95_change_fraction": 0.9777985356326013,
+          "platform_candidate": true
+        },
+        {
+          "from_C": 100,
+          "to_C": 200,
+          "tps_gain_fraction": -0.004769475357710551,
+          "p95_change_fraction": 1.0058045476384754,
+          "platform_candidate": true
+        }
+      ],
+      "scope": "single_run_grid_candidate_not_exact_knee_or_causal_peak"
+    },
+    {
+      "interface": "student",
+      "instances": 4,
+      "steps": [
+        {
+          "from_C": 50,
+          "to_C": 100,
+          "tps_gain_fraction": 0.02824500158679788,
+          "p95_change_fraction": 0.8398020383698144,
+          "platform_candidate": true
+        },
+        {
+          "from_C": 100,
+          "to_C": 200,
+          "tps_gain_fraction": -0.006172839506172867,
+          "p95_change_fraction": 0.9811243592581032,
+          "platform_candidate": true
+        }
+      ],
+      "scope": "single_run_grid_candidate_not_exact_knee_or_causal_peak"
+    },
+    {
+      "interface": "teacher",
+      "instances": 1,
+      "steps": [
+        {
+          "from_C": 50,
+          "to_C": 100,
+          "tps_gain_fraction": -0.012858088304812387,
+          "p95_change_fraction": 1.030349315807619,
+          "platform_candidate": true
+        },
+        {
+          "from_C": 100,
+          "to_C": 200,
+          "tps_gain_fraction": -0.09328608370845703,
+          "p95_change_fraction": 11.292910454003179,
+          "platform_candidate": true
+        }
+      ],
+      "scope": "single_run_grid_candidate_not_exact_knee_or_causal_peak"
+    },
+    {
+      "interface": "teacher",
+      "instances": 2,
+      "steps": [
+        {
+          "from_C": 50,
+          "to_C": 100,
+          "tps_gain_fraction": -0.21376107150572465,
+          "p95_change_fraction": 6.436788596695132,
+          "platform_candidate": true
+        },
+        {
+          "from_C": 100,
+          "to_C": 200,
+          "tps_gain_fraction": -0.3039565874433301,
+          "p95_change_fraction": 0.9957721253200014,
+          "platform_candidate": true
+        }
+      ],
+      "scope": "single_run_grid_candidate_not_exact_knee_or_causal_peak"
+    },
+    {
+      "interface": "teacher",
+      "instances": 4,
+      "steps": [
+        {
+          "from_C": 50,
+          "to_C": 100,
+          "tps_gain_fraction": -0.05951949776650978,
+          "p95_change_fraction": 1.1178290414290948,
+          "platform_candidate": true
+        },
+        {
+          "from_C": 100,
+          "to_C": 200,
+          "tps_gain_fraction": -0.15596919127086017,
+          "p95_change_fraction": 1.1974934206693857,
+          "platform_candidate": true
+        }
+      ],
+      "scope": "single_run_grid_candidate_not_exact_knee_or_causal_peak"
+    }
+  ],
+  "limitations": [
+    "one_run_per_point_no_repeat_confidence_intervals",
+    "only_C50_100_200_no_exact_sub50_knee",
+    "no_production_latency_SLO",
+    "b512_not_comparable_to_old_b1_as_isolated_factor",
+    "single_generator_can_limit_offered_load",
+    "resource_CPU_one_core_100_not_whole_host"
+  ]
+}

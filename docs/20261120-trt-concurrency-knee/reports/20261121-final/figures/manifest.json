@@ -1,0 +1,75 @@
+{
+  "summary_sha256": "82021f77f44840805a8172d7dfebd071b8234b6fb117bad6e3c58dd90f000645",
+  "script_sha256": "87d861a0991e4b8928ff326d3bb2e8001c0bfc1ebbeb6691668c765874228ff2",
+  "requirements_sha256": "235c0d66a1c7e19e0c82e0184790696dbc3866e0a1120c355b41c54ee7cbff62",
+  "python": "3.12.9",
+  "matplotlib": "3.9.4",
+  "files": [
+    {
+      "file": "throughput.png",
+      "bytes": 119704,
+      "sha256": "68f277c199c2909d8b1004c78bb201661d7e9c1fa0cf997cb6860544e457e394"
+    },
+    {
+      "file": "throughput.svg",
+      "bytes": 76587,
+      "sha256": "f1b92cc8c3e2d2119074f8f8dc2a363e8ce0ab75eb9583642ad38e1021a74c37"
+    },
+    {
+      "file": "latency.png",
+      "bytes": 154660,
+      "sha256": "adaa92ed2530c0257b8e89bd20b3baa7d9d62caff884ecad4fd0e57cd6aac4ff"
+    },
+    {
+      "file": "latency.svg",
+      "bytes": 72009,
+      "sha256": "007949932aa1da956a2a754e44c829ca95ba26a3c5233fc154a25f2660c300cb"
+    },
+    {
+      "file": "latency_p99.png",
+      "bytes": 169199,
+      "sha256": "f07290992666331e4f191bbe132b21aed6f7b4f8df075597aa7af9d4d4051808"
+    },
+    {
+      "file": "latency_p99.svg",
+      "bytes": 74745,
+      "sha256": "56a97b86470351401cfb26121c6397ee4993ed15aa0546ad4d999328d36cd00a"
+    },
+    {
+      "file": "gpu.png",
+      "bytes": 112790,
+      "sha256": "2a772f750c60df21a613d97e7e563883f335fa718819fddeaa435fc426e7dd36"
+    },
+    {
+      "file": "gpu.svg",
+      "bytes": 72761,
+      "sha256": "b0898e5f09cc4b9e50a9e303e20aabea65a9ae04a847c34e001aef7efe0d79ba"
+    },
+    {
+      "file": "cpu.png",
+      "bytes": 121001,
+      "sha256": "e492726ce2ef3e496a10c62b4a5a333c261eb4c89774656da03ba50f28b55cc8"
+    },
+    {
+      "file": "cpu.svg",
+      "bytes": 75683,
+      "sha256": "31098ee8d133bb414d89385502b223fc52c12ac1dc01c0892d5d6050ac0720b3"
+    },
+    {
+      "file": "failures.png",
+      "bytes": 115336,
+      "sha256": "08b6fd4c57c274691a3ca73cf90b665ce496acd54754a274d788ec83f63a0d37"
+    },
+    {
+      "file": "failures.svg",
+      "bytes": 72379,
+      "sha256": "7d38999ab3a9097c94179633b19e497a8fb6ed3533917040a4f1b303d8f54fd5"
+    }
+  ],
+  "qa": {
+    "cases": 27,
+    "series": 9,
+    "all_axis_ranges_checked": true,
+    "single_run_no_confidence_intervals": true
+  }
+}
