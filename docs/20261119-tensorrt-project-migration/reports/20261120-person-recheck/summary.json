@@ -1,0 +1,119 @@
+{
+  "run_ids": [
+    "trt-migration-20261120-person-recheck-r1",
+    "trt-migration-20261120-person-recheck-r2"
+  ],
+  "code": "3f77bfdcb197fd7bb957e45104342389ed3daca7",
+  "started": "2026-11-20T14:19:24.972344+08:00",
+  "ended": "2026-11-20T14:23:21.246467+08:00",
+  "successful_inference_calls": 72,
+  "formal_failures": 0,
+  "startup_failures": 1,
+  "images": [
+    {
+      "file": "0327.jpg",
+      "student_nms_false": {
+        "torch_raw": 53,
+        "trt_raw": 52,
+        "torch_business": 53,
+        "trt_business": 52,
+        "torch_only": 1,
+        "trt_only": 0,
+        "torch_unique_class": "Top_Head",
+        "trt_same_location_class": "Head",
+        "spatial_iou": 0.9523809523809523,
+        "unique_passes_business_threshold": true
+      },
+      "legacy_nms_true": {
+        "torch_raw": 51,
+        "trt_raw": 51,
+        "torch_business": 51,
+        "trt_business": 51,
+        "torch_only": 0,
+        "trt_only": 0
+      }
+    },
+    {
+      "file": "0352.jpg",
+      "student_nms_false": {
+        "torch_raw": 44,
+        "trt_raw": 43,
+        "torch_business": 43,
+        "trt_business": 42,
+        "torch_only": 1,
+        "trt_only": 0,
+        "torch_unique_class": "Head",
+        "trt_same_location_class": "Top_Head",
+        "spatial_iou": 0.9469135802469136,
+        "unique_passes_business_threshold": true
+      },
+      "legacy_nms_true": {
+        "torch_raw": 43,
+        "trt_raw": 43,
+        "torch_business": 42,
+        "trt_business": 42,
+        "torch_only": 0,
+        "trt_only": 0
+      }
+    },
+    {
+      "file": "0054.jpg",
+      "student_nms_false": {
+        "torch_raw": 44,
+        "trt_raw": 43,
+        "torch_business": 43,
+        "trt_business": 43,
+        "torch_only": 1,
+        "trt_only": 0,
+        "torch_unique_class": "Head",
+        "trt_same_location_class": "Top_Head",
+        "spatial_iou": 0.9406213134093591,
+        "unique_passes_business_threshold": false
+      },
+      "legacy_nms_true": {
+        "torch_raw": 43,
+        "trt_raw": 43,
+        "torch_business": 43,
+        "trt_business": 43,
+        "torch_only": 0,
+        "trt_only": 0
+      }
+    },
+    {
+      "file": "0437.jpg",
+      "student_nms_false": {
+        "torch_raw": 24,
+        "trt_raw": 23,
+        "torch_business": 24,
+        "trt_business": 23,
+        "torch_only": 1,
+        "trt_only": 0,
+        "torch_unique_class": "Top_Head",
+        "trt_same_location_class": "Head",
+        "spatial_iou": 0.9855072463768116,
+        "unique_passes_business_threshold": true
+      },
+      "legacy_nms_true": {
+        "torch_raw": 22,
+        "trt_raw": 22,
+        "torch_business": 22,
+        "trt_business": 22,
+        "torch_only": 0,
+        "trt_only": 0
+      }
+    }
+  ],
+  "summary_sha256": "a8f8dbea58f512b078e58a38cfca438f0d84c5930a55ad856c666a84f9e8855d",
+  "package": {
+    "source_unchanged": true,
+    "files": 30,
+    "symlinks": 0,
+    "package": {
+      "bytes": 1383299,
+      "sha256": "dbc29a9e3ce7e56316845da8e1c6a2216a2206f01c9417aa25b4d5aff4e6dcc0"
+    },
+    "created_unix": 1795155925.0908496
+  },
+  "no_http_revalidation": true,
+  "no_ground_truth": true
+}
