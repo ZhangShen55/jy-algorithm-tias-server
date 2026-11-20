@@ -29,3 +29,6 @@
 | [05-tasks.md](05-tasks.md) | 依赖任务与实际进度 |
 | [06-report-template.md](06-report-template.md) | 报告与原始证据字段 |
 | [07-completion-and-exit.md](07-completion-and-exit.md) | 27轮完成条件、停止/清理/交接 |
+
+
+路由语义补充：SyncTasks2现有实现不走BatchAdmissionController，b512对师生接口生效，对旧人数路由不形成准入限制；本轮保留实现测量，不新增准入逻辑。见02，不能把客户端并发当作单worker GPU并发。
